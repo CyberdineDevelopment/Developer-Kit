@@ -18,11 +18,11 @@
     <Nullable Condition="'$(GITHUB_REF_NAME)' == 'develop'">disable</Nullable>
     
     <!-- Package properties -->
-    <Authors>$($Config.CompanyName)</Authors>
-    <Company>$($Config.CompanyName)</Company>
-    <Copyright>Copyright (c) $($Config.CompanyName) $([System.DateTime]::Now.Year)</Copyright>
-    <PackageLicenseExpression>$RepoLicense</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/$($Config.GitHubOrganization)/$(MSBuildProjectName)</RepositoryUrl>
+    <Authors>CyberDine Development</Authors>
+    <Company>CyberDine Development</Company>
+    <Copyright>Copyright (c) CyberDine Development $([System.DateTime]::Now.Year)</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/CyberdineDevelopment/$(MSBuildProjectName)</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
