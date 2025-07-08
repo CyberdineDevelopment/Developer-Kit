@@ -5,15 +5,7 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 5
-    groups:
-      production-dependencies:
-        patterns:
-          - "*"
-        exclude-patterns:
-          - "*.Test*"
-          - "xunit*"
-          - "coverlet*"
+    open-pull-requests-limit: 10
     
   - package-ecosystem: "github-actions"
     directory: "/"
