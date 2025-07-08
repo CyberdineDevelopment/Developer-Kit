@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<LangVersion>12.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<RootNamespace>FractalDataWorks.Tools</RootNamespace>
+		<AssemblyName>FractalDataWorks.Tools</AssemblyName>
+		<PackageId>FractalDataWorks.Tools</PackageId>
+		<Description>Tools for file system, git, process, and environment operations</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FractalDataWorks.Net" Version="1.0.0" />
+		<PackageReference Include="FractalDataWorks.Services" Version="1.0.0" />
+		<PackageReference Include="LibGit2Sharp" Version="0.27.2" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+		<PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
+	</ItemGroup>
+
+</Project>
