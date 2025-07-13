@@ -1,0 +1,142 @@
+<Project>
+  <PropertyGroup>
+    <!-- Language and Compiler Settings -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Build configuration settings -->
+    <Configurations>Debug;Release;Experimental;Alpha;Beta;Preview</Configurations>
+    
+    <!-- Target Framework (except for FractalDataWorks.net which uses netstandard2.0) -->
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(MSBuildProjectName)' != 'FractalDataWorks.net'">net10.0</TargetFramework>
+    
+    <!-- Build settings -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    
+    <!-- Build Settings -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <!-- Package Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    
+    <!-- Source Generator Settings for netstandard2.0 projects -->
+    <IsRoslynComponent Condition="'$(TargetFramework)' == 'netstandard2.0'">true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules Condition="'$(TargetFramework)' == 'netstandard2.0'">true</EnforceExtendedAnalyzerRules>
+    
+    <!-- Test Project Settings -->
+    <IsTestProject Condition="$(MSBuildProjectName.EndsWith('Tests'))">true</IsTestProject>
+    <IsPackable Condition="'$(IsTestProject)' == 'true'">false</IsPackable>
+    
+    <!-- Company Information -->
+    <Authors>FractalDataWorks Development Team</Authors>
+    <Company>FractalDataWorks</Company>
+    <Copyright>Copyright © FractalDataWorks $([System.DateTime]::Now.Year)</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://dev.azure.com/REC-DevOps/Developer-Kit</PackageProjectUrl>
+    <RepositoryUrl>https://dev.azure.com/REC-DevOps/Developer-Kit/_git/Developer-Kit</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    
+  </PropertyGroup>
+
+  <!-- Debug: Minimal checks for fast development -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <AnalysisLevel>none</AnalysisLevel>
+    <RunAnalyzers>false</RunAnalyzers>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  
+  <!-- Experimental: Minimal enforcement -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Experimental'">
+    <DefineConstants>TRACE;EXPERIMENTAL</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <AnalysisLevel>latest-minimum</AnalysisLevel>
+    <RunAnalyzers>true</RunAnalyzers>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  
+  <!-- Alpha: Basic checks -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Alpha'">
+    <DefineConstants>TRACE;ALPHA</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <AnalysisLevel>latest-minimum</AnalysisLevel>
+    <RunAnalyzers>true</RunAnalyzers>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  
+  <!-- Beta: Recommended checks, warnings as errors -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Beta'">
+    <DefineConstants>TRACE;BETA</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <RunAnalyzers>true</RunAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  
+  <!-- Preview: Strict checks -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Preview'">
+    <DefineConstants>TRACE;PREVIEW</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <RunAnalyzers>true</RunAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  
+  <!-- Release: Production ready -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>TRACE;RELEASE</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <RunAnalyzers>true</RunAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  
+  <!-- Nerdbank.GitVersioning -->
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" Condition="'$(IsTestProject)' != 'true'" />
+  </ItemGroup>
+
+  <!-- Source Link -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!-- Analyzers - Applied to all projects -->
+  <ItemGroup Condition="'$(IsTestProject)' != 'true'">
+    <PackageReference Include="AsyncFixer" PrivateAssets="All" />
+    <PackageReference Include="Meziantou.Analyzer" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="All" />
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="All" />
+  </ItemGroup>
+</Project>
