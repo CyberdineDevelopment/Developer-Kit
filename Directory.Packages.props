@@ -24,10 +24,12 @@
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="Verify.SourceGenerators" Version="2.2.0" />
     <PackageVersion Include="Verify.Xunit" Version="26.6.0" />
-    <!-- Build tools -->
-    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.8.38-alpha" />
+    <!-- Build and Versioning -->
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    
     <!-- Analyzers -->
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
     <PackageVersion Include="AsyncFixer" Version="1.6.0" />
     <PackageVersion Include="Meziantou.Analyzer" Version="2.0.205" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
