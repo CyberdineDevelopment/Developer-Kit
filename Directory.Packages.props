@@ -4,10 +4,10 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- FractalDataWorks packages -->
-    <PackageVersion Include="FractalDataWorks" Version="0.1.5-alpha-gd9db33d709" />
-    <PackageVersion Include="FractalDataWorks.SmartGenerators" Version="0.1.2-alpha-g959051acd4" />
-    <PackageVersion Include="FractalDataWorks.SmartGenerators.CodeBuilders" Version="0.1.2-alpha-g959051acd4" />
-    <PackageVersion Include="FractalDataWorks.SmartGenerators.TestUtilities" Version="0.1.2-alpha-g959051acd4" />
+    <PackageVersion Include="FractalDataWorks" Version="0.1.7-alpha-g7f20da2bc5" />
+    <PackageVersion Include="FractalDataWorks.SmartGenerators" Version="0.1.1-alpha-gc64e6ae799" />
+    <PackageVersion Include="FractalDataWorks.SmartGenerators.CodeBuilders" Version="0.1.1-alpha-gc64e6ae799" />
+    <PackageVersion Include="FractalDataWorks.SmartGenerators.TestUtilities" Version="0.1.1-alpha-gc64e6ae799" />
     <PackageVersion Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
     <!-- Microsoft packages -->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
@@ -16,8 +16,8 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <!-- Testing packages -->
     <PackageVersion Include="xunit" Version="2.9.2" />
-    <PackageVersion Include="xunit.v3" Version="3.0.0-pre.40" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1" />
+    <PackageVersion Include="xunit.v3" Version="3.0.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.2" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="FluentAssertions" Version="6.12.1" />
     <PackageVersion Include="Moq" Version="4.20.72" />

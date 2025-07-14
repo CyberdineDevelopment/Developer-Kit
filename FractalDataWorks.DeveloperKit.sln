@@ -42,11 +42,11 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
+		Experimental|Any CPU = Experimental|Any CPU
+		Alpha|Any CPU = Alpha|Any CPU
+		Beta|Any CPU = Beta|Any CPU
+		Preview|Any CPU = Preview|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -61,6 +61,14 @@ Global
 		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Release|x64.Build.0 = Release|Any CPU
 		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Release|x86.ActiveCfg = Release|Any CPU
 		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Release|x86.Build.0 = Release|Any CPU
+		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Experimental|Any CPU.ActiveCfg = Experimental|Any CPU
+		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Experimental|Any CPU.Build.0 = Experimental|Any CPU
+		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Alpha|Any CPU.ActiveCfg = Alpha|Any CPU
+		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Alpha|Any CPU.Build.0 = Alpha|Any CPU
+		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Beta|Any CPU.ActiveCfg = Beta|Any CPU
+		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Beta|Any CPU.Build.0 = Beta|Any CPU
+		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Preview|Any CPU.ActiveCfg = Preview|Any CPU
+		{BA7201AE-CD11-4BD2-A6E4-5913A42B88C4}.Preview|Any CPU.Build.0 = Preview|Any CPU
 		{BCC0F6D4-C9EC-445E-A15D-6795477DE84E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BCC0F6D4-C9EC-445E-A15D-6795477DE84E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCC0F6D4-C9EC-445E-A15D-6795477DE84E}.Debug|x64.ActiveCfg = Debug|Any CPU
