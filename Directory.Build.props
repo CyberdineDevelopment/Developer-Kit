@@ -7,6 +7,9 @@
     <!-- Build configuration settings -->
     <Configurations>Debug;Release;Experimental;Alpha;Beta;Preview</Configurations>
     
+    <!-- Target Framework (except for FractalDataWorks.net which uses netstandard2.0) -->
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(MSBuildProjectName)' != 'FractalDataWorks.net'">net10.0</TargetFramework>
+    
     <!-- Build settings -->
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
@@ -32,7 +35,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     
     <!-- Nerdbank.GitVersioning -->
-    <GitVersioningVersion>3.6.143</GitVersioningVersion>
+    <GitVersioningVersion>3.7.115</GitVersioningVersion>
   </PropertyGroup>
 
   <!-- Debug: Minimal checks for fast development -->
@@ -121,15 +124,9 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
-  <!-- Source Generator Projects -->
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('EnhancedEnums')) And !$(MSBuildProjectName.Contains('Tests'))">
+  <!-- Target Framework for FractalDataWorks.net -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'FractalDataWorks.net'">
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IsPackable>true</IsPackable>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <IsRoslynComponent>true</IsRoslynComponent>
-    <DevelopmentDependency>true</DevelopmentDependency>
-    <NoPackageAnalysis>true</NoPackageAnalysis>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <!-- Test projects -->
