@@ -3,19 +3,26 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <!-- FractalDataWorks packages -->
-    <PackageVersion Include="FractalDataWorks" Version="0.1.7-alpha-g7f20da2bc5" />
-    <PackageVersion Include="FractalDataWorks.SmartGenerators" Version="0.1.1-alpha-gc64e6ae799" />
-    <PackageVersion Include="FractalDataWorks.SmartGenerators.CodeBuilders" Version="0.1.1-alpha-gc64e6ae799" />
-    <PackageVersion Include="FractalDataWorks.SmartGenerators.TestUtilities" Version="0.1.1-alpha-gc64e6ae799" />
-    <PackageVersion Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
     <!-- Microsoft packages -->
+    <PackageVersion Include="FractalDataWorks.EnhancedEnums" Version="0.1.6-alpha-g42103babd5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageVersion>
+    <PackageVersion Include="FractalDataWorks.SmartGenerators" Version="0.1.2-alpha-gf6ea635473">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageVersion>
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.0.0-1.25277.114" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0-preview.6.25358.103" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-preview.6.25358.103" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-preview.6.25358.103" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0-preview.6.25358.103" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="System.Collections.Immutable" Version="10.0.0-preview.6.25358.103" />
     <!-- Testing packages -->
-    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.v3" Version="3.0.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.2" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
@@ -25,14 +32,33 @@
     <PackageVersion Include="Verify.SourceGenerators" Version="2.2.0" />
     <PackageVersion Include="Verify.Xunit" Version="26.6.0" />
     <!-- Build and Versioning -->
-    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.8.38-alpha" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-    
     <!-- Analyzers -->
     <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
     <PackageVersion Include="AsyncFixer" Version="1.6.0" />
     <PackageVersion Include="Meziantou.Analyzer" Version="2.0.205" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.13.1" />
+    <!-- Validation -->
+    <PackageVersion Include="FluentValidation" Version="12.0.0" />
+    <!-- Resilience and Retry -->
+    <PackageVersion Include="Polly" Version="8.6.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="" />
+    <!-- Logging -->
+    <PackageVersion Include="Serilog" Version="4.2.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="8.0.5" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Formatting.Compact" Version="3.0.0" />
+    <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageVersion Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
+    <!-- Configuration -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0-preview.6.25358.103" />
+    <!-- Dependency Injection -->
+    <!-- Hosting -->
+    <!-- Logging Extensions -->
   </ItemGroup>
 </Project>

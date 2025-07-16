@@ -1,22 +1,63 @@
 # FractalDataWorks Developer Kit
 
-Core packages for the FractalDataWorks platform, providing foundational abstractions and implementations for services, connections, configuration, and more.
+A comprehensive .NET library framework providing foundational abstractions and implementations for building scalable, maintainable enterprise applications.
 
-## Repository Structure
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![.NET](https://img.shields.io/badge/.NET-10.0--preview-512BD4)]()
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-This repository contains the Layer 0.5 and Layer 1 packages as defined in the FractalDataWorks architecture:
+## Overview
+
+The FractalDataWorks Developer Kit is a layered architecture framework that provides:
+
+- **Core abstractions** for services, configuration, validation, and results
+- **Service patterns** with built-in validation, logging, and error handling
+- **Configuration management** with validation and registry patterns
+- **Enhanced messaging** using the EnhancedEnums pattern for type-safe, maintainable messages
+- **Extensible architecture** supporting dependency injection, data access, hosting, and tools
+
+## Architecture
+
+The framework follows a progressive layered architecture:
 
 ### Layer 0.5 - Core Foundation (No Dependencies)
 - **FractalDataWorks.net** - Core abstractions and base types (targets netstandard2.0 for maximum compatibility)
+  - `IFractalService` - Base service abstraction
+  - `IFractalConfiguration` - Configuration abstraction
+  - `IServiceResult` & `FractalResult<T>` - Consistent result pattern
+  - `ServiceMessage` - Enhanced enum-based messaging system
+  - `IFractalValidator<T>` - Validation abstractions
 
-### Layer 1 - Base Abstractions
-- **FractalDataWorks.Services** - Service abstractions and patterns
-- **FractalDataWorks.Connections** - Connection abstractions for data and messaging
-- **FractalDataWorks.Configuration** - Configuration abstractions and providers
-- **FractalDataWorks.DependencyInjection** - DI abstractions and extensions
-- **FractalDataWorks.Tools** - Common tools and utilities
-- **FractalDataWorks.Hosts** - Host abstractions for web and worker services
+### Layer 1 - Domain-Specific Abstractions
+- **FractalDataWorks.Services** - Service patterns and base implementations
+  - `ServiceBase<TConfiguration, TCommand>` - Base service with validation and logging
+  - `IConfigurationRegistry<T>` - Configuration management pattern
+  - Built-in command validation and error handling
+  
+- **FractalDataWorks.Configuration** - Configuration providers and patterns
+  - `ConfigurationBase<T>` - Self-validating configuration base class
+  - `ConfigurationProviderBase` - Provider pattern implementation
+  - `ConfigurationSourceBase` - Configuration source abstractions
+  
+- **FractalDataWorks.Connections** - Data and messaging connection abstractions
+  - Connection interfaces for various data sources
+  - Retry and resilience patterns
+  
+- **FractalDataWorks.DependencyInjection** - DI container abstractions
+  - Container-agnostic dependency injection patterns
+  - Service registration extensions
+  
+- **FractalDataWorks.Tools** - Common utilities and helpers
+  - Extension methods and utility classes
+  - Common helper functions
+  
+- **FractalDataWorks.Hosts** - Web and worker host abstractions
+  - Host service abstractions
+  - Background service patterns
+  
 - **FractalDataWorks.Data** - Data abstractions and common types
+  - Repository patterns
+  - Data access abstractions
 
 ## Git Workflow
 
@@ -122,6 +163,86 @@ This repository includes both Azure Pipelines and GitHub Actions workflows for C
 3. Ensure all tests pass
 4. Submit a pull request to develop
 
+## Key Features
+
+### Service Pattern
+```csharp
+public class MyService : ServiceBase<MyConfiguration, MyCommand>
+{
+    public MyService(ILogger<MyService> logger, IConfigurationRegistry<MyConfiguration> configs)
+        : base(logger, configs)
+    {
+    }
+
+    protected override async Task<FractalResult<TResult>> ExecuteCore<TResult>(MyCommand command)
+    {
+        // Implementation with automatic validation and error handling
+    }
+}
+```
+
+### Configuration Management
+```csharp
+public class MyConfiguration : ConfigurationBase<MyConfiguration>
+{
+    public string ConnectionString { get; set; }
+    public int Timeout { get; set; }
+    
+    protected override FluentValidation.Results.ValidationResult ValidateCore()
+    {
+        var validator = new MyConfigurationValidator();
+        return validator.Validate(this);
+    }
+}
+```
+
+### Enhanced Messaging
+```csharp
+// Type-safe, discoverable service messages
+_logger.LogError(ServiceMessages.InvalidConfiguration.Format("Missing connection string"));
+_logger.LogInformation(ServiceMessages.ServiceStarted.Format(ServiceName));
+
+// Messages are strongly-typed with consistent formatting
+var message = ServiceMessages.ConnectionFailed;
+_logger.LogError(message.Format(retries, errorMessage));
+```
+
+### Result Pattern
+```csharp
+// Consistent error handling across all services
+var result = await service.Execute<Customer>(command);
+if (result.IsSuccess)
+{
+    return Ok(result.Value);
+}
+else
+{
+    return BadRequest(result.Error);
+}
+```
+
+## Code Quality
+
+The framework enforces code quality through:
+
+- **Analyzers**: StyleCop, AsyncFixer, Meziantou.Analyzer, Roslynator
+- **Threading Analysis**: Microsoft.VisualStudio.Threading.Analyzers
+- **XML Documentation**: Required for all public/protected members
+- **Testing**: xUnit v3 with parallel execution
+- **Coverage**: Coverlet integration for code coverage
+- **Build Configurations**: Progressive quality gates from Debug to Release
+
+### Quality Gate Configurations
+
+| Configuration | Warnings as Errors | Analyzers | Code Style | Use Case |
+|--------------|-------------------|-----------|------------|----------|
+| Debug | No | Disabled | No | Fast development |
+| Experimental | No | Minimal | No | Early prototyping |
+| Alpha | No | Minimal | No | Initial testing |
+| Beta | Yes | Recommended | Yes | Development |
+| Preview | Yes | Recommended | Yes | Pre-release |
+| Release | Yes | Recommended | Yes | Production |
+
 ## License
 
-MIT License - see LICENSE file for details.
+Apache License 2.0 - see LICENSE file for details.
