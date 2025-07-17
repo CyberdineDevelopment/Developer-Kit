@@ -12,7 +12,7 @@ namespace FractalDataWorks.Data;
 /// <summary>
 /// Defines the contract for data connections in the Fractal framework.
 /// </summary>
-public interface IDataConnection : IFractalService<IDataConfiguration, IDataCommand>
+public interface IDataConnection : IFdwService<IDataConfiguration, IDataCommand>
 {
     /// <summary>
     /// Queries data using LINQ expressions.
@@ -27,7 +27,7 @@ public interface IDataConnection : IFractalService<IDataConfiguration, IDataComm
     /// <typeparam name="T">The type of entity to insert.</typeparam>
     /// <param name="entity">The entity to insert.</param>
     /// <returns>A task containing the result of the insert operation.</returns>
-    Task<FractalResult<T>> Insert<T>(T entity) where T : class;
+    Task<FdwResult<T>> Insert<T>(T entity) where T : class;
 
     /// <summary>
     /// Updates an existing entity.
@@ -35,7 +35,7 @@ public interface IDataConnection : IFractalService<IDataConfiguration, IDataComm
     /// <typeparam name="T">The type of entity to update.</typeparam>
     /// <param name="entity">The entity to update.</param>
     /// <returns>A task containing the result of the update operation.</returns>
-    Task<FractalResult<T>> Update<T>(T entity) where T : class;
+    Task<FdwResult<T>> Update<T>(T entity) where T : class;
 
     /// <summary>
     /// Inserts or updates an entity.
@@ -43,7 +43,7 @@ public interface IDataConnection : IFractalService<IDataConfiguration, IDataComm
     /// <typeparam name="T">The type of entity to upsert.</typeparam>
     /// <param name="entity">The entity to upsert.</param>
     /// <returns>A task containing the result of the upsert operation.</returns>
-    Task<FractalResult<T>> Upsert<T>(T entity) where T : class;
+    Task<FdwResult<T>> Upsert<T>(T entity) where T : class;
 
     /// <summary>
     /// Deletes an entity.
@@ -51,7 +51,7 @@ public interface IDataConnection : IFractalService<IDataConfiguration, IDataComm
     /// <typeparam name="T">The type of entity to delete.</typeparam>
     /// <param name="entity">The entity to delete.</param>
     /// <returns>A task containing the result of the delete operation.</returns>
-    Task<FractalResult<NonResult>> Delete<T>(T entity) where T : class;
+    Task<FdwResult<NonResult>> Delete<T>(T entity) where T : class;
 
     /// <summary>
     /// Deletes entities matching a predicate.
@@ -59,7 +59,7 @@ public interface IDataConnection : IFractalService<IDataConfiguration, IDataComm
     /// <typeparam name="T">The type of entity to delete.</typeparam>
     /// <param name="predicate">The predicate to match entities.</param>
     /// <returns>A task containing the number of deleted entities.</returns>
-    Task<FractalResult<int>> Delete<T>(Expression<Func<T, bool>> predicate) where T : class;
+    Task<FdwResult<int>> Delete<T>(Expression<Func<T, bool>> predicate) where T : class;
 
     /// <summary>
     /// Executes a data command.
@@ -67,34 +67,11 @@ public interface IDataConnection : IFractalService<IDataConfiguration, IDataComm
     /// <typeparam name="T">The type of result expected.</typeparam>
     /// <param name="command">The command to execute.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    new Task<FractalResult<T>> Execute<T>(IDataCommand command);
+    new Task<FdwResult<T>> Execute<T>(IDataCommand command);
 
     /// <summary>
     /// Begins a transaction.
     /// </summary>
     /// <returns>A task containing the transaction.</returns>
-    Task<FractalResult<IDataTransaction>> BeginTransaction();
-}
-
-/// <summary>
-/// Defines the contract for data transactions.
-/// </summary>
-public interface IDataTransaction : IDisposable
-{
-    /// <summary>
-    /// Gets the transaction ID.
-    /// </summary>
-    Guid TransactionId { get; }
-
-    /// <summary>
-    /// Commits the transaction.
-    /// </summary>
-    /// <returns>A task representing the commit operation.</returns>
-    Task<FractalResult<NonResult>> Commit();
-
-    /// <summary>
-    /// Rolls back the transaction.
-    /// </summary>
-    /// <returns>A task representing the rollback operation.</returns>
-    Task<FractalResult<NonResult>> Rollback();
+    Task<FdwResult<IDataTransaction>> BeginTransaction();
 }

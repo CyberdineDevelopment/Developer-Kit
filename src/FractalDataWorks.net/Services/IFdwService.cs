@@ -10,8 +10,8 @@ namespace FractalDataWorks.Services;
 /// </summary>
 /// <typeparam name="TConfiguration">The type of configuration this service uses.</typeparam>
 /// <typeparam name="TCommand">The type of command this service processes.</typeparam>
-public interface IFractalService<TConfiguration, TCommand>
-    where TConfiguration : IFractalConfiguration
+public interface IFdwService<TConfiguration, TCommand>
+    where TConfiguration : IFdwConfiguration
     where TCommand : ICommand
 {
     /// <summary>
@@ -35,21 +35,21 @@ public interface IFractalService<TConfiguration, TCommand>
     /// <typeparam name="T">The type of result returned by the command.</typeparam>
     /// <param name="command">The command to execute.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    Task<FractalResult<T>> Execute<T>(TCommand command);
+    Task<FdwResult<T>> Execute<T>(TCommand command);
 }
 
 /// <summary>
 /// Defines the contract for all Fractal services with specific configuration type.
 /// </summary>
 /// <typeparam name="TConfiguration">The type of configuration this service uses.</typeparam>
-public interface IFractalService<TConfiguration> : IFractalService<TConfiguration, ICommand>
-    where TConfiguration : IFractalConfiguration
+public interface IFdwService<TConfiguration> : IFdwService<TConfiguration, ICommand>
+    where TConfiguration : IFdwConfiguration
 {
 }
 
 /// <summary>
 /// Defines the base contract for all Fractal services.
 /// </summary>
-public interface IFractalService : IFractalService<IFractalConfiguration, ICommand>
+public interface IFdwService : IFdwService<IFdwConfiguration, ICommand>
 {
 }

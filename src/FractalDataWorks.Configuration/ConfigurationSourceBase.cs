@@ -10,7 +10,7 @@ namespace FractalDataWorks.Configuration;
 /// <summary>
 /// Base implementation of a configuration source.
 /// </summary>
-public abstract class ConfigurationSourceBase : IFractalConfigurationSource
+public abstract class ConfigurationSourceBase : IFdwConfigurationSource
 {
     private readonly ILogger _logger;
 
@@ -50,8 +50,8 @@ public abstract class ConfigurationSourceBase : IFractalConfigurationSource
     /// </summary>
     /// <typeparam name="TConfiguration">The type of configuration to load.</typeparam>
     /// <returns>A task containing the loaded configurations.</returns>
-    public abstract Task<FractalResult<IEnumerable<TConfiguration>>> Load<TConfiguration>()
-        where TConfiguration : IFractalConfiguration;
+    public abstract Task<FdwResult<IEnumerable<TConfiguration>>> Load<TConfiguration>()
+        where TConfiguration : IFdwConfiguration;
 
     /// <summary>
     /// Saves a configuration to this source.
@@ -59,13 +59,13 @@ public abstract class ConfigurationSourceBase : IFractalConfigurationSource
     /// <typeparam name="TConfiguration">The type of configuration to save.</typeparam>
     /// <param name="configuration">The configuration to save.</param>
     /// <returns>A task containing the save operation result.</returns>
-    public virtual Task<FractalResult<TConfiguration>> Save<TConfiguration>(TConfiguration configuration)
-        where TConfiguration : IFractalConfiguration
+    public virtual Task<FdwResult<TConfiguration>> Save<TConfiguration>(TConfiguration configuration)
+        where TConfiguration : IFdwConfiguration
     {
         if (!IsWritable)
         {
             return Task.FromResult(
-                FractalResult<TConfiguration>.Failure($"Configuration source '{Name}' is read-only"));
+                FdwResult<TConfiguration>.Failure($"Configuration source '{Name}' is read-only"));
         }
 
         return SaveCore(configuration);
@@ -77,13 +77,13 @@ public abstract class ConfigurationSourceBase : IFractalConfigurationSource
     /// <typeparam name="TConfiguration">The type of configuration to delete.</typeparam>
     /// <param name="id">The ID of the configuration to delete.</param>
     /// <returns>A task containing the delete operation result.</returns>
-    public virtual Task<FractalResult<NonResult>> Delete<TConfiguration>(int id)
-        where TConfiguration : IFractalConfiguration
+    public virtual Task<FdwResult<NonResult>> Delete<TConfiguration>(int id)
+        where TConfiguration : IFdwConfiguration
     {
         if (!IsWritable)
         {
             return Task.FromResult(
-                FractalResult<NonResult>.Failure($"Configuration source '{Name}' is read-only"));
+                FdwResult<NonResult>.Failure($"Configuration source '{Name}' is read-only"));
         }
 
         return DeleteCore<TConfiguration>(id);
@@ -95,8 +95,8 @@ public abstract class ConfigurationSourceBase : IFractalConfigurationSource
     /// <typeparam name="TConfiguration">The type of configuration to save.</typeparam>
     /// <param name="configuration">The configuration to save.</param>
     /// <returns>A task containing the save operation result.</returns>
-    protected abstract Task<FractalResult<TConfiguration>> SaveCore<TConfiguration>(TConfiguration configuration)
-        where TConfiguration : IFractalConfiguration;
+    protected abstract Task<FdwResult<TConfiguration>> SaveCore<TConfiguration>(TConfiguration configuration)
+        where TConfiguration : IFdwConfiguration;
 
     /// <summary>
     /// Core implementation of delete operation.
@@ -104,8 +104,8 @@ public abstract class ConfigurationSourceBase : IFractalConfigurationSource
     /// <typeparam name="TConfiguration">The type of configuration to delete.</typeparam>
     /// <param name="id">The ID of the configuration to delete.</param>
     /// <returns>A task containing the delete operation result.</returns>
-    protected abstract Task<FractalResult<NonResult>> DeleteCore<TConfiguration>(int id)
-        where TConfiguration : IFractalConfiguration;
+    protected abstract Task<FdwResult<NonResult>> DeleteCore<TConfiguration>(int id)
+        where TConfiguration : IFdwConfiguration;
 
     /// <summary>
     /// Raises the Changed event.

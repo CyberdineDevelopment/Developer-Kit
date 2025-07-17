@@ -19,7 +19,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
 {
     private readonly ILogger _logger;
-    private readonly IFractalConfigurationSource _source;
+    private readonly IFdwConfigurationSource _source;
     private readonly Dictionary<int, TConfiguration> _cache = new();
     private readonly SemaphoreSlim _cacheLock = new(1, 1);
 
@@ -30,7 +30,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// <param name="source">The configuration source.</param>
     protected ConfigurationProviderBase(
         ILogger logger,
-        IFractalConfigurationSource source)
+        IFdwConfigurationSource source)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _source = source ?? throw new ArgumentNullException(nameof(source));
@@ -44,7 +44,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="id">The ID of the configuration.</param>
     /// <returns>A task containing the configuration result.</returns>
-    public async Task<FractalResult<TConfiguration>> Get(int id)
+    public async Task<FdwResult<TConfiguration>> Get(int id)
     {
         await _cacheLock.WaitAsync();
         try
@@ -52,14 +52,14 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             // Check cache first
             if (_cache.TryGetValue(id, out var cached))
             {
-                return FractalResult<TConfiguration>.Success(cached);
+                return FdwResult<TConfiguration>.Success(cached);
             }
 
             // Load from source
             var loadResult = await _source.Load<TConfiguration>();
             if (loadResult.IsFailure)
             {
-                return FractalResult<TConfiguration>.Failure(loadResult.Error!);
+                return FdwResult<TConfiguration>.Failure(loadResult.Error!);
             }
 
             // Update cache
@@ -70,8 +70,8 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
 
             // Return requested configuration
             return _cache.TryGetValue(id, out var configuration)
-                ? FractalResult<TConfiguration>.Success(configuration)
-                : FractalResult<TConfiguration>.Failure($"Configuration with ID {id} not found");
+                ? FdwResult<TConfiguration>.Success(configuration)
+                : FdwResult<TConfiguration>.Failure($"Configuration with ID {id} not found");
         }
         finally
         {
@@ -84,32 +84,32 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="name">The name of the configuration.</param>
     /// <returns>A task containing the configuration result.</returns>
-    public async Task<FractalResult<TConfiguration>> Get(string name)
+    public async Task<FdwResult<TConfiguration>> Get(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return FractalResult<TConfiguration>.Failure("Configuration name cannot be empty");
+            return FdwResult<TConfiguration>.Failure("Configuration name cannot be empty");
         }
 
         var allResult = await GetAll();
         if (allResult.IsFailure)
         {
-            return FractalResult<TConfiguration>.Failure(allResult.Error!);
+            return FdwResult<TConfiguration>.Failure(allResult.Error!);
         }
 
         var configuration = allResult.Value!
             .FirstOrDefault(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
 
         return configuration != null
-            ? FractalResult<TConfiguration>.Success(configuration)
-            : FractalResult<TConfiguration>.Failure($"Configuration with name '{name}' not found");
+            ? FdwResult<TConfiguration>.Success(configuration)
+            : FdwResult<TConfiguration>.Failure($"Configuration with name '{name}' not found");
     }
 
     /// <summary>
     /// Gets all configurations.
     /// </summary>
     /// <returns>A task containing the collection of configurations.</returns>
-    public async Task<FractalResult<IEnumerable<TConfiguration>>> GetAll()
+    public async Task<FdwResult<IEnumerable<TConfiguration>>> GetAll()
     {
         await _cacheLock.WaitAsync();
         try
@@ -120,7 +120,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
                 var loadResult = await _source.Load<TConfiguration>();
                 if (loadResult.IsFailure)
                 {
-                    return FractalResult<IEnumerable<TConfiguration>>.Failure(loadResult.Error!);
+                    return FdwResult<IEnumerable<TConfiguration>>.Failure(loadResult.Error!);
                 }
 
                 // Update cache
@@ -130,7 +130,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
                 }
             }
 
-            return FractalResult<IEnumerable<TConfiguration>>.Success(_cache.Values);
+            return FdwResult<IEnumerable<TConfiguration>>.Success(_cache.Values);
         }
         finally
         {
@@ -142,7 +142,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// Gets all enabled configurations.
     /// </summary>
     /// <returns>A task containing the collection of enabled configurations.</returns>
-    public async Task<FractalResult<IEnumerable<TConfiguration>>> GetEnabled()
+    public async Task<FdwResult<IEnumerable<TConfiguration>>> GetEnabled()
     {
         var allResult = await GetAll();
         if (allResult.IsFailure)
@@ -151,7 +151,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         }
 
         var enabled = allResult.Value!.Where(c => c.IsEnabled).ToList();
-        return FractalResult<IEnumerable<TConfiguration>>.Success(enabled);
+        return FdwResult<IEnumerable<TConfiguration>>.Success(enabled);
     }
 
     /// <summary>
@@ -159,11 +159,11 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="configuration">The configuration to save.</param>
     /// <returns>A task containing the saved configuration result.</returns>
-    public async Task<FractalResult<TConfiguration>> Save(TConfiguration configuration)
+    public async Task<FdwResult<TConfiguration>> Save(TConfiguration configuration)
     {
         if (configuration == null)
         {
-            return FractalResult<TConfiguration>.Failure("Configuration cannot be null");
+            return FdwResult<TConfiguration>.Failure("Configuration cannot be null");
         }
 
         // Validate configuration
@@ -171,7 +171,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage);
-            return FractalResult<TConfiguration>.Failure(errors);
+            return FdwResult<TConfiguration>.Failure(errors);
         }
 
         // Mark as modified if updating
@@ -201,7 +201,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         _logger.LogInformation("Saved configuration {ConfigurationType} with ID {Id}",
             typeof(TConfiguration).Name, configuration.Id);
 
-        return FractalResult<TConfiguration>.Success(configuration);
+        return FdwResult<TConfiguration>.Success(configuration);
     }
 
     /// <summary>
@@ -209,11 +209,11 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="id">The ID of the configuration to delete.</param>
     /// <returns>A task containing the delete operation result.</returns>
-    public async Task<FractalResult<NonResult>> Delete(int id)
+    public async Task<FdwResult<NonResult>> Delete(int id)
     {
         if (id <= 0)
         {
-            return FractalResult<NonResult>.Failure("Invalid configuration ID");
+            return FdwResult<NonResult>.Failure("Invalid configuration ID");
         }
 
         // Delete from source
@@ -237,7 +237,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         _logger.LogInformation("Deleted configuration {ConfigurationType} with ID {Id}",
             typeof(TConfiguration).Name, id);
 
-        return FractalResult<NonResult>.Success(NonResult.Value);
+        return FdwResult<NonResult>.Success(NonResult.Value);
     }
 
     /// <summary>

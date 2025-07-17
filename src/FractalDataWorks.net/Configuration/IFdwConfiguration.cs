@@ -7,7 +7,7 @@ namespace FractalDataWorks.Configuration;
 /// <summary>
 /// Defines the base contract for all configuration types in the Fractal framework.
 /// </summary>
-public interface IFractalConfiguration
+public interface IFdwConfiguration
 {
     /// <summary>
     /// Gets the unique identifier for this configuration instance.

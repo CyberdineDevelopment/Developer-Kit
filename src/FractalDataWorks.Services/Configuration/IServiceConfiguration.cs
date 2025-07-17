@@ -5,7 +5,7 @@ namespace FractalDataWorks.Services.Configuration;
 /// <summary>
 /// Base interface for service configurations.
 /// </summary>
-public interface IServiceConfiguration : IFractalConfiguration
+public interface IServiceConfiguration : IFdwConfiguration
 {
     /// <summary>
     /// Gets the service type this configuration is for.

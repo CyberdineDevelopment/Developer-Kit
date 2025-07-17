@@ -5,7 +5,7 @@ namespace FractalDataWorks.Data;
 /// <summary>
 /// Defines the contract for data connection configurations.
 /// </summary>
-public interface IDataConfiguration : IFractalConfiguration
+public interface IDataConfiguration : IFdwConfiguration
 {
     /// <summary>
     /// Gets the connection string or endpoint.
@@ -46,30 +46,4 @@ public interface IDataConfiguration : IFractalConfiguration
     /// Gets the retry policy configuration.
     /// </summary>
     IDataRetryPolicy? RetryPolicy { get; }
-}
-
-/// <summary>
-/// Defines retry policy for data operations.
-/// </summary>
-public interface IDataRetryPolicy
-{
-    /// <summary>
-    /// Gets the maximum number of retry attempts.
-    /// </summary>
-    int MaxRetries { get; }
-
-    /// <summary>
-    /// Gets the delay between retries in milliseconds.
-    /// </summary>
-    int RetryDelayMs { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether to use exponential backoff.
-    /// </summary>
-    bool UseExponentialBackoff { get; }
-
-    /// <summary>
-    /// Gets the maximum delay in milliseconds.
-    /// </summary>
-    int MaxRetryDelayMs { get; }
 }

@@ -6,12 +6,12 @@ namespace FractalDataWorks.Results;
 /// Represents the result of an operation that can either succeed or fail.
 /// </summary>
 /// <typeparam name="T">The type of the value returned on success.</typeparam>
-public class FractalResult<T>
+public class FdwResult<T>
 {
     private readonly T? _value;
     private readonly string? _error;
 
-    private FractalResult(T? value, string? error, bool isSuccess)
+    private FdwResult(T? value, string? error, bool isSuccess)
     {
         _value = value;
         _error = error;
@@ -45,21 +45,21 @@ public class FractalResult<T>
     /// </summary>
     /// <param name="value">The value to return.</param>
     /// <returns>A successful result containing the value.</returns>
-    public static FractalResult<T> Success(T value) => new(value, null, true);
+    public static FdwResult<T> Success(T value) => new(value, null, true);
 
     /// <summary>
     /// Creates a failed result with the specified error message.
     /// </summary>
     /// <param name="error">The error message.</param>
     /// <returns>A failed result containing the error message.</returns>
-    public static FractalResult<T> Failure(string error) => new(default, error ?? "Unknown error", false);
+    public static FdwResult<T> Failure(string error) => new(default, error ?? "Unknown error", false);
 
     /// <summary>
     /// Creates a failed result from validation errors.
     /// </summary>
     /// <param name="errors">The collection of validation errors.</param>
     /// <returns>A failed result containing validation errors.</returns>
-    public static FractalResult<T> Failure(IEnumerable<string> errors)
+    public static FdwResult<T> Failure(IEnumerable<string> errors)
     {
         var errorMessage = string.Join("; ", errors);
         return new(default, errorMessage, false);
@@ -71,18 +71,18 @@ public class FractalResult<T>
     /// <typeparam name="TNew">The new type to map to.</typeparam>
     /// <param name="mapper">The mapping function.</param>
     /// <returns>A new result with the mapped value or the original error.</returns>
-    public FractalResult<TNew> Map<TNew>(Func<T, TNew> mapper)
+    public FdwResult<TNew> Map<TNew>(Func<T, TNew> mapper)
     {
         if (IsFailure)
-            return FractalResult<TNew>.Failure(_error!);
+            return FdwResult<TNew>.Failure(_error!);
 
         try
         {
-            return FractalResult<TNew>.Success(mapper(_value!));
+            return FdwResult<TNew>.Success(mapper(_value!));
         }
         catch (Exception ex)
         {
-            return FractalResult<TNew>.Failure($"Mapping failed: {ex.Message}");
+            return FdwResult<TNew>.Failure($"Mapping failed: {ex.Message}");
         }
     }
 
@@ -104,5 +104,5 @@ public class FractalResult<T>
     /// Implicitly converts a value to a successful result.
     /// </summary>
     /// <param name="value">The value to convert.</param>
-    public static implicit operator FractalResult<T>(T value) => Success(value);
+    public static implicit operator FdwResult<T>(T value) => Success(value);
 }

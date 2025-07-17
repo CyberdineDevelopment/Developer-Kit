@@ -187,17 +187,3 @@ public abstract class EntityBase<TKey> where TKey : IEquatable<TKey>
 public abstract class EntityBase : EntityBase<int>
 {
 }
-
-/// <summary>
-/// Base class for entities with GUID primary keys.
-/// </summary>
-public abstract class GuidEntityBase : EntityBase<Guid>
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="GuidEntityBase"/> class.
-    /// </summary>
-    protected GuidEntityBase()
-    {
-        Id = Guid.NewGuid();
-    }
-}
