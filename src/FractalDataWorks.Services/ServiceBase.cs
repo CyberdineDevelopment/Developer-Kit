@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FractalDataWorks.Commands;
@@ -260,4 +259,5 @@ public interface IConfigurationRegistry<TConfiguration>
     /// <param name="configuration">The configuration if found; otherwise, null.</param>
     /// <returns>True if the configuration was found; otherwise, false.</returns>
     bool TryGet(int id, out TConfiguration? configuration);
+}
 }
