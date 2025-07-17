@@ -17,7 +17,7 @@ namespace FractalDataWorks.Services;
 /// </summary>
 /// <typeparam name="TConfiguration">The configuration type.</typeparam>
 /// <typeparam name="TCommand">The command type.</typeparam>
-public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TConfiguration, TCommand>
+public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfiguration, TCommand>
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
     where TCommand : ICommand
 {
@@ -76,21 +76,21 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
     /// <param name="configuration">The configuration to validate.</param>
     /// <param name="validConfiguration">The valid configuration if successful.</param>
     /// <returns>The validation result.</returns>
-    protected FractalResult<TConfiguration> ConfigurationIsValid(
-        IFractalConfiguration configuration, 
+    protected FdwResult<TConfiguration> ConfigurationIsValid(
+        IFdwConfiguration configuration, 
         out TConfiguration validConfiguration)
     {
         if (configuration is TConfiguration config && config.IsValid)
         {
             validConfiguration = config;
-            return FractalResult<TConfiguration>.Success(config);
+            return FdwResult<TConfiguration>.Success(config);
         }
 
         _logger.LogWarning(
             ServiceMessages.InvalidConfiguration.Format(configuration?.GetType().Name ?? "null"));
 
         validConfiguration = GetInvalidConfiguration();
-        return FractalResult<TConfiguration>.Failure(
+        return FdwResult<TConfiguration>.Failure(
             ServiceMessages.InvalidConfiguration.Format(ServiceName));
     }
 
@@ -99,17 +99,17 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
     /// </summary>
     /// <param name="configurationId">The configuration ID.</param>
     /// <returns>The validation result.</returns>
-    protected FractalResult<TConfiguration> ConfigurationIsValid(int configurationId)
+    protected FdwResult<TConfiguration> ConfigurationIsValid(int configurationId)
     {
         if (configurationId <= 0)
         {
-            return FractalResult<TConfiguration>.Failure(
+            return FdwResult<TConfiguration>.Failure(
                 ServiceMessages.InvalidId.Format(configurationId));
         }
 
         if (!_configurations.TryGet(configurationId, out var config))
         {
-            return FractalResult<TConfiguration>.Failure(
+            return FdwResult<TConfiguration>.Failure(
                 ServiceMessages.ConfigurationNotFound.Format(configurationId));
         }
 
@@ -121,14 +121,14 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
     /// </summary>
     /// <param name="command">The command to validate.</param>
     /// <returns>The validation result.</returns>
-    protected async Task<FractalResult<TCommand>> ValidateCommand(ICommand command)
+    protected async Task<FdwResult<TCommand>> ValidateCommand(ICommand command)
     {
         if (command is not TCommand cmd)
         {
             _logger.LogWarning(
                 ServiceMessages.InvalidCommand.Format(command?.GetType().Name ?? "null"));
 
-            return FractalResult<TCommand>.Failure(
+            return FdwResult<TCommand>.Failure(
                 ServiceMessages.InvalidCommand.Format(ServiceName));
         }
 
@@ -137,7 +137,7 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage);
-            return FractalResult<TCommand>.Failure(errors);
+            return FdwResult<TCommand>.Failure(errors);
         }
 
         // Validate command configuration if present
@@ -146,11 +146,11 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
             _logger.LogWarning(
                 ServiceMessages.InvalidConfiguration.Format("Command configuration"));
 
-            return FractalResult<TCommand>.Failure(
+            return FdwResult<TCommand>.Failure(
                 ServiceMessages.InvalidConfiguration.Format(ServiceName));
         }
 
-        return FractalResult<TCommand>.Success(cmd);
+        return FdwResult<TCommand>.Success(cmd);
     }
 
     /// <summary>
@@ -159,7 +159,7 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
     /// <typeparam name="T">The result type.</typeparam>
     /// <param name="command">The command to execute.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    public async Task<FractalResult<T>> Execute<T>(TCommand command)
+    public async Task<FdwResult<T>> Execute<T>(TCommand command)
     {
         var startTime = DateTime.UtcNow;
         var correlationId = command?.CorrelationId ?? Guid.NewGuid();
@@ -173,13 +173,13 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
             // Validate the command
             if (command == null)
             {
-                return FractalResult<T>.Failure(ServiceMessages.InvalidCommand.Format("null"));
+                return FdwResult<T>.Failure(ServiceMessages.InvalidCommand.Format("null"));
             }
             
             var validationResult = await ValidateCommand(command);
             if (validationResult.IsFailure)
             {
-                return FractalResult<T>.Failure(validationResult.Error!);
+                return FdwResult<T>.Failure(validationResult.Error!);
             }
 
             try
@@ -209,7 +209,7 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
                 _logger.LogError(ex, 
                     ServiceMessages.OperationFailed.Format(command.GetType().Name, ex.Message));
 
-                return FractalResult<T>.Failure(
+                return FdwResult<T>.Failure(
                     ServiceMessages.OperationFailed.Format(command.GetType().Name, ex.Message));
             }
         }
@@ -221,7 +221,7 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
     /// <typeparam name="T">The result type.</typeparam>
     /// <param name="command">The validated command to execute.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    protected abstract Task<FractalResult<T>> ExecuteCore<T>(TCommand command);
+    protected abstract Task<FdwResult<T>> ExecuteCore<T>(TCommand command);
 
     /// <summary>
     /// Gets the invalid configuration instance for this service type.
@@ -238,7 +238,7 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
 /// </summary>
 /// <typeparam name="TConfiguration">The type of configuration managed by this registry.</typeparam>
 public interface IConfigurationRegistry<TConfiguration>
-    where TConfiguration : IFractalConfiguration
+    where TConfiguration : IFdwConfiguration
 {
     /// <summary>
     /// Gets a configuration by ID.

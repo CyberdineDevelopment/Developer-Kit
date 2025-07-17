@@ -29,7 +29,7 @@ public interface ICommand
     /// <summary>
     /// Gets the configuration associated with this command.
     /// </summary>
-    IFractalConfiguration? Configuration { get; }
+    IFdwConfiguration? Configuration { get; }
 
     /// <summary>
     /// Validates this command.
@@ -48,5 +48,5 @@ public interface ICommand<TResult> : ICommand
     /// Executes the command logic.
     /// </summary>
     /// <returns>A task containing the command result.</returns>
-    Task<FractalResult<TResult>> Execute();
+    Task<FdwResult<TResult>> Execute();
 }

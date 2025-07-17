@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FractalDataWorks.Configuration;
@@ -13,7 +12,7 @@ namespace FractalDataWorks.Configuration;
 /// Base class for all configuration types in the Fractal framework.
 /// </summary>
 /// <typeparam name="TConfiguration">The derived configuration type.</typeparam>
-public abstract class ConfigurationBase<TConfiguration> : IFractalConfiguration
+public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
 {
     private bool? _isValid;
@@ -153,76 +152,4 @@ public abstract class ConfigurationBase<TConfiguration> : IFractalConfiguration
             _ => ValidationSeverity.Error
         };
     }
-}
-
-/// <summary>
-/// Implementation of IValidationResult for configuration validation.
-/// </summary>
-internal class ConfigurationValidationResult : IValidationResult
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ConfigurationValidationResult"/> class.
-    /// </summary>
-    /// <param name="isValid">Whether the validation succeeded.</param>
-    /// <param name="errors">The validation errors.</param>
-    public ConfigurationValidationResult(bool isValid, IEnumerable<IValidationError> errors)
-    {
-        IsValid = isValid;
-        Errors = errors.ToList().AsReadOnly();
-    }
-
-    /// <summary>
-    /// Gets a value indicating whether the validation succeeded.
-    /// </summary>
-    public bool IsValid { get; }
-
-    /// <summary>
-    /// Gets the collection of validation errors.
-    /// </summary>
-    public IReadOnlyList<IValidationError> Errors { get; }
-}
-
-/// <summary>
-/// Implementation of IValidationError for configuration validation.
-/// </summary>
-internal class ConfigurationValidationError : IValidationError
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ConfigurationValidationError"/> class.
-    /// </summary>
-    /// <param name="propertyName">The property name.</param>
-    /// <param name="errorMessage">The error message.</param>
-    /// <param name="errorCode">The error code.</param>
-    /// <param name="severity">The severity.</param>
-    public ConfigurationValidationError(
-        string propertyName,
-        string errorMessage,
-        string? errorCode,
-        ValidationSeverity severity)
-    {
-        PropertyName = propertyName;
-        ErrorMessage = errorMessage;
-        ErrorCode = errorCode;
-        Severity = severity;
-    }
-
-    /// <summary>
-    /// Gets the name of the property that failed validation.
-    /// </summary>
-    public string PropertyName { get; }
-
-    /// <summary>
-    /// Gets the error message.
-    /// </summary>
-    public string ErrorMessage { get; }
-
-    /// <summary>
-    /// Gets the error code.
-    /// </summary>
-    public string? ErrorCode { get; }
-
-    /// <summary>
-    /// Gets the severity of the error.
-    /// </summary>
-    public ValidationSeverity Severity { get; }
 }
