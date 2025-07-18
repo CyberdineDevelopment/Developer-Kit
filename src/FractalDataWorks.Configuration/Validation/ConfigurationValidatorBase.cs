@@ -1,6 +1,5 @@
 using System;
 using FluentValidation;
-using FractalDataWorks.Configuration;
 
 namespace FractalDataWorks.Configuration.Validation;
 

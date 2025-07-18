@@ -1,14 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FractalDataWorks.Commands;
 using FractalDataWorks.Configuration;
 using FractalDataWorks.Messages;
 using FractalDataWorks.Results;
-
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FractalDataWorks.Services;
 
@@ -17,24 +15,28 @@ namespace FractalDataWorks.Services;
 /// </summary>
 /// <typeparam name="TConfiguration">The configuration type.</typeparam>
 /// <typeparam name="TCommand">The command type.</typeparam>
-public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfiguration, TCommand>
+/// <typeparam name="TService">The concrete service type for logging category.</typeparam>
+public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwService<TConfiguration, TCommand>
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
     where TCommand : ICommand
+    where TService : class
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<TService> _logger;
     private readonly IConfigurationRegistry<TConfiguration> _configurations;
     private readonly TConfiguration _primaryConfiguration;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ServiceBase{TConfiguration, TCommand}"/> class.
+    /// Initializes a new instance of the <see cref="ServiceBase{TConfiguration, TCommand, TService}"/> class.
     /// </summary>
-    /// <param name="logger">The logger instance.</param>
+    /// <param name="logger">The logger instance for the concrete service type. If null, uses Microsoft's NullLogger.</param>
     /// <param name="configurations">The configuration registry.</param>
     protected ServiceBase(
-        ILogger logger,
+        ILogger<TService>? logger,
         IConfigurationRegistry<TConfiguration> configurations)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        // Use Microsoft's NullLogger for consistency with ILogger<T> abstractions
+        // This works seamlessly when Serilog is registered via services.AddSerilog()
+        _logger = logger ?? NullLogger<TService>.Instance;
         _configurations = configurations ?? throw new ArgumentNullException(nameof(configurations));
 
         // Validate we have at least one configuration
@@ -46,19 +48,19 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfi
         }
         else
         {
-            _primaryConfiguration = allConfigs.FirstOrDefault(c => c.IsEnabled && c.IsValid) 
+            _primaryConfiguration = allConfigs.FirstOrDefault(c => c.IsEnabled && c.IsValid)
                                   ?? GetInvalidConfiguration();
         }
 
         _logger.LogInformation(
-            ServiceMessages.ServiceStarted.Message, 
+            ServiceMessages.ServiceStarted.Message,
             ServiceName);
     }
 
     /// <summary>
     /// Gets the service name.
     /// </summary>
-    public virtual string ServiceName => GetType().Name;
+    public virtual string ServiceName => typeof(TService).Name;
 
     /// <summary>
     /// Gets whether the service is in a healthy state.
@@ -71,13 +73,18 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfi
     public TConfiguration Configuration => _primaryConfiguration;
 
     /// <summary>
+    /// Gets the logger instance for this service.
+    /// </summary>
+    protected ILogger<TService> Logger => _logger;
+
+    /// <summary>
     /// Validates a configuration.
     /// </summary>
     /// <param name="configuration">The configuration to validate.</param>
     /// <param name="validConfiguration">The valid configuration if successful.</param>
     /// <returns>The validation result.</returns>
     protected FdwResult<TConfiguration> ConfigurationIsValid(
-        IFdwConfiguration configuration, 
+        IFdwConfiguration configuration,
         out TConfiguration validConfiguration)
     {
         if (configuration is TConfiguration config && config.IsValid)
@@ -166,8 +173,8 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfi
 
         using (_logger.BeginScope("CorrelationId", correlationId))
         {
-            _logger.LogDebug("Executing command {CommandType} in {Service}", 
-                command?.GetType().Name ?? "null", 
+            _logger.LogDebug("Executing command {CommandType} in {Service}",
+                command?.GetType().Name ?? "null",
                 ServiceName);
 
             // Validate the command
@@ -175,7 +182,7 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfi
             {
                 return FdwResult<T>.Failure(ServiceMessages.InvalidCommand.Format("null"));
             }
-            
+
             var validationResult = await ValidateCommand(command);
             if (validationResult.IsFailure)
             {
@@ -205,8 +212,8 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfi
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
                 var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;
-                
-                _logger.LogError(ex, 
+
+                _logger.LogError(ex,
                     ServiceMessages.OperationFailed.Format(command.GetType().Name, ex.Message));
 
                 return FdwResult<T>.Failure(
@@ -231,33 +238,4 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfi
     {
         return new TConfiguration { IsEnabled = false };
     }
-}
-
-/// <summary>
-/// Defines the contract for configuration registries.
-/// </summary>
-/// <typeparam name="TConfiguration">The type of configuration managed by this registry.</typeparam>
-public interface IConfigurationRegistry<TConfiguration>
-    where TConfiguration : IFdwConfiguration
-{
-    /// <summary>
-    /// Gets a configuration by ID.
-    /// </summary>
-    /// <param name="id">The configuration ID.</param>
-    /// <returns>The configuration if found; otherwise, null.</returns>
-    TConfiguration? Get(int id);
-
-    /// <summary>
-    /// Gets all configurations.
-    /// </summary>
-    /// <returns>All available configurations.</returns>
-    IEnumerable<TConfiguration> GetAll();
-
-    /// <summary>
-    /// Tries to get a configuration by ID.
-    /// </summary>
-    /// <param name="id">The configuration ID.</param>
-    /// <param name="configuration">The configuration if found; otherwise, null.</param>
-    /// <returns>True if the configuration was found; otherwise, false.</returns>
-    bool TryGet(int id, out TConfiguration? configuration);
 }

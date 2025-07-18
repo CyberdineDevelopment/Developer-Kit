@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FractalDataWorks.Configuration;
 using FractalDataWorks.Results;
 using FractalDataWorks.Validation;
 using Microsoft.Extensions.Logging;
@@ -15,7 +14,7 @@ namespace FractalDataWorks.Configuration;
 /// </summary>
 /// <typeparam name="TConfiguration">The type of configuration managed by this provider.</typeparam>
 public abstract class ConfigurationProviderBase<TConfiguration> : 
-    IFractalConfigurationProvider<TConfiguration>
+    IFdwConfigurationProvider<TConfiguration>
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
 {
     private readonly ILogger _logger;

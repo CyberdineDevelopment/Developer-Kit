@@ -1,6 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+	  <PackageReference Include="FractalDataWorks.EnhancedEnums">
+		  <PrivateAssets>all</PrivateAssets>
+	  </PackageReference>
+	  <PackageReference Include="FractalDataWorks.SmartGenerators">
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		  <PrivateAssets>all</PrivateAssets>
+	  </PackageReference>
+
+    <!-- Temporarily keep .net reference until refactoring is complete -->
     <ProjectReference Include="..\FractalDataWorks.net\FractalDataWorks.net.csproj" />
   </ItemGroup>
 
