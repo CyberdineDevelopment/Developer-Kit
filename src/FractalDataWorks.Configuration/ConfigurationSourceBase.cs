@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using FractalDataWorks.Configuration;
 using FractalDataWorks.Results;
 using Microsoft.Extensions.Logging;
 
