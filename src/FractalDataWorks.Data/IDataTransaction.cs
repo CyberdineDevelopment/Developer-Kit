@@ -18,11 +18,11 @@ public interface IDataTransaction : IDisposable
     /// Commits the transaction.
     /// </summary>
     /// <returns>A task representing the commit operation.</returns>
-    Task<FdwResult<NonResult>> Commit();
+    Task<IFdwResult<NonResult>> Commit();
 
     /// <summary>
     /// Rolls back the transaction.
     /// </summary>
     /// <returns>A task representing the rollback operation.</returns>
-    Task<FdwResult<NonResult>> Rollback();
+    Task<IFdwResult<NonResult>> Rollback();
 }

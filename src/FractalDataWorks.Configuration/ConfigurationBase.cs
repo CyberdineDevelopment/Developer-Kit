@@ -11,7 +11,7 @@ namespace FractalDataWorks.Configuration;
 /// </summary>
 /// <typeparam name="TConfiguration">The derived configuration type.</typeparam>
 public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
-    where TConfiguration : ConfigurationBase<TConfiguration>, new()
+    where TConfiguration : ConfigurationBase<TConfiguration>, IFdwConfiguration, new()
 {
     private bool? _isValid;
     private IValidationResult? _lastValidationResult;
@@ -35,9 +35,11 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
         {
             if (!_isValid.HasValue)
             {
-                var validationTask = Validate();
-                validationTask.Wait();
-                _lastValidationResult = validationTask.Result;
+                // Use GetAwaiter().GetResult() to avoid AggregateException wrapping
+                // This is a property getter that must be synchronous
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+                _lastValidationResult = ValidateAsync().GetAwaiter().GetResult();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
                 _isValid = _lastValidationResult.IsValid;
             }
             return _isValid.Value;
@@ -60,6 +62,11 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
     public DateTime? ModifiedAt { get; set; }
 
     /// <summary>
+    /// Gets the section name for this configuration.
+    /// </summary>
+    public abstract string SectionName { get; }
+
+    /// <summary>
     /// Gets the last validation result.
     /// </summary>
     public IValidationResult? LastValidationResult => _lastValidationResult;
@@ -67,8 +74,17 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
     /// <summary>
     /// Validates this configuration.
     /// </summary>
+    /// <returns>True if the configuration is valid; otherwise, false.</returns>
+    bool IFdwConfiguration.Validate()
+    {
+        return IsValid;
+    }
+
+    /// <summary>
+    /// Validates this configuration asynchronously.
+    /// </summary>
     /// <returns>A task containing the validation result.</returns>
-    public virtual async Task<IValidationResult> Validate()
+    public virtual async Task<IValidationResult> ValidateAsync()
     {
         var validator = GetValidator();
         if (validator == null)
@@ -76,7 +92,7 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
             return new ConfigurationValidationResult(true, Array.Empty<IValidationError>());
         }
 
-        var fluentResult = await validator.ValidateAsync((TConfiguration)this);
+        var fluentResult = await validator.ValidateAsync((TConfiguration)this).ConfigureAwait(false);
         
         var errors = fluentResult.Errors
             .Select(e => new ConfigurationValidationError(

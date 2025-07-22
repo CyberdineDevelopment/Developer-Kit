@@ -110,7 +110,7 @@ dotnet_diagnostic.MA0009.severity = warning  # Regex DoS (real security issue)
 dotnet_diagnostic.MA0016.severity = suggestion  # Prefer abstraction over implementation
 dotnet_diagnostic.MA0048.severity = suggestion  # File name must match type name
 dotnet_diagnostic.MA0051.severity = suggestion  # Method is too long
-dotnet_diagnostic.VSTHRD200.severity = warning  # Async suffix - confusing API
+dotnet_diagnostic.VSTHRD200.severity = none  # Async suffix - confusing API
 
 # ===============================================
 # MODERN ANALYZER RECOMMENDATIONS

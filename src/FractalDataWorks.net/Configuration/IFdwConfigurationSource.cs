@@ -30,7 +30,7 @@ public interface IFdwConfigurationSource
     /// </summary>
     /// <typeparam name="TConfiguration">The type of configuration to load.</typeparam>
     /// <returns>A task containing the loaded configurations.</returns>
-    Task<FdwResult<IEnumerable<TConfiguration>>> Load<TConfiguration>()
+    Task<IFdwResult<IEnumerable<TConfiguration>>> Load<TConfiguration>()
         where TConfiguration : IFdwConfiguration;
 
     /// <summary>
@@ -39,7 +39,7 @@ public interface IFdwConfigurationSource
     /// <typeparam name="TConfiguration">The type of configuration to save.</typeparam>
     /// <param name="configuration">The configuration to save.</param>
     /// <returns>A task containing the save operation result.</returns>
-    Task<FdwResult<TConfiguration>> Save<TConfiguration>(TConfiguration configuration)
+    Task<IFdwResult<TConfiguration>> Save<TConfiguration>(TConfiguration configuration)
         where TConfiguration : IFdwConfiguration;
 
     /// <summary>
@@ -48,7 +48,7 @@ public interface IFdwConfigurationSource
     /// <typeparam name="TConfiguration">The type of configuration to delete.</typeparam>
     /// <param name="id">The ID of the configuration to delete.</param>
     /// <returns>A task containing the delete operation result.</returns>
-    Task<FdwResult<NonResult>> Delete<TConfiguration>(int id)
+    Task<IFdwResult<NonResult>> Delete<TConfiguration>(int id)
         where TConfiguration : IFdwConfiguration;
 
     /// <summary>

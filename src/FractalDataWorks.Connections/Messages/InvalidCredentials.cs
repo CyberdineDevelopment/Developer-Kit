@@ -1,5 +1,5 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
 using FractalDataWorks.EnhancedEnums.Attributes;
+using FractalDataWorks.Messages;
 
 namespace FractalDataWorks.Connections.Messages;
 
@@ -13,5 +13,5 @@ public class InvalidCredentials : ConnectionMessageBase
     /// Initializes a new instance of the <see cref="InvalidCredentials"/> class.
     /// </summary>
     public InvalidCredentials() 
-        : base("CONN_004", "Invalid credentials provided for {0}", MessageSeverity.Error) { }
+        : base(4, "InvalidCredentials", "CONN_004", "Invalid credentials provided for {0}", MessageSeverity.Error) { }
 }

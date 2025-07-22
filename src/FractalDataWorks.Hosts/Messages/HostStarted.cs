@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Hosts.Messages;
@@ -13,5 +13,5 @@ public class HostStarted : HostMessageBase
     /// Initializes a new instance of the <see cref="HostStarted"/> class.
     /// </summary>
     public HostStarted() 
-        : base("HOST_002", "Host {0} started successfully on {1}", MessageSeverity.Information) { }
+        : base(2, "HostStarted", "HOST_002", "Host {0} started successfully on {1}", MessageSeverity.Information) { }
 }

@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using FractalDataWorks.Results;
 
 namespace FractalDataWorks.Validation;
 
@@ -21,5 +20,5 @@ public interface IFdwValidator<T>
     /// </summary>
     /// <param name="instance">The instance to validate.</param>
     /// <returns>A successful result if valid; otherwise, a failure result with validation errors.</returns>
-    Task<FdwResult<T>> ValidateToResult(T instance);
+    Task<IFdwResult<T>> ValidateToResult(T instance);
 }

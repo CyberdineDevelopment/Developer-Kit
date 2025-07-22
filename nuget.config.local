@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+    <!-- Local package sources for development -->
+    <add key="EnhancedEnums-Local" value="C:\development\fractaldataworks\enhanced-enums\src\FractalDataWorks.EnhancedEnums\bin\Debug" />
+    <add key="SmartGenerators-Local" value="C:\development\fractaldataworks\smart-generators\src\FractalDataWorks.SmartGenerators\bin\Debug" />
+    <add key="Messages-Local" value="C:\development\fractaldataworks\messages\src\FractalDataWorks.Messages\bin\Debug" />
+  </packageSources>
+  <packageSourceMapping>
+    <!-- Local sources take precedence -->
+    <packageSource key="EnhancedEnums-Local">
+      <package pattern="FractalDataWorks.EnhancedEnums*" />
+    </packageSource>
+    <packageSource key="SmartGenerators-Local">
+      <package pattern="FractalDataWorks.SmartGenerators*" />
+    </packageSource>
+    <packageSource key="Messages-Local">
+      <package pattern="FractalDataWorks.Messages*" />
+    </packageSource>
+    <!-- Everything else from nuget.org -->
+    <packageSource key="nuget.org">
+      <package pattern="*" />
+    </packageSource>
+  </packageSourceMapping>
+</configuration>

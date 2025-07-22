@@ -59,6 +59,22 @@ The framework follows a progressive layered architecture:
   - Repository patterns
   - Data access abstractions
 
+## Package Documentation
+
+Each package has its own detailed README with usage examples and API documentation:
+
+### Core Foundation
+- [FractalDataWorks.net](src/FractalDataWorks.net/README.md) - Core abstractions and base types
+
+### Layer 1 Packages
+- [FractalDataWorks.Services](src/FractalDataWorks.Services/README.md) - Service patterns and base implementations
+- [FractalDataWorks.Configuration](src/FractalDataWorks.Configuration/README.md) - Configuration management system
+- [FractalDataWorks.Connections](src/FractalDataWorks.Connections/README.md) - Connection abstractions and base implementations
+- [FractalDataWorks.Data](src/FractalDataWorks.Data/README.md) - Data access abstractions and entity base classes
+- [FractalDataWorks.DependencyInjection](src/FractalDataWorks.DependencyInjection/README.md) - DI container abstractions *(planning phase)*
+- [FractalDataWorks.Hosts](src/FractalDataWorks.Hosts/README.md) - Host service abstractions *(planning phase)*
+- [FractalDataWorks.Tools](src/FractalDataWorks.Tools/README.md) - Common utilities and helpers *(planning phase)*
+
 ## Git Workflow
 
 This repository follows a git-flow branching strategy:

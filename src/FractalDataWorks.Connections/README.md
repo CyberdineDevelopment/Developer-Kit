@@ -5,142 +5,208 @@ Connection abstractions and implementations for data sources and messaging syste
 ## Overview
 
 FractalDataWorks.Connections provides:
-- Abstractions for various connection types (database, messaging, APIs)
-- Connection management patterns
-- Retry and resilience policies
-- Connection pooling abstractions
-- Health check integration
+- Base connection abstractions with lifecycle management
+- Thread-safe connection state management
+- Connection timeout handling
+- Integration with the service framework
+- Extensible connection patterns for various data sources
 
-## Planned Components
+## Current Implementation
 
-### IFractalConnection
+### ConnectionBase<TConfiguration, TCommand, TConnection>
 
-Base interface for all connection types:
+A fully implemented abstract base class that provides:
+- **Connection lifecycle management** - Connect, Disconnect, and Test operations
+- **Thread-safe state management** - Using SemaphoreSlim for concurrent access control
+- **Timeout handling** - Configurable connection timeouts with automatic cancellation
+- **Service integration** - Inherits from ServiceBase for command execution
+- **Disposable pattern** - Both synchronous and asynchronous disposal support
+
 ```csharp
-public interface IFractalConnection : IDisposable
+public abstract class ConnectionBase<TConfiguration, TCommand, TConnection> 
+    : ServiceBase<TConfiguration, TCommand, TConnection>, IFdwConnection
+    where TConfiguration : ConfigurationBase<TConfiguration>, new()
+    where TCommand : ICommand
+    where TConnection : class
 {
-    string Name { get; }
-    ConnectionState State { get; }
+    // Properties
+    public Guid ConnectionId { get; }
+    public bool IsConnected { get; protected set; }
+    public DateTimeOffset? ConnectedAt { get; protected set; }
+    public DateTimeOffset? DisconnectedAt { get; protected set; }
+    public string ConnectionString { get; protected set; }
+    
+    // Core connection methods
+    public async Task<FdwResult> ConnectAsync(string connectionString, CancellationToken cancellationToken = default);
+    public async Task<FdwResult> DisconnectAsync(CancellationToken cancellationToken = default);
+    public async Task<FdwResult> TestConnectionAsync(CancellationToken cancellationToken = default);
+    
+    // Abstract methods for implementation
+    protected abstract Task<FdwResult> OnConnectAsync(string connectionString, CancellationToken cancellationToken);
+    protected abstract Task<FdwResult> OnDisconnectAsync(CancellationToken cancellationToken);
+    protected abstract Task<FdwResult> OnTestConnectionAsync(CancellationToken cancellationToken);
+    protected abstract Task<FdwResult<T>> OnExecuteCommandAsync<T>(TCommand command);
+}
+```
+
+### Connection Interfaces
+
+**IConnection** - Represents an active connection:
+```csharp
+public interface IConnection : IDisposable, IAsyncDisposable
+{
+    Guid ConnectionId { get; }
+    bool IsOpen { get; }
+    DateTimeOffset EstablishedAt { get; }
+    Task CloseAsync(CancellationToken cancellationToken = default);
+}
+```
+
+**IConnectionProvider** - Factory for creating connections:
+```csharp
+public interface IConnectionProvider
+{
+    Task<IConnection> GetConnectionAsync(CancellationToken cancellationToken = default);
+    void ReturnConnection(IConnection connection);
+}
+```
+
+**IFdwConnection** - Framework-specific connection interface:
+```csharp
+public interface IFdwConnection : IDisposable, IAsyncDisposable
+{
+    Guid ConnectionId { get; }
     bool IsConnected { get; }
-    Task<FractalResult> ConnectAsync(CancellationToken cancellationToken = default);
-    Task<FractalResult> DisconnectAsync(CancellationToken cancellationToken = default);
-    Task<FractalResult> ValidateConnectionAsync(CancellationToken cancellationToken = default);
-}
-```
-
-### IDatabaseConnection
-
-Database-specific connection abstraction:
-```csharp
-public interface IDatabaseConnection : IFractalConnection
-{
+    DateTimeOffset? ConnectedAt { get; }
+    DateTimeOffset? DisconnectedAt { get; }
     string ConnectionString { get; }
-    int CommandTimeout { get; }
-    Task<FractalResult<T>> ExecuteAsync<T>(string query, object? parameters = null);
-    Task<FractalResult<IEnumerable<T>>> QueryAsync<T>(string query, object? parameters = null);
+    
+    Task<FdwResult> ConnectAsync(string connectionString, CancellationToken cancellationToken = default);
+    Task<FdwResult> DisconnectAsync(CancellationToken cancellationToken = default);
+    Task<FdwResult> TestConnectionAsync(CancellationToken cancellationToken = default);
 }
 ```
 
-### IMessageConnection
+### Connection Messages
 
-Messaging system connection abstraction:
+The package includes predefined messages for common connection scenarios:
+- **ConnectionTimeout** - When connection attempts exceed the timeout period
+- **ConnectionFailed** - General connection failure
+- **NotAuthorized** - Authorization failures
+- **InvalidCredentials** - Invalid connection credentials
+
+## Usage Examples
+
+### Creating a Database Connection
+
 ```csharp
-public interface IMessageConnection : IFractalConnection
+public class SqlServerConnection : ConnectionBase<SqlServerConfiguration, SqlCommand, SqlServerConnection>
 {
-    Task<FractalResult> PublishAsync<T>(T message, string topic = "") where T : class;
-    Task<FractalResult> SubscribeAsync<T>(Func<T, Task> handler, string topic = "") where T : class;
-    Task<FractalResult> UnsubscribeAsync(string subscriptionId);
+    private SqlConnection? _connection;
+    
+    public SqlServerConnection(
+        ILogger<SqlServerConnection> logger,
+        IConfigurationRegistry<SqlServerConfiguration> configurations)
+        : base(logger, configurations)
+    {
+    }
+    
+    protected override async Task<FdwResult> OnConnectAsync(
+        string connectionString, 
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            _connection = new SqlConnection(connectionString);
+            await _connection.OpenAsync(cancellationToken);
+            return FdwResult.Success();
+        }
+        catch (SqlException ex)
+        {
+            return FdwResult.Failure(ConnectionMessages.ConnectionFailed.Format(ex.Message));
+        }
+    }
+    
+    protected override async Task<FdwResult> OnDisconnectAsync(CancellationToken cancellationToken)
+    {
+        if (_connection != null)
+        {
+            await _connection.CloseAsync();
+            _connection.Dispose();
+            _connection = null;
+        }
+        return FdwResult.Success();
+    }
+    
+    protected override async Task<FdwResult> OnTestConnectionAsync(CancellationToken cancellationToken)
+    {
+        if (_connection?.State == ConnectionState.Open)
+        {
+            // Execute a simple query to test the connection
+            using var command = _connection.CreateCommand();
+            command.CommandText = "SELECT 1";
+            await command.ExecuteScalarAsync(cancellationToken);
+            return FdwResult.Success();
+        }
+        return FdwResult.Failure(ConnectionMessages.ConnectionFailed);
+    }
+    
+    protected override async Task<FdwResult<T>> OnExecuteCommandAsync<T>(SqlCommand command)
+    {
+        // Implementation for executing SQL commands
+        // ...
+    }
 }
 ```
 
-### IApiConnection
+### Using the Connection
 
-HTTP API connection abstraction:
 ```csharp
-public interface IApiConnection : IFractalConnection
+// Setup
+var logger = serviceProvider.GetRequiredService<ILogger<SqlServerConnection>>();
+var configurations = serviceProvider.GetRequiredService<IConfigurationRegistry<SqlServerConfiguration>>();
+var connection = new SqlServerConnection(logger, configurations);
+
+// Connect
+var connectResult = await connection.ConnectAsync(connectionString);
+if (!connectResult.IsSuccess)
 {
-    Uri BaseUri { get; }
-    TimeSpan Timeout { get; }
-    Task<FractalResult<T>> GetAsync<T>(string endpoint);
-    Task<FractalResult<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, TRequest data);
+    logger.LogError("Failed to connect: {Error}", connectResult.Message);
+    return;
 }
+
+// Test connection
+var testResult = await connection.TestConnectionAsync();
+logger.LogInformation("Connection test: {Result}", testResult.IsSuccess ? "Success" : "Failed");
+
+// Execute commands through the service interface
+var command = new QueryCustomersCommand { Active = true };
+var result = await connection.Execute<List<Customer>>(command);
+
+// Disconnect when done
+await connection.DisconnectAsync();
+
+// Or use disposal
+await connection.DisposeAsync();
 ```
 
 ## Planned Features
 
-### Connection Factory
-```csharp
-public interface IConnectionFactory
-{
-    T CreateConnection<T>(IFractalConfiguration configuration) where T : IFractalConnection;
-}
-```
-
-### Connection Pool
-```csharp
-public interface IConnectionPool<T> where T : IFractalConnection
-{
-    Task<T> GetConnectionAsync();
-    Task ReturnConnectionAsync(T connection);
-    int ActiveConnections { get; }
-    int AvailableConnections { get; }
-}
-```
+### Connection Pooling
+- Efficient connection reuse
+- Configurable pool sizes
+- Health check integration
 
 ### Retry Policies
-Integration with Polly for resilient connections:
-```csharp
-public class RetryableConnection<T> : IFractalConnection where T : IFractalConnection
-{
-    private readonly T _innerConnection;
-    private readonly IAsyncPolicy _retryPolicy;
-    
-    public async Task<FractalResult> ConnectAsync(CancellationToken cancellationToken = default)
-    {
-        return await _retryPolicy.ExecuteAsync(
-            async () => await _innerConnection.ConnectAsync(cancellationToken));
-    }
-}
-```
+- Integration with Polly for resilient connections
+- Configurable retry strategies
+- Circuit breaker patterns
 
-## Usage Examples (Planned)
-
-### Database Connection
-```csharp
-public class SqlServerConnection : DatabaseConnectionBase
-{
-    public SqlServerConnection(DatabaseConfiguration config) : base(config)
-    {
-    }
-    
-    protected override async Task<IDbConnection> CreateConnectionAsync()
-    {
-        var connection = new SqlConnection(ConnectionString);
-        await connection.OpenAsync();
-        return connection;
-    }
-}
-```
-
-### Message Bus Connection
-```csharp
-public class ServiceBusConnection : MessageConnectionBase
-{
-    private readonly ServiceBusClient _client;
-    
-    public ServiceBusConnection(ServiceBusConfiguration config) : base(config)
-    {
-        _client = new ServiceBusClient(config.ConnectionString);
-    }
-    
-    public override async Task<FractalResult> PublishAsync<T>(T message, string topic = "")
-    {
-        var sender = _client.CreateSender(topic);
-        await sender.SendMessageAsync(new ServiceBusMessage(JsonSerializer.Serialize(message)));
-        return FractalResult.Success();
-    }
-}
-```
+### Additional Connection Types
+- Message bus connections (Service Bus, RabbitMQ)
+- HTTP API connections
+- NoSQL database connections
+- Cache connections (Redis, etc.)
 
 ## Installation
 
@@ -151,18 +217,15 @@ public class ServiceBusConnection : MessageConnectionBase
 ## Dependencies
 
 - FractalDataWorks.net (core abstractions)
-- Polly (for retry policies)
+- FractalDataWorks.Services (service base class)
+- FractalDataWorks.Configuration (configuration management)
 - Microsoft.Extensions.Logging.Abstractions
-
-## Status
-
-This package is currently in planning phase. The interfaces and implementations described above represent the intended design and may change during development.
 
 ## Contributing
 
-This package is accepting contributions for:
-- Connection interface definitions
-- Base implementation classes
+This package welcomes contributions for:
+- Additional connection type implementations
 - Connection pool implementations
 - Integration with specific data sources
 - Unit and integration tests
+- Performance optimizations

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using FractalDataWorks.Results;
 using FractalDataWorks.Validation;
 using Microsoft.Extensions.Logging;
+using FractalDataWorks;
+using FractalDataWorks.Configuration.Messages;
 
 namespace FractalDataWorks.Configuration;
 
@@ -14,9 +16,33 @@ namespace FractalDataWorks.Configuration;
 /// </summary>
 /// <typeparam name="TConfiguration">The type of configuration managed by this provider.</typeparam>
 public abstract class ConfigurationProviderBase<TConfiguration> : 
-    IFdwConfigurationProvider<TConfiguration>
-    where TConfiguration : ConfigurationBase<TConfiguration>, new()
+    IFdwConfigurationProvider<TConfiguration>, IDisposable
+    where TConfiguration : ConfigurationBase<TConfiguration>, IFdwConfiguration, new()
 {
+    private static readonly Action<ILogger, string, int, Exception?> _logSavedConfiguration =
+        LoggerMessage.Define<string, int>(
+            LogLevel.Information,
+            new EventId(1, nameof(Save)),
+            "Saved configuration {ConfigurationType} with ID {Id}");
+
+    private static readonly Action<ILogger, string, int, Exception?> _logDeletedConfiguration =
+        LoggerMessage.Define<string, int>(
+            LogLevel.Information,
+            new EventId(2, nameof(Delete)),
+            "Deleted configuration {ConfigurationType} with ID {Id}");
+
+    private static readonly Action<ILogger, string, Exception?> _logReloadedConfiguration =
+        LoggerMessage.Define<string>(
+            LogLevel.Information,
+            new EventId(3, nameof(Reload)),
+            "Reloaded configuration cache for {ConfigurationType}");
+
+    private static readonly Action<ILogger, ConfigurationChangeType, Exception?> _logCacheUpdated =
+        LoggerMessage.Define<ConfigurationChangeType>(
+            LogLevel.Debug,
+            new EventId(4, nameof(OnSourceChanged)),
+            "Configuration cache updated due to {ChangeType} event");
+
     private readonly ILogger _logger;
     private readonly IFdwConfigurationSource _source;
     private readonly Dictionary<int, TConfiguration> _cache = new();
@@ -43,9 +69,9 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="id">The ID of the configuration.</param>
     /// <returns>A task containing the configuration result.</returns>
-    public async Task<FdwResult<TConfiguration>> Get(int id)
+    public async Task<IFdwResult<TConfiguration>> Get(int id)
     {
-        await _cacheLock.WaitAsync();
+        await _cacheLock.WaitAsync().ConfigureAwait(false);
         try
         {
             // Check cache first
@@ -55,10 +81,10 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             }
 
             // Load from source
-            var loadResult = await _source.Load<TConfiguration>();
+            var loadResult = await _source.Load<TConfiguration>().ConfigureAwait(false);
             if (loadResult.IsFailure)
             {
-                return FdwResult<TConfiguration>.Failure(loadResult.Error!);
+                return FdwResult<TConfiguration>.Failure(loadResult.Message!);
             }
 
             // Update cache
@@ -70,7 +96,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             // Return requested configuration
             return _cache.TryGetValue(id, out var configuration)
                 ? FdwResult<TConfiguration>.Success(configuration)
-                : FdwResult<TConfiguration>.Failure($"Configuration with ID {id} not found");
+                : FdwResult<TConfiguration>.Failure(new ConfigurationNotFound());
         }
         finally
         {
@@ -83,17 +109,17 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="name">The name of the configuration.</param>
     /// <returns>A task containing the configuration result.</returns>
-    public async Task<FdwResult<TConfiguration>> Get(string name)
+    public async Task<IFdwResult<TConfiguration>> Get(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return FdwResult<TConfiguration>.Failure("Configuration name cannot be empty");
+            return FdwResult<TConfiguration>.Failure(new GenericError());
         }
 
-        var allResult = await GetAll();
+        var allResult = await GetAll().ConfigureAwait(false);
         if (allResult.IsFailure)
         {
-            return FdwResult<TConfiguration>.Failure(allResult.Error!);
+            return FdwResult<TConfiguration>.Failure(allResult.Message!);
         }
 
         var configuration = allResult.Value!
@@ -101,25 +127,25 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
 
         return configuration != null
             ? FdwResult<TConfiguration>.Success(configuration)
-            : FdwResult<TConfiguration>.Failure($"Configuration with name '{name}' not found");
+            : FdwResult<TConfiguration>.Failure(new ConfigurationNotFound());
     }
 
     /// <summary>
     /// Gets all configurations.
     /// </summary>
     /// <returns>A task containing the collection of configurations.</returns>
-    public async Task<FdwResult<IEnumerable<TConfiguration>>> GetAll()
+    public async Task<IFdwResult<IEnumerable<TConfiguration>>> GetAll()
     {
-        await _cacheLock.WaitAsync();
+        await _cacheLock.WaitAsync().ConfigureAwait(false);
         try
         {
             // If cache is empty, load from source
             if (_cache.Count == 0)
             {
-                var loadResult = await _source.Load<TConfiguration>();
+                var loadResult = await _source.Load<TConfiguration>().ConfigureAwait(false);
                 if (loadResult.IsFailure)
                 {
-                    return FdwResult<IEnumerable<TConfiguration>>.Failure(loadResult.Error!);
+                    return FdwResult<IEnumerable<TConfiguration>>.Failure(loadResult.Message!);
                 }
 
                 // Update cache
@@ -141,9 +167,9 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// Gets all enabled configurations.
     /// </summary>
     /// <returns>A task containing the collection of enabled configurations.</returns>
-    public async Task<FdwResult<IEnumerable<TConfiguration>>> GetEnabled()
+    public async Task<IFdwResult<IEnumerable<TConfiguration>>> GetEnabled()
     {
-        var allResult = await GetAll();
+        var allResult = await GetAll().ConfigureAwait(false);
         if (allResult.IsFailure)
         {
             return allResult;
@@ -158,19 +184,18 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="configuration">The configuration to save.</param>
     /// <returns>A task containing the saved configuration result.</returns>
-    public async Task<FdwResult<TConfiguration>> Save(TConfiguration configuration)
+    public async Task<IFdwResult<TConfiguration>> Save(TConfiguration configuration)
     {
         if (configuration == null)
         {
-            return FdwResult<TConfiguration>.Failure("Configuration cannot be null");
+            return FdwResult<TConfiguration>.Failure(new GenericError());
         }
 
         // Validate configuration
-        var validationResult = await Validate(configuration);
+        var validationResult = await Validate(configuration).ConfigureAwait(false);
         if (!validationResult.IsValid)
         {
-            var errors = validationResult.Errors.Select(e => e.ErrorMessage);
-            return FdwResult<TConfiguration>.Failure(errors);
+            return FdwResult<TConfiguration>.Failure(new ValidationFailed());
         }
 
         // Mark as modified if updating
@@ -180,14 +205,14 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         }
 
         // Save to source
-        var saveResult = await _source.Save(configuration);
+        var saveResult = await _source.Save(configuration).ConfigureAwait(false);
         if (saveResult.IsFailure)
         {
             return saveResult;
         }
 
         // Update cache
-        await _cacheLock.WaitAsync();
+        await _cacheLock.WaitAsync().ConfigureAwait(false);
         try
         {
             _cache[configuration.Id] = configuration;
@@ -197,8 +222,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             _cacheLock.Release();
         }
 
-        _logger.LogInformation("Saved configuration {ConfigurationType} with ID {Id}",
-            typeof(TConfiguration).Name, configuration.Id);
+        _logSavedConfiguration(_logger, typeof(TConfiguration).Name, configuration.Id, null);
 
         return FdwResult<TConfiguration>.Success(configuration);
     }
@@ -208,22 +232,22 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="id">The ID of the configuration to delete.</param>
     /// <returns>A task containing the delete operation result.</returns>
-    public async Task<FdwResult<NonResult>> Delete(int id)
+    public async Task<IFdwResult<NonResult>> Delete(int id)
     {
         if (id <= 0)
         {
-            return FdwResult<NonResult>.Failure("Invalid configuration ID");
+            return FdwResult<NonResult>.Failure(new GenericError());
         }
 
         // Delete from source
-        var deleteResult = await _source.Delete<TConfiguration>(id);
+        var deleteResult = await _source.Delete<TConfiguration>(id).ConfigureAwait(false);
         if (deleteResult.IsFailure)
         {
             return deleteResult;
         }
 
         // Remove from cache
-        await _cacheLock.WaitAsync();
+        await _cacheLock.WaitAsync().ConfigureAwait(false);
         try
         {
             _cache.Remove(id);
@@ -233,10 +257,28 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             _cacheLock.Release();
         }
 
-        _logger.LogInformation("Deleted configuration {ConfigurationType} with ID {Id}",
-            typeof(TConfiguration).Name, id);
+        _logDeletedConfiguration(_logger, typeof(TConfiguration).Name, id, null);
 
         return FdwResult<NonResult>.Success(NonResult.Value);
+    }
+
+    /// <summary>
+    /// Reloads configurations from the source.
+    /// </summary>
+    /// <returns>A task containing the reload operation result.</returns>
+    public async Task<IFdwResult<NonResult>> Reload()
+    {
+        await _cacheLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            _cache.Clear();
+            _logReloadedConfiguration(_logger, typeof(TConfiguration).Name, null);
+            return FdwResult<NonResult>.Success(NonResult.Value);
+        }
+        finally
+        {
+            _cacheLock.Release();
+        }
     }
 
     /// <summary>
@@ -246,7 +288,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// <returns>A task containing the validation result.</returns>
     public virtual Task<IValidationResult> Validate(TConfiguration configuration)
     {
-        return configuration.Validate();
+        return configuration.ValidateAsync();
     }
 
     /// <summary>
@@ -254,45 +296,70 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     /// </summary>
     /// <param name="sender">The event sender.</param>
     /// <param name="e">The event arguments.</param>
-    private async void OnSourceChanged(object? sender, ConfigurationSourceChangedEventArgs e)
+    private void OnSourceChanged(object? sender, ConfigurationSourceChangedEventArgs e)
     {
         if (e.ConfigurationType != typeof(TConfiguration))
         {
             return;
         }
 
-        await _cacheLock.WaitAsync();
-        try
+        // Run async operations on thread pool to avoid blocking event handler
+        _ = Task.Run(async () =>
         {
-            switch (e.ChangeType)
+            await _cacheLock.WaitAsync().ConfigureAwait(false);
+            try
             {
-                case ConfigurationChangeType.Deleted:
-                    if (e.ConfigurationId.HasValue)
-                    {
-                        _cache.Remove(e.ConfigurationId.Value);
-                    }
-                    break;
+                switch (e.ChangeType)
+                {
+                    case ConfigurationChangeType.Deleted:
+                        if (e.ConfigurationId.HasValue)
+                        {
+                            _cache.Remove(e.ConfigurationId.Value);
+                        }
+                        break;
 
-                case ConfigurationChangeType.Reloaded:
-                    _cache.Clear();
-                    break;
+                    case ConfigurationChangeType.Reloaded:
+                        _cache.Clear();
+                        break;
 
-                case ConfigurationChangeType.Added:
-                case ConfigurationChangeType.Updated:
-                    // Cache will be updated on next access
-                    if (e.ConfigurationId.HasValue)
-                    {
-                        _cache.Remove(e.ConfigurationId.Value);
-                    }
-                    break;
+                    case ConfigurationChangeType.Added:
+                    case ConfigurationChangeType.Updated:
+                        // Cache will be updated on next access
+                        if (e.ConfigurationId.HasValue)
+                        {
+                            _cache.Remove(e.ConfigurationId.Value);
+                        }
+                        break;
+                }
             }
-        }
-        finally
-        {
-            _cacheLock.Release();
-        }
+            finally
+            {
+                _cacheLock.Release();
+            }
 
-        _logger.LogDebug("Configuration cache updated due to {ChangeType} event",
-            e.ChangeType);
+            _logCacheUpdated(_logger, e.ChangeType, null);
+        });
+    }
+
+    /// <summary>
+    /// Disposes the configuration provider and releases resources.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Releases unmanaged and - optionally - managed resources.
+    /// </summary>
+    /// <param name="disposing">True to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _source.Changed -= OnSourceChanged;
+            _cacheLock?.Dispose();
+        }
     }
 }

@@ -1,5 +1,5 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
 using FractalDataWorks.EnhancedEnums.Attributes;
+using FractalDataWorks.Messages;
 
 namespace FractalDataWorks.Connections.Messages;
 
@@ -14,5 +14,5 @@ public class NotAuthorized : ConnectionMessageBase
     /// Initializes a new instance of the <see cref="NotAuthorized"/> class.
     /// </summary>
     public NotAuthorized() 
-        : base("CONN_001", "Not authorized to perform {0}", MessageSeverity.Error) { }
+        : base(1, "NotAuthorized", "CONN_001", "Not authorized to perform {0}", MessageSeverity.Error) { }
 }

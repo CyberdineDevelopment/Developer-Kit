@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Services.Messages;
@@ -13,5 +13,5 @@ public class OperationFailed : ServiceMessageBase
     /// Initializes a new instance of the <see cref="OperationFailed"/> class.
     /// </summary>
     public OperationFailed() 
-        : base("SVC_005", "Operation {0} failed: {1}", MessageSeverity.Error) { }
+        : base(5, "OperationFailed", "SVC_005", "Operation {0} failed: {1}", MessageSeverity.Error) { }
 }

@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Services.Messages;
@@ -13,5 +13,5 @@ public class CommandExecuted : ServiceMessageBase
     /// Initializes a new instance of the <see cref="CommandExecuted"/> class.
     /// </summary>
     public CommandExecuted() 
-        : base("SVC_003", "Command {0} executed successfully in {1}ms", MessageSeverity.Information) { }
+        : base(3, "CommandExecuted", "SVC_003", "Command {0} executed successfully in {1}ms", MessageSeverity.Information) { }
 }

@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Configuration.Messages;
@@ -13,5 +13,5 @@ public class ConfigurationNotFound : ConfigurationMessageBase
     /// Initializes a new instance of the <see cref="ConfigurationNotFound"/> class.
     /// </summary>
     public ConfigurationNotFound() 
-        : base("CFG_002", "Configuration section '{0}' not found", MessageSeverity.Error) { }
+        : base(2, "ConfigurationNotFound", "CFG_002", "Configuration section '{0}' not found", MessageSeverity.Error) { }
 }

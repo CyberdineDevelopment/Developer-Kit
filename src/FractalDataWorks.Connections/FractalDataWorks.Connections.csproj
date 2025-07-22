@@ -4,13 +4,14 @@
 	  <PackageReference Include="FractalDataWorks.EnhancedEnums">
 		  <PrivateAssets>all</PrivateAssets>
 	  </PackageReference>
-	  <PackageReference Include="FractalDataWorks.SmartGenerators">
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		  <PrivateAssets>all</PrivateAssets>
-	  </PackageReference>
+	  <PackageReference Include="FractalDataWorks.Messages" />
+	  <PackageReference Include="FractalDataWorks.SmartGenerators" />
+	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 
     <!-- Temporarily keep .net reference until refactoring is complete -->
     <ProjectReference Include="..\FractalDataWorks.net\FractalDataWorks.net.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
   </ItemGroup>
 
 </Project>

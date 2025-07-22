@@ -1,0 +1,1 @@
+// Assembly-level attributes for FractalDataWorks.Connections

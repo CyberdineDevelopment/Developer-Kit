@@ -13,7 +13,7 @@ public abstract class EntityBase<TKey> where TKey : IEquatable<TKey>
     /// <summary>
     /// Gets or sets the entity's unique identifier.
     /// </summary>
-    public virtual TKey Id { get; set; } = default!;
+    public TKey Id { get; set; } = default!;
 
     /// <summary>
     /// Gets or sets the timestamp when the entity was created.
