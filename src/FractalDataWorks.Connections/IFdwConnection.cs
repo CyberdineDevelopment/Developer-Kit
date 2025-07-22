@@ -41,19 +41,19 @@ public interface IFdwConnection : IDisposable, IAsyncDisposable
     /// <param name="connectionString">The connection string.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    Task<FdwResult> ConnectAsync(string connectionString, CancellationToken cancellationToken = default);
+    Task<IFdwResult> ConnectAsync(string connectionString, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Disconnects asynchronously.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    Task<FdwResult> DisconnectAsync(CancellationToken cancellationToken = default);
+    Task<IFdwResult> DisconnectAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Tests the connection asynchronously.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result indicating whether the connection is valid.</returns>
-    Task<FdwResult> TestConnectionAsync(CancellationToken cancellationToken = default);
+    Task<IFdwResult> TestConnectionAsync(CancellationToken cancellationToken = default);
 }

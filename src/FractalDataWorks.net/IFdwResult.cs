@@ -32,6 +32,6 @@ public interface IFdwResult<T> : IFdwResult
     /// <summary>
     /// Gets the value of this result.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when accessing value on a failed result.</exception>
+    /// <exception cref="System.InvalidOperationException">Thrown when accessing value on a failed result.</exception>
     T Value { get; }
 }

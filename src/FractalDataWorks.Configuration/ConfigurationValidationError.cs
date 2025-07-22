@@ -5,7 +5,7 @@ namespace FractalDataWorks.Configuration;
 /// <summary>
 /// Implementation of IValidationError for configuration validation.
 /// </summary>
-internal class ConfigurationValidationError : IValidationError
+internal sealed class ConfigurationValidationError : IValidationError
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ConfigurationValidationError"/> class.

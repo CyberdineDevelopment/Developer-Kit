@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Services.Messages;
@@ -13,5 +13,5 @@ public class ServiceStarted : ServiceMessageBase
     /// Initializes a new instance of the <see cref="ServiceStarted"/> class.
     /// </summary>
     public ServiceStarted() 
-        : base("SVC_001", "Service {0} started successfully", MessageSeverity.Information) { }
+        : base(1, "ServiceStarted", "SVC_001", "Service {0} started successfully", MessageSeverity.Information) { }
 }

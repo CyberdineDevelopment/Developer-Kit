@@ -4,11 +4,13 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Microsoft packages -->
-    <PackageVersion Include="FractalDataWorks.EnhancedEnums" Version="0.1.6-alpha-g42103babd5">
+    <PackageVersion Include="FractalDataWorks" Version="0.1.3-alpha-g1695442435" />
+    <PackageVersion Include="FractalDataWorks.EnhancedEnums" Version="0.1.12-alpha-g1a370c5f32">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
-    <PackageVersion Include="FractalDataWorks.SmartGenerators" Version="0.1.2-alpha-gf6ea635473">
+    <PackageVersion Include="FractalDataWorks.Messages" Version="0.1.4-alpha-g4537b45a76" />
+    <PackageVersion Include="FractalDataWorks.SmartGenerators" Version="0.1.4-alpha-g4415be49cc">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
@@ -24,7 +26,7 @@
     <!-- Testing packages -->
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.v3" Version="3.0.0" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.3" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="FluentAssertions" Version="6.12.1" />
     <PackageVersion Include="Moq" Version="4.20.72" />

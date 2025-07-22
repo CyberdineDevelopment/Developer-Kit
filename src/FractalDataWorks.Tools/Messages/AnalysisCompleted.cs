@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Tools.Messages;
@@ -13,5 +13,5 @@ public class AnalysisCompleted : ToolMessageBase
     /// Initializes a new instance of the <see cref="AnalysisCompleted"/> class.
     /// </summary>
     public AnalysisCompleted() 
-        : base("TOOL_003", "Analysis completed: {0} issues found", MessageSeverity.Information) { }
+        : base(3, "AnalysisCompleted", "TOOL_003", "Analysis completed: {0} issues found", MessageSeverity.Information) { }
 }

@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Configuration.Messages;
@@ -13,5 +13,5 @@ public class ValidationFailed : ConfigurationMessageBase
     /// Initializes a new instance of the <see cref="ValidationFailed"/> class.
     /// </summary>
     public ValidationFailed() 
-        : base("CFG_003", "Configuration validation failed: {0}", MessageSeverity.Error) { }
+        : base(3, "ValidationFailed", "CFG_003", "Configuration validation failed: {0}", MessageSeverity.Error) { }
 }

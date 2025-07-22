@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FractalDataWorks" />
     <PackageReference Include="FractalDataWorks.EnhancedEnums">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

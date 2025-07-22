@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Data.Messages;
@@ -13,5 +13,5 @@ public class DatabaseConnectionLost : DataMessageBase
     /// Initializes a new instance of the <see cref="DatabaseConnectionLost"/> class.
     /// </summary>
     public DatabaseConnectionLost() 
-        : base("DATA_003", "Database connection lost: {0}", MessageSeverity.Critical) { }
+        : base(3, "DatabaseConnectionLost", "DATA_003", "Database connection lost: {0}", MessageSeverity.Critical) { }
 }

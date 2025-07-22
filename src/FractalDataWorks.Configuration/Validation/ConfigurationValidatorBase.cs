@@ -8,7 +8,7 @@ namespace FractalDataWorks.Configuration.Validation;
 /// </summary>
 /// <typeparam name="TConfiguration">The type of configuration to validate.</typeparam>
 public abstract class ConfigurationValidatorBase<TConfiguration> : AbstractValidator<TConfiguration>
-    where TConfiguration : ConfigurationBase<TConfiguration>, new()
+    where TConfiguration : ConfigurationBase<TConfiguration>, IFdwConfiguration, new()
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ConfigurationValidatorBase{TConfiguration}"/> class.
@@ -35,13 +35,5 @@ public abstract class ConfigurationValidatorBase<TConfiguration> : AbstractValid
             .GreaterThanOrEqualTo(c => c.CreatedAt)
             .When(c => c.ModifiedAt.HasValue)
             .WithMessage("Modified date must be after created date");
-
-        // Add custom validation rules in derived classes
-        ConfigureRules();
     }
-
-    /// <summary>
-    /// Configures additional validation rules in derived validators.
-    /// </summary>
-    protected abstract void ConfigureRules();
 }

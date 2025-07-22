@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FractalDataWorks.Commands;
 using FractalDataWorks.Configuration;
+using FractalDataWorks.Configuration.Messages;
 using FractalDataWorks.Messages;
 using FractalDataWorks.Results;
+using FractalDataWorks.Services.Messages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -21,6 +23,47 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
     where TCommand : ICommand
     where TService : class
 {
+    private static readonly Action<ILogger, string, Exception?> _logServiceStarted =
+        LoggerMessage.Define<string>(
+            LogLevel.Information,
+            new EventId(1, nameof(ServiceBase<TConfiguration, TCommand, TService>)),
+            ServiceMessages.ServiceStarted.Message);
+
+    private static readonly Action<ILogger, string, Exception?> _logInvalidConfiguration =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            new EventId(2, "InvalidConfiguration"),
+            "Invalid configuration: {Message}");
+
+    private static readonly Action<ILogger, string, Exception?> _logInvalidConfigurationWarning =
+        LoggerMessage.Define<string>(
+            LogLevel.Warning,
+            new EventId(3, "InvalidConfigurationWarning"),
+            "{Message}");
+
+    private static readonly Action<ILogger, string, string, Exception?> _logExecutingCommand =
+        LoggerMessage.Define<string, string>(
+            LogLevel.Debug,
+            new EventId(4, "ExecutingCommand"),
+            "Executing command {CommandType} in {Service}");
+
+    private static readonly Action<ILogger, string, double, Exception?> _logCommandExecuted =
+        LoggerMessage.Define<string, double>(
+            LogLevel.Information,
+            new EventId(5, "CommandExecuted"),
+            "Command {CommandType} executed successfully in {Duration}ms");
+
+    private static readonly Action<ILogger, string, string, Exception?> _logCommandFailed =
+        LoggerMessage.Define<string, string>(
+            LogLevel.Warning,
+            new EventId(6, "CommandFailed"),
+            "Command {CommandType} failed: {Error}");
+
+    private static readonly Action<ILogger, string, string, Exception?> _logOperationFailed =
+        LoggerMessage.Define<string, string>(
+            LogLevel.Error,
+            new EventId(7, "OperationFailed"),
+            "Operation {OperationType} failed: {Error}");
     private readonly ILogger<TService> _logger;
     private readonly IConfigurationRegistry<TConfiguration> _configurations;
     private readonly TConfiguration _primaryConfiguration;
@@ -43,18 +86,16 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
         var allConfigs = _configurations.GetAll();
         if (!allConfigs.Any())
         {
-            _logger.LogError(ServiceMessages.InvalidConfiguration.Message, "No configurations available");
-            _primaryConfiguration = GetInvalidConfiguration();
+            _logInvalidConfiguration(_logger, "No configurations available", null);
+            _primaryConfiguration = new TConfiguration { IsEnabled = false };
         }
         else
         {
             _primaryConfiguration = allConfigs.FirstOrDefault(c => c.IsEnabled && c.IsValid)
-                                  ?? GetInvalidConfiguration();
+                                  ?? new TConfiguration { IsEnabled = false };
         }
 
-        _logger.LogInformation(
-            ServiceMessages.ServiceStarted.Message,
-            ServiceName);
+        _logServiceStarted(_logger, typeof(TService).Name, null);
     }
 
     /// <summary>
@@ -93,12 +134,13 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
             return FdwResult<TConfiguration>.Success(config);
         }
 
-        _logger.LogWarning(
-            ServiceMessages.InvalidConfiguration.Format(configuration?.GetType().Name ?? "null"));
+        _logInvalidConfigurationWarning(_logger, 
+            ConfigurationMessages.InvalidConfiguration.Format(configuration?.GetType().Name ?? "null", "Not of expected type"), 
+            null);
 
         validConfiguration = GetInvalidConfiguration();
         return FdwResult<TConfiguration>.Failure(
-            ServiceMessages.InvalidConfiguration.Format(ServiceName));
+            ConfigurationMessages.InvalidConfiguration);
     }
 
     /// <summary>
@@ -111,13 +153,13 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
         if (configurationId <= 0)
         {
             return FdwResult<TConfiguration>.Failure(
-                ServiceMessages.InvalidId.Format(configurationId));
+                ServiceMessages.InvalidId);
         }
 
         if (!_configurations.TryGet(configurationId, out var config))
         {
             return FdwResult<TConfiguration>.Failure(
-                ServiceMessages.ConfigurationNotFound.Format(configurationId));
+                ConfigurationMessages.ConfigurationNotFound);
         }
 
         return ConfigurationIsValid(config!, out _);
@@ -128,33 +170,36 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
     /// </summary>
     /// <param name="command">The command to validate.</param>
     /// <returns>The validation result.</returns>
-    protected async Task<FdwResult<TCommand>> ValidateCommand(ICommand command)
+    protected async Task<IFdwResult<TCommand>> ValidateCommand(ICommand command)
     {
         if (command is not TCommand cmd)
         {
-            _logger.LogWarning(
-                ServiceMessages.InvalidCommand.Format(command?.GetType().Name ?? "null"));
+            _logInvalidConfigurationWarning(_logger,
+                ServiceMessages.InvalidCommand.Format(command?.GetType().Name ?? "null"),
+                null);
 
             return FdwResult<TCommand>.Failure(
-                ServiceMessages.InvalidCommand.Format(ServiceName));
+                ServiceMessages.InvalidCommand);
         }
 
         // Validate the command itself
-        var validationResult = await cmd.Validate();
+        var validationResult = await cmd.Validate().ConfigureAwait(false);
         if (!validationResult.IsValid)
         {
-            var errors = validationResult.Errors.Select(e => e.ErrorMessage);
-            return FdwResult<TCommand>.Failure(errors);
+            var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+            return FdwResult<TCommand>.Failure(
+                ServiceMessages.ValidationFailed);
         }
 
         // Validate command configuration if present
         if (cmd.Configuration is TConfiguration config && !config.IsValid)
         {
-            _logger.LogWarning(
-                ServiceMessages.InvalidConfiguration.Format("Command configuration"));
+            _logInvalidConfigurationWarning(_logger,
+                ConfigurationMessages.InvalidConfiguration.Format("Command configuration", config.GetType().Name),
+                null);
 
             return FdwResult<TCommand>.Failure(
-                ServiceMessages.InvalidConfiguration.Format(ServiceName));
+                ConfigurationMessages.InvalidConfiguration);
         }
 
         return FdwResult<TCommand>.Success(cmd);
@@ -166,45 +211,41 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
     /// <typeparam name="T">The result type.</typeparam>
     /// <param name="command">The command to execute.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    public async Task<FdwResult<T>> Execute<T>(TCommand command)
+    public async Task<IFdwResult<T>> Execute<T>(TCommand command)
     {
         var startTime = DateTime.UtcNow;
         var correlationId = command?.CorrelationId ?? Guid.NewGuid();
 
-        using (_logger.BeginScope("CorrelationId", correlationId))
+        using (_logger.BeginScope(new Dictionary<string, object>(StringComparer.Ordinal) { ["CorrelationId"] = correlationId }))
         {
-            _logger.LogDebug("Executing command {CommandType} in {Service}",
-                command?.GetType().Name ?? "null",
-                ServiceName);
+            _logExecutingCommand(_logger, command?.GetType().Name ?? "null", ServiceName, null);
 
             // Validate the command
             if (command == null)
             {
-                return FdwResult<T>.Failure(ServiceMessages.InvalidCommand.Format("null"));
+                return FdwResult<T>.Failure(ServiceMessages.InvalidCommand);
             }
 
-            var validationResult = await ValidateCommand(command);
+            var validationResult = await ValidateCommand(command).ConfigureAwait(false);
             if (validationResult.IsFailure)
             {
-                return FdwResult<T>.Failure(validationResult.Error!);
+                return FdwResult<T>.Failure(validationResult.Message!);
             }
 
             try
             {
                 // Execute the command
-                var result = await ExecuteCore<T>(validationResult.Value!);
+                var result = await ExecuteCore<T>(validationResult.Value!).ConfigureAwait(false);
 
                 var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;
 
                 if (result.IsSuccess)
                 {
-                    _logger.LogInformation(
-                        ServiceMessages.CommandExecuted.Format(command.GetType().Name, duration));
+                    _logCommandExecuted(_logger, command.GetType().Name, duration, null);
                 }
                 else
                 {
-                    _logger.LogWarning(
-                        ServiceMessages.CommandFailed.Format(command.GetType().Name, result.Error ?? "Unknown error"));
+                    _logCommandFailed(_logger, command.GetType().Name, result.Message?.Message ?? "Unknown error", null);
                 }
 
                 return result;
@@ -213,11 +254,10 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
             {
                 var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;
 
-                _logger.LogError(ex,
-                    ServiceMessages.OperationFailed.Format(command.GetType().Name, ex.Message));
+                _logOperationFailed(_logger, command.GetType().Name, ex.Message, ex);
 
                 return FdwResult<T>.Failure(
-                    ServiceMessages.OperationFailed.Format(command.GetType().Name, ex.Message));
+                    ServiceMessages.OperationFailed);
             }
         }
     }
@@ -228,7 +268,15 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
     /// <typeparam name="T">The result type.</typeparam>
     /// <param name="command">The validated command to execute.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    protected abstract Task<FdwResult<T>> ExecuteCore<T>(TCommand command);
+    protected abstract Task<IFdwResult<T>> ExecuteCore<T>(TCommand command);
+
+    /// <summary>
+    /// Explicit interface implementation for the base interface with constraint.
+    /// </summary>
+    Task<IFdwResult<T>> IFdwService<TConfiguration, TCommand, IFdwResult>.Execute<T>(TCommand command)
+    {
+        return Execute<T>(command);
+    }
 
     /// <summary>
     /// Gets the invalid configuration instance for this service type.

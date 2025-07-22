@@ -11,7 +11,7 @@ public struct NonResult : IEquatable<NonResult>
     /// <summary>
     /// Gets the default NonResult value.
     /// </summary>
-    public static readonly NonResult Value = new();
+    public static readonly NonResult Value;
 
     /// <summary>
     /// Determines whether this instance is equal to another NonResult.

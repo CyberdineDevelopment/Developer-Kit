@@ -33,6 +33,9 @@
     <!-- Central Package Management -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     
+    <!-- Disable specific warnings -->
+    <NoWarn>$(NoWarn);VSTHRD200;CA1716;CA1000</NoWarn>
+    
     <!-- Nerdbank.GitVersioning -->
     <GitVersioningVersion>3.7.115</GitVersioningVersion>
   </PropertyGroup>

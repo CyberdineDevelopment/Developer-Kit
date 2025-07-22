@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Services.Messages;
@@ -13,5 +13,5 @@ public class ServiceStopped : ServiceMessageBase
     /// Initializes a new instance of the <see cref="ServiceStopped"/> class.
     /// </summary>
     public ServiceStopped() 
-        : base("SVC_002", "Service {0} stopped", MessageSeverity.Information) { }
+        : base(2, "ServiceStopped", "SVC_002", "Service {0} stopped", MessageSeverity.Information) { }
 }

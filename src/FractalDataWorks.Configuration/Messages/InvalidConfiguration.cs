@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Configuration.Messages;
@@ -13,5 +13,5 @@ public class InvalidConfiguration : ConfigurationMessageBase
     /// Initializes a new instance of the <see cref="InvalidConfiguration"/> class.
     /// </summary>
     public InvalidConfiguration() 
-        : base("CFG_001", "Invalid configuration for {0}: {1}", MessageSeverity.Error) { }
+        : base(1, "InvalidConfiguration", "CFG_001", "Invalid configuration for {0}: {1}", MessageSeverity.Error) { }
 }

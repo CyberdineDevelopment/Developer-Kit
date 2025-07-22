@@ -7,7 +7,7 @@ namespace FractalDataWorks.Configuration;
 /// <summary>
 /// Implementation of IValidationResult for configuration validation.
 /// </summary>
-internal class ConfigurationValidationResult : IValidationResult
+internal sealed class ConfigurationValidationResult : IValidationResult
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ConfigurationValidationResult"/> class.

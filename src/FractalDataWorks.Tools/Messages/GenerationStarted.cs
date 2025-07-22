@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Tools.Messages;
@@ -13,5 +13,5 @@ public class GenerationStarted : ToolMessageBase
     /// Initializes a new instance of the <see cref="GenerationStarted"/> class.
     /// </summary>
     public GenerationStarted() 
-        : base("TOOL_001", "Code generation started for {0}", MessageSeverity.Information) { }
+        : base(1, "GenerationStarted", "TOOL_001", "Code generation started for {0}", MessageSeverity.Information) { }
 }

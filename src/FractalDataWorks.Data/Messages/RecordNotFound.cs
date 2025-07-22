@@ -1,4 +1,4 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
+using FractalDataWorks.Messages;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Data.Messages;
@@ -13,5 +13,5 @@ public class RecordNotFound : DataMessageBase
     /// Initializes a new instance of the <see cref="RecordNotFound"/> class.
     /// </summary>
     public RecordNotFound() 
-        : base("DATA_001", "Record not found: {0} with id '{1}'", MessageSeverity.Warning) { }
+        : base(1, "RecordNotFound", "DATA_001", "Record not found: {0} with id '{1}'", MessageSeverity.Warning) { }
 }

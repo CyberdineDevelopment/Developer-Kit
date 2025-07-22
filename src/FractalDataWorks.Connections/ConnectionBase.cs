@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using FractalDataWorks.Commands;
 using FractalDataWorks.Configuration;
 using FractalDataWorks.Results;
 using FractalDataWorks.Services;
@@ -22,6 +21,66 @@ public abstract class ConnectionBase<TConfiguration, TCommand, TConnection>
     where TCommand : ICommand
     where TConnection : class
 {
+    private static readonly Action<ILogger, string, Exception?> _logAlreadyConnected =
+        LoggerMessage.Define<string>(
+            LogLevel.Warning,
+            new EventId(1, "AlreadyConnected"),
+            "Already connected to {ConnectionString}");
+
+    private static readonly Action<ILogger, string, Exception?> _logConnecting =
+        LoggerMessage.Define<string>(
+            LogLevel.Information,
+            new EventId(2, "Connecting"),
+            "Connecting to {ConnectionString}");
+
+    private static readonly Action<ILogger, string, Exception?> _logConnected =
+        LoggerMessage.Define<string>(
+            LogLevel.Information,
+            new EventId(3, "Connected"),
+            "Successfully connected to {ConnectionString}");
+
+    private static readonly Action<ILogger, string, Exception?> _logConnectionError =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            new EventId(4, "ConnectionError"),
+            "Failed to connect: {Error}");
+
+    private static readonly Action<ILogger, string, Exception?> _logConnectionTimeoutError =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            new EventId(5, "ConnectionTimeout"),
+            "{Message}");
+
+    private static readonly Action<ILogger, Exception?> _logNotConnected =
+        LoggerMessage.Define(
+            LogLevel.Warning,
+            new EventId(6, "NotConnected"),
+            "Not connected");
+
+    private static readonly Action<ILogger, string, Exception?> _logDisconnecting =
+        LoggerMessage.Define<string>(
+            LogLevel.Information,
+            new EventId(7, "Disconnecting"),
+            "Disconnecting from {ConnectionString}");
+
+    private static readonly Action<ILogger, Exception?> _logDisconnected =
+        LoggerMessage.Define(
+            LogLevel.Information,
+            new EventId(8, "Disconnected"),
+            "Successfully disconnected");
+
+    private static readonly Action<ILogger, string, Exception?> _logDisconnectError =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            new EventId(9, "DisconnectError"),
+            "Error during disconnect: {Error}");
+
+    private static readonly Action<ILogger, Exception?> _logConnectionTestFailed =
+        LoggerMessage.Define(
+            LogLevel.Error,
+            new EventId(10, "ConnectionTestFailed"),
+            "Connection test failed");
+
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
     private bool _disposed;
 
@@ -59,23 +118,23 @@ public abstract class ConnectionBase<TConfiguration, TCommand, TConnection>
     public virtual int ConnectionTimeoutSeconds => 30;
 
     /// <inheritdoc/>
-    public async Task<FdwResult> ConnectAsync(string connectionString, CancellationToken cancellationToken = default)
+    public async Task<IFdwResult> ConnectAsync(string connectionString, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            return FdwResult.Failure(ConnectionMessages.InvalidCredentials.Format("connection string"));
+            return FdwResult.Failure(ConnectionMessages.InvalidCredentials);
         }
 
-        await _connectionLock.WaitAsync(cancellationToken);
+        await _connectionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (IsConnected)
             {
-                Logger.LogWarning("Already connected to {ConnectionString}", ConnectionString);
+                _logAlreadyConnected(Logger, ConnectionString, null);
                 return FdwResult.Success();
             }
 
-            Logger.LogInformation("Connecting to {ConnectionString}", connectionString);
+            _logConnecting(Logger, connectionString, null);
             ConnectionString = connectionString;
 
             // Set up timeout
@@ -84,24 +143,24 @@ public abstract class ConnectionBase<TConfiguration, TCommand, TConnection>
 
             try
             {
-                var result = await OnConnectAsync(connectionString, cts.Token);
+                var result = await OnConnectAsync(connectionString, cts.Token).ConfigureAwait(false);
                 if (result.IsSuccess)
                 {
                     IsConnected = true;
                     ConnectedAt = DateTimeOffset.UtcNow;
                     DisconnectedAt = null;
-                    Logger.LogInformation("Successfully connected to {ConnectionString}", connectionString);
+                    _logConnected(Logger, connectionString, null);
                 }
                 else
                 {
-                    Logger.LogError("Failed to connect: {Error}", result.Error);
+                    _logConnectionError(Logger, result.Message?.Message ?? "Unknown error", null);
                 }
                 return result;
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 var message = ConnectionMessages.ConnectionTimeout.Format(connectionString, ConnectionTimeoutSeconds);
-                Logger.LogError(message);
+                _logConnectionTimeoutError(Logger, message, null);
                 return FdwResult.Failure(ConnectionMessages.ConnectionTimeout);
             }
         }
@@ -112,31 +171,31 @@ public abstract class ConnectionBase<TConfiguration, TCommand, TConnection>
     }
 
     /// <inheritdoc/>
-    public async Task<FdwResult> DisconnectAsync(CancellationToken cancellationToken = default)
+    public async Task<IFdwResult> DisconnectAsync(CancellationToken cancellationToken = default)
     {
-        await _connectionLock.WaitAsync(cancellationToken);
+        await _connectionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (!IsConnected)
             {
-                Logger.LogWarning("Not connected");
+                _logNotConnected(Logger, null);
                 return FdwResult.Success();
             }
 
-            Logger.LogInformation("Disconnecting from {ConnectionString}", ConnectionString);
+            _logDisconnecting(Logger, ConnectionString, null);
             
-            var result = await OnDisconnectAsync(cancellationToken);
+            var result = await OnDisconnectAsync(cancellationToken).ConfigureAwait(false);
             
             IsConnected = false;
             DisconnectedAt = DateTimeOffset.UtcNow;
             
             if (result.IsSuccess)
             {
-                Logger.LogInformation("Successfully disconnected");
+                _logDisconnected(Logger, null);
             }
             else
             {
-                Logger.LogError("Error during disconnect: {Error}", result.Error);
+                _logDisconnectError(Logger, result.Message?.Message ?? "Unknown error", null);
             }
             
             return result;
@@ -148,21 +207,21 @@ public abstract class ConnectionBase<TConfiguration, TCommand, TConnection>
     }
 
     /// <inheritdoc/>
-    public async Task<FdwResult> TestConnectionAsync(CancellationToken cancellationToken = default)
+    public async Task<IFdwResult> TestConnectionAsync(CancellationToken cancellationToken = default)
     {
         if (!IsConnected)
         {
-            return FdwResult.Failure(ConnectionMessages.ConnectionFailed.Format("Not connected"));
+            return FdwResult.Failure(ConnectionMessages.ConnectionFailed);
         }
 
         try
         {
-            return await OnTestConnectionAsync(cancellationToken);
+            return await OnTestConnectionAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Connection test failed");
-            return FdwResult.Failure(ConnectionMessages.ConnectionFailed.Format(ex.Message));
+            _logConnectionTestFailed(Logger, ex);
+            return FdwResult.Failure(ConnectionMessages.ConnectionFailed);
         }
     }
 
@@ -172,32 +231,32 @@ public abstract class ConnectionBase<TConfiguration, TCommand, TConnection>
     /// <param name="connectionString">The connection string.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The connection result.</returns>
-    protected abstract Task<FdwResult> OnConnectAsync(string connectionString, CancellationToken cancellationToken);
+    protected abstract Task<IFdwResult> OnConnectAsync(string connectionString, CancellationToken cancellationToken);
 
     /// <summary>
     /// When overridden in a derived class, performs the actual disconnection.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The disconnection result.</returns>
-    protected abstract Task<FdwResult> OnDisconnectAsync(CancellationToken cancellationToken);
+    protected abstract Task<IFdwResult> OnDisconnectAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// When overridden in a derived class, tests the connection.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The test result.</returns>
-    protected abstract Task<FdwResult> OnTestConnectionAsync(CancellationToken cancellationToken);
+    protected abstract Task<IFdwResult> OnTestConnectionAsync(CancellationToken cancellationToken);
 
     /// <inheritdoc/>
-    protected override async Task<FdwResult<T>> ExecuteCore<T>(TCommand command)
+    protected override async Task<IFdwResult<T>> ExecuteCore<T>(TCommand command)
     {
         if (!IsConnected)
         {
-            return FdwResult<T>.Failure(ConnectionMessages.ConnectionFailed.Format("Not connected"));
+            return FdwResult<T>.Failure(ConnectionMessages.ConnectionFailed);
         }
 
         // Derived classes implement specific command execution
-        return await OnExecuteCommandAsync<T>(command);
+        return await OnExecuteCommandAsync<T>(command).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -206,7 +265,7 @@ public abstract class ConnectionBase<TConfiguration, TCommand, TConnection>
     /// <typeparam name="T">The result type.</typeparam>
     /// <param name="command">The command to execute.</param>
     /// <returns>The execution result.</returns>
-    protected abstract Task<FdwResult<T>> OnExecuteCommandAsync<T>(TCommand command);
+    protected abstract Task<IFdwResult<T>> OnExecuteCommandAsync<T>(TCommand command);
 
     /// <inheritdoc/>
     public void Dispose()
@@ -235,7 +294,8 @@ public abstract class ConnectionBase<TConfiguration, TCommand, TConnection>
         {
             if (IsConnected)
             {
-                DisconnectAsync().GetAwaiter().GetResult();
+                // Best effort disconnect - don't block on disposal
+                _ = Task.Run(async () => await DisconnectAsync().ConfigureAwait(false));
             }
             _connectionLock?.Dispose();
         }

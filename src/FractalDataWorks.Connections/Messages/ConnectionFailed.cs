@@ -1,5 +1,5 @@
-using FractalDataWorks.EnhancedEnums.Abstractions;
 using FractalDataWorks.EnhancedEnums.Attributes;
+using FractalDataWorks.Messages;
 
 namespace FractalDataWorks.Connections.Messages;
 
@@ -13,5 +13,5 @@ public class ConnectionFailed : ConnectionMessageBase
     /// Initializes a new instance of the <see cref="ConnectionFailed"/> class.
     /// </summary>
     public ConnectionFailed() 
-        : base("CONN_002", "Failed to establish connection to {0}", MessageSeverity.Error) { }
+        : base(2, "ConnectionFailed", "CONN_002", "Failed to establish connection to {0}", MessageSeverity.Error) { }
 }
