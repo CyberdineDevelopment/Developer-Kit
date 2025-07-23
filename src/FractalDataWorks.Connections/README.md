@@ -1,5 +1,7 @@
 # FractalDataWorks.Connections
 
+🚧 **IN PROGRESS** - Enhanced Enum Type Factories implementation in progress
+
 External connection implementations for the FractalDataWorks framework. This package provides the boundary implementations between the framework and external systems.
 
 ## Overview
@@ -269,6 +271,121 @@ services.AddSingleton<IExternalConnectionProvider, ExternalConnectionProvider>()
 - FractalDataWorks.Services (service base class)
 - FractalDataWorks.Configuration (configuration management)
 - Microsoft.Extensions.Logging.Abstractions
+
+## Enhanced Enum Type Factories
+
+🚧 **IN PROGRESS** - New pattern for connection type registration using Enhanced Enums
+
+### Overview
+
+The Enhanced Enum Type Factories pattern uses source generators to create strongly-typed connection registrations:
+
+```csharp
+[EnumOption(1, "SqlServer", "Microsoft SQL Server connection")]
+public class SqlServerConnectionType : ConnectionTypeBase<MsSqlConnection, SqlServerConfiguration>
+{
+    public SqlServerConnectionType() : base(1, "SqlServer", "Microsoft SQL Server connection")
+    {
+    }
+
+    public override object Create(SqlServerConfiguration configuration)
+    {
+        return new MsSqlConnection(_commandBuilder, _connectionFactory, configuration);
+    }
+
+    public override Task<MsSqlConnection> GetConnection(string configurationName)
+    {
+        // Implementation to retrieve connection by configuration name
+    }
+
+    public override Task<MsSqlConnection> GetConnection(int configurationId)
+    {
+        // Implementation to retrieve connection by configuration ID
+    }
+}
+```
+
+### ConnectionTypeBase Pattern
+
+The new pattern introduces two base classes:
+- **ConnectionTypeFactoryBase<TConnection, TConfiguration>**: Non-generic base with factory methods (no Enhanced Enum attributes)
+- **ConnectionTypeBase<TConnection, TConfiguration>**: Enhanced Enum base with `[EnhancedEnumBase]` attribute
+
+### Benefits
+
+1. **Compile-time Safety**: Connection types are generated at compile time
+2. **IntelliSense Support**: Full IDE support for ConnectionTypes.* collections
+3. **Automatic DI Registration**: Connections are automatically registered with dependency injection
+4. **Factory Pattern**: Each connection type acts as a factory for creating connection instances
+
+### Usage with Dependency Injection
+
+```csharp
+// Register all connection types in an assembly
+services.AddConnectionTypes(Assembly.GetExecutingAssembly());
+
+// Connection types are registered as both themselves and their factory interfaces
+var sqlFactory = provider.GetService<IConnectionFactory<MsSqlConnection, SqlServerConfiguration>>();
+var connection = sqlFactory.Create(sqlConfig);
+```
+
+### Generated Collections
+
+Enhanced Enums generates static collections for easy access:
+
+```csharp
+// Access all connection types
+var allConnections = ConnectionTypes.All;
+
+// Get by ID
+var sqlConnection = ConnectionTypes.GetById(1);
+
+// Get by name
+var mongoConnection = ConnectionTypes.GetByName("MongoDB");
+
+// Iterate through all
+foreach (var connectionType in ConnectionTypes.All)
+{
+    Console.WriteLine($"{connectionType.Id}: {connectionType.Name}");
+}
+```
+
+### Example Implementation
+
+```csharp
+[EnumOption(2, "PostgreSQL", "PostgreSQL database connection")]
+public class PostgresConnectionType : ConnectionTypeBase<PostgresConnection, PostgresConfiguration>
+{
+    private readonly ICommandBuilder<IFdwDataCommand, NpgsqlCommand> _commandBuilder;
+    private readonly IConnectionFactory<NpgsqlConnection, PostgresConfiguration> _connectionFactory;
+    
+    public PostgresConnectionType(
+        ICommandBuilder<IFdwDataCommand, NpgsqlCommand> commandBuilder,
+        IConnectionFactory<NpgsqlConnection, PostgresConfiguration> connectionFactory) 
+        : base(2, "PostgreSQL", "PostgreSQL database connection")
+    {
+        _commandBuilder = commandBuilder;
+        _connectionFactory = connectionFactory;
+    }
+
+    public override object Create(PostgresConfiguration configuration)
+    {
+        return new PostgresConnection(_commandBuilder, _connectionFactory, configuration);
+    }
+
+    public override async Task<PostgresConnection> GetConnection(string configurationName)
+    {
+        var config = await _configurationRegistry.GetByName(configurationName);
+        return new PostgresConnection(_commandBuilder, _connectionFactory, config);
+    }
+
+    public override async Task<PostgresConnection> GetConnection(int configurationId)
+    {
+        var config = await _configurationRegistry.GetById(configurationId);
+        return new PostgresConnection(_commandBuilder, _connectionFactory, config);
+    }
+}
+```
 
 ## Contributing
 
