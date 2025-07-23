@@ -12,7 +12,6 @@
     <ProjectReference Include="..\FractalDataWorks.net\FractalDataWorks.net.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
-    <ProjectReference Include="..\FractalDataWorks.EnumTypes.Services\FractalDataWorks.EnumTypes.Services.csproj" />
   </ItemGroup>
 
 </Project>

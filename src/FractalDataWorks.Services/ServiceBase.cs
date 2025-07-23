@@ -29,7 +29,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     private readonly TConfiguration _primaryConfiguration;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ServiceBase{TCommand, TConfiguration TService}"/> class.
+    /// Initializes a new instance of the <see cref="ServiceBase{TCommand, TConfiguration, TService}"/> class.
     /// </summary>
     /// <param name="logger">The logger instance for the concrete service type. If null, uses Microsoft's NullLogger.</param>
     /// <param name="configurations">The configuration registry.</param>
@@ -259,7 +259,10 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <returns>A task containing the result of the command execution.</returns>
     public async Task<IFdwResult> Execute(ICommand command, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (command is TCommand cmd) return await Execute(cmd, cancellationToken);
+        Logger.LogWarning("Invalid command for {type}: {command}",nameof(ServiceBase<TCommand,TConfiguration,TService>),command);
+        return FdwResult.Failure(ServiceMessages.InvalidCommand);
+
     }
 
     /// <summary>
@@ -271,7 +274,11 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <returns>A task containing the result of the command execution.</returns>
     public async Task<IFdwResult<TOut>> Execute<TOut>(ICommand command, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        if (command is TCommand cmd) return await Execute<TOut>(cmd);
+        Logger.LogWarning("Invalid command for {type}: {command}",
+            nameof(ServiceBase<TCommand, TConfiguration, TService>), command);
+        return FdwResult<TOut>.Failure(ServiceMessages.InvalidCommand);
+
     }
 
     #endregion
@@ -285,10 +292,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <param name="command">The command to execute.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    public async Task<IFdwResult<TOut>> Execute<TOut>(TCommand command, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    public abstract Task<IFdwResult<TOut>> Execute<TOut>(TCommand command, CancellationToken cancellationToken);
 
     /// <summary>
     /// Executes a command and returns the result.
@@ -296,10 +300,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <param name="command">The command to execute.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    public async Task<IFdwResult> Execute(TCommand command, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    public abstract Task<IFdwResult> Execute(TCommand command, CancellationToken cancellationToken);
 
     #endregion
 }
