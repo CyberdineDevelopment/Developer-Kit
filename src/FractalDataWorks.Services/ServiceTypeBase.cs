@@ -1,12 +1,15 @@
 using System;
 using System.Threading.Tasks;
+using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Services;
 
 /// <summary>
 /// Base class for service type definitions.
-/// Note: Enhanced Enum attributes temporarily removed due to compatibility issues.
+/// Note: Enhanced Enum attributes temporarily disabled due to compatibility issues.
 /// </summary>
+// TODO: Re-enable when Enhanced Enum supports factory pattern
+// [EnhancedEnumBase("ServiceTypes", ReturnType = "IServiceFactory", ReturnTypeNamespace = "FractalDataWorks.Services")]
 public abstract class ServiceTypeBase
 {
     /// <summary>
@@ -48,7 +51,7 @@ public abstract class ServiceTypeBase
 }
 
 /// <summary>
-/// Generic service type base class that inherits from non-generic Enhanced Enum base.
+/// Generic service type base class that provides typed factory creation.
 /// </summary>
 /// <typeparam name="TService">The service type.</typeparam>
 /// <typeparam name="TConfiguration">The configuration type.</typeparam>

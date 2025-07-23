@@ -1,13 +1,16 @@
 using System;
 using System.Threading.Tasks;
 using FractalDataWorks.Services;
+using FractalDataWorks.EnhancedEnums.Attributes;
 
 namespace FractalDataWorks.Tools;
 
 /// <summary>
 /// Base class for tool type definitions.
-/// Note: Enhanced Enum attributes temporarily removed due to compatibility issues.
+/// Note: Enhanced Enum attributes temporarily disabled due to compatibility issues.
 /// </summary>
+// TODO: Re-enable when Enhanced Enum supports factory pattern
+// [EnhancedEnumBase("ToolTypes", ReturnType = "IToolFactory", ReturnTypeNamespace = "FractalDataWorks")]
 public abstract class ToolTypeBase
 {
     /// <summary>
@@ -49,7 +52,7 @@ public abstract class ToolTypeBase
 }
 
 /// <summary>
-/// Generic tool type base class that inherits from non-generic Enhanced Enum base.
+/// Generic tool type base class that provides typed factory creation.
 /// </summary>
 /// <typeparam name="TTool">The tool type.</typeparam>
 /// <typeparam name="TConfiguration">The configuration type.</typeparam>

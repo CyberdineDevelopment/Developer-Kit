@@ -21,65 +21,6 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     where TCommand : ICommand
     where TConnection : class
 {
-    private static readonly Action<ILogger, string, Exception?> _logAlreadyConnected =
-        LoggerMessage.Define<string>(
-            LogLevel.Warning,
-            new EventId(1, "AlreadyConnected"),
-            "Already connected to {ConnectionString}");
-
-    private static readonly Action<ILogger, string, Exception?> _logConnecting =
-        LoggerMessage.Define<string>(
-            LogLevel.Information,
-            new EventId(2, "Connecting"),
-            "Connecting to {ConnectionString}");
-
-    private static readonly Action<ILogger, string, Exception?> _logConnected =
-        LoggerMessage.Define<string>(
-            LogLevel.Information,
-            new EventId(3, "Connected"),
-            "Successfully connected to {ConnectionString}");
-
-    private static readonly Action<ILogger, string, Exception?> _logConnectionError =
-        LoggerMessage.Define<string>(
-            LogLevel.Error,
-            new EventId(4, "ConnectionError"),
-            "Failed to connect: {Error}");
-
-    private static readonly Action<ILogger, string, Exception?> _logConnectionTimeoutError =
-        LoggerMessage.Define<string>(
-            LogLevel.Error,
-            new EventId(5, "ConnectionTimeout"),
-            "{Message}");
-
-    private static readonly Action<ILogger, Exception?> _logNotConnected =
-        LoggerMessage.Define(
-            LogLevel.Warning,
-            new EventId(6, "NotConnected"),
-            "Not connected");
-
-    private static readonly Action<ILogger, string, Exception?> _logDisconnecting =
-        LoggerMessage.Define<string>(
-            LogLevel.Information,
-            new EventId(7, "Disconnecting"),
-            "Disconnecting from {ConnectionString}");
-
-    private static readonly Action<ILogger, Exception?> _logDisconnected =
-        LoggerMessage.Define(
-            LogLevel.Information,
-            new EventId(8, "Disconnected"),
-            "Successfully disconnected");
-
-    private static readonly Action<ILogger, string, Exception?> _logDisconnectError =
-        LoggerMessage.Define<string>(
-            LogLevel.Error,
-            new EventId(9, "DisconnectError"),
-            "Error during disconnect: {Error}");
-
-    private static readonly Action<ILogger, Exception?> _logConnectionTestFailed =
-        LoggerMessage.Define(
-            LogLevel.Error,
-            new EventId(10, "ConnectionTestFailed"),
-            "Connection test failed");
 
     private readonly SemaphoreSlim _connectionLock = new(1, 1);
     private bool _disposed;
@@ -130,11 +71,11 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
         {
             if (IsConnected)
             {
-                _logAlreadyConnected(Logger, ConnectionString, null);
+                ConnectionBaseLog.AlreadyConnected(Logger, ConnectionString);
                 return FdwResult.Success();
             }
 
-            _logConnecting(Logger, connectionString, null);
+            ConnectionBaseLog.Connecting(Logger, connectionString);
             ConnectionString = connectionString;
 
             // Set up timeout
@@ -149,18 +90,18 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
                     IsConnected = true;
                     ConnectedAt = DateTimeOffset.UtcNow;
                     DisconnectedAt = null;
-                    _logConnected(Logger, connectionString, null);
+                    ConnectionBaseLog.Connected(Logger, connectionString);
                 }
                 else
                 {
-                    _logConnectionError(Logger, result.Message?.Message ?? "Unknown error", null);
+                    ConnectionBaseLog.ConnectionError(Logger, result.Message?.Message ?? "Unknown error");
                 }
                 return result;
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 var message = ConnectionMessages.ConnectionTimeout.Format(connectionString, ConnectionTimeoutSeconds);
-                _logConnectionTimeoutError(Logger, message, null);
+                ConnectionBaseLog.ConnectionTimeoutError(Logger, message);
                 return FdwResult.Failure(ConnectionMessages.ConnectionTimeout);
             }
         }
@@ -178,11 +119,11 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
         {
             if (!IsConnected)
             {
-                _logNotConnected(Logger, null);
+                ConnectionBaseLog.NotConnected(Logger);
                 return FdwResult.Success();
             }
 
-            _logDisconnecting(Logger, ConnectionString, null);
+            ConnectionBaseLog.Disconnecting(Logger, ConnectionString);
             
             var result = await OnDisconnectAsync(cancellationToken).ConfigureAwait(false);
             
@@ -191,11 +132,11 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
             
             if (result.IsSuccess)
             {
-                _logDisconnected(Logger, null);
+                ConnectionBaseLog.Disconnected(Logger);
             }
             else
             {
-                _logDisconnectError(Logger, result.Message?.Message ?? "Unknown error", null);
+                ConnectionBaseLog.DisconnectError(Logger, result.Message?.Message ?? "Unknown error");
             }
             
             return result;
@@ -220,7 +161,7 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
         }
         catch (Exception ex)
         {
-            _logConnectionTestFailed(Logger, ex);
+            ConnectionBaseLog.ConnectionTestFailed(Logger, ex);
             return FdwResult.Failure(ConnectionMessages.ConnectionFailed);
         }
     }

@@ -12,11 +12,6 @@ namespace FractalDataWorks.Configuration;
 /// </summary>
 public abstract class ConfigurationSourceBase : IFdwConfigurationSource
 {
-    private static readonly Action<ILogger, string, ConfigurationChangeType, string, Exception?> _logConfigurationChanged =
-        LoggerMessage.Define<string, ConfigurationChangeType, string>(
-            LogLevel.Debug,
-            new EventId(1, nameof(OnChanged)),
-            "Configuration source '{SourceName}' raised {ChangeType} event for {ConfigurationType}");
 
     private readonly ILogger _logger;
 
@@ -127,6 +122,6 @@ public abstract class ConfigurationSourceBase : IFdwConfigurationSource
         var args = new ConfigurationSourceChangedEventArgs(changeType, configurationType, configurationId);
         Changed?.Invoke(this, args);
 
-        _logConfigurationChanged(_logger, Name, changeType, configurationType.Name, null);
+        ConfigurationSourceBaseLog.ConfigurationChanged(_logger, Name, changeType, configurationType.Name);
     }
 }

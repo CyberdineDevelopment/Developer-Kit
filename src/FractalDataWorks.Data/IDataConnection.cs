@@ -65,7 +65,7 @@ public interface IDataConnection : IFdwService
     /// <typeparam name="T">The type of result expected.</typeparam>
     /// <param name="command">The command to execute.</param>
     /// <returns>A task containing the result of the command execution.</returns>
-    new Task<IFdwResult<T>> Execute<T>(IDataCommand command);
+    Task<IFdwResult<T>> Execute<T>(IDataCommand command);
 
     /// <summary>
     /// Begins a transaction.
