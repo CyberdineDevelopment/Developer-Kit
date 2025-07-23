@@ -15,7 +15,7 @@ namespace FractalDataWorks.Connections;
 /// <typeparam name="TConfiguration">The configuration type for this connection.</typeparam>
 /// <typeparam name="TCommand">The command type for this connection.</typeparam>
 /// <typeparam name="TConnection">The concrete connection type for logging category.</typeparam>
-public abstract class ConnectionBase<TConfiguration, TCommand, TConnection> 
+public abstract class ConnectionBase<TCommand,TConfiguration, TConnection> 
     : ServiceBase<TConfiguration, TCommand, TConnection>, IExternalConnection
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
     where TCommand : ICommand

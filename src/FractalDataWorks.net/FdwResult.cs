@@ -101,4 +101,12 @@ public class FdwResult<TResult> : FdwResult,IFdwResult<TResult>
     /// <typeparam name="T">The type of the result</typeparam>
     /// <returns>A failed result.</returns>
     public static FdwResult<T> Failure<T>(IFdwMessage message) => new(false, default!, message);
+
+    /// <summary>
+    /// Creates a failed result with a message.
+    /// </summary>
+    /// <param name="message">The failure message.</param>
+    /// <typeparam name="TResult">The type of the result</typeparam>
+    /// <returns>A failed result.</returns>
+    public new static FdwResult<TResult> Failure(IFdwMessage message) => new(false, default!, message);
 }
