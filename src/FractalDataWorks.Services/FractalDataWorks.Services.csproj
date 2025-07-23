@@ -11,6 +11,8 @@
 	  </PackageReference>
 	  <PackageReference Include="FractalDataWorks.Messages" />
 	  <PackageReference Include="FractalDataWorks.SmartGenerators" />
+	  <PackageReference Include="Microsoft.Extensions.Telemetry" />
+	  <PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
