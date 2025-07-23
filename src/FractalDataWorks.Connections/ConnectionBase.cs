@@ -16,7 +16,7 @@ namespace FractalDataWorks.Connections;
 /// <typeparam name="TCommand">The command type for this connection.</typeparam>
 /// <typeparam name="TConnection">The concrete connection type for logging category.</typeparam>
 public abstract class ConnectionBase<TCommand,TConfiguration, TConnection> 
-    : ServiceBase<TConfiguration, TCommand, TConnection>, IExternalConnection
+    : ServiceBase<TCommand, TConfiguration, TConnection>, IExternalConnection
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
     where TCommand : ICommand
     where TConnection : class
@@ -247,8 +247,13 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     /// <returns>The test result.</returns>
     protected abstract Task<IFdwResult> OnTestConnectionAsync(CancellationToken cancellationToken);
 
-    /// <inheritdoc/>
-    protected override async Task<IFdwResult<T>> ExecuteCore<T>(TCommand command)
+    /// <summary>
+    /// Executes a command through the connection.
+    /// </summary>
+    /// <typeparam name="T">The result type.</typeparam>
+    /// <param name="command">The command to execute.</param>
+    /// <returns>The execution result.</returns>
+    protected async Task<IFdwResult<T>> ExecuteCommandAsync<T>(TCommand command)
     {
         if (!IsConnected)
         {
@@ -266,6 +271,28 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     /// <param name="command">The command to execute.</param>
     /// <returns>The execution result.</returns>
     protected abstract Task<IFdwResult<T>> OnExecuteCommandAsync<T>(TCommand command);
+
+    #region IExternalConnection Implementation
+
+    /// <inheritdoc/>
+    public async Task<IFdwResult> Connect(string connectionString, CancellationToken cancellationToken = default)
+    {
+        return await ConnectAsync(connectionString, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IFdwResult> Disconnect(CancellationToken cancellationToken = default)
+    {
+        return await DisconnectAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IFdwResult> Test(CancellationToken cancellationToken = default)
+    {
+        return await TestConnectionAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    #endregion
 
     /// <inheritdoc/>
     public void Dispose()

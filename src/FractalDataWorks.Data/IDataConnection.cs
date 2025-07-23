@@ -10,7 +10,7 @@ namespace FractalDataWorks.Data;
 /// <summary>
 /// Defines the contract for data connections in the Fractal framework.
 /// </summary>
-public interface IDataConnection : IFdwService<IDataConfiguration, IDataCommand>
+public interface IDataConnection : IFdwService
 {
     /// <summary>
     /// Queries data using LINQ expressions.
