@@ -10,42 +10,82 @@ namespace FractalDataWorks.Services;
 /// </summary>
 public static partial class ServiceBaseLog
 {
+    /// <summary>
+    /// Logs that a service has started successfully.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="serviceName">The name of the service that started.</param>
     [LoggerMessage(
         EventId = 1,
         Level = LogLevel.Information,
         Message = "Service {ServiceName} started")]
     public static partial void ServiceStarted(ILogger logger, string serviceName);
 
+    /// <summary>
+    /// Logs an invalid configuration error.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="message">The configuration error message.</param>
     [LoggerMessage(
         EventId = 2,
         Level = LogLevel.Error,
         Message = "Invalid configuration: {Message}")]
     public static partial void InvalidConfiguration(ILogger logger, string message);
 
+    /// <summary>
+    /// Logs an invalid configuration warning.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="message">The configuration warning message.</param>
     [LoggerMessage(
         EventId = 3,
         Level = LogLevel.Warning,
         Message = "{Message}")]
     public static partial void InvalidConfigurationWarning(ILogger logger, string message);
 
+    /// <summary>
+    /// Logs that a command is being executed.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="commandType">The type of command being executed.</param>
+    /// <param name="service">The service executing the command.</param>
     [LoggerMessage(
         EventId = 4,
         Level = LogLevel.Debug,
         Message = "Executing command {CommandType} in {Service}")]
     public static partial void ExecutingCommand(ILogger logger, string commandType, string service);
 
+    /// <summary>
+    /// Logs successful command execution with timing information.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="commandType">The type of command that was executed.</param>
+    /// <param name="duration">The execution duration in milliseconds.</param>
     [LoggerMessage(
         EventId = 5,
         Level = LogLevel.Information,
         Message = "Command {CommandType} executed successfully in {Duration}ms")]
     public static partial void CommandExecuted(ILogger logger, string commandType, double duration);
 
+    /// <summary>
+    /// Logs command execution failure.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="commandType">The type of command that failed.</param>
+    /// <param name="error">The error message describing the failure.</param>
     [LoggerMessage(
         EventId = 6,
         Level = LogLevel.Warning,
         Message = "Command {CommandType} failed: {Error}")]
     public static partial void CommandFailed(ILogger logger, string commandType, string error);
 
+    /// <summary>
+    /// Logs operation failure with exception details.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="operationType">The type of operation that failed.</param>
+    /// <param name="error">The error message describing the failure.</param>
+    /// <param name="exception">The exception that caused the failure, if any.</param>
     [LoggerMessage(
         EventId = 7,
         Level = LogLevel.Error,
