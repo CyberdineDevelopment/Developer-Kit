@@ -101,7 +101,7 @@ public static class ServiceCollectionExtensions
         while (baseType != null)
         {
             if (baseType.IsGenericType && 
-                baseType.GetGenericTypeDefinition().Name.StartsWith("ConnectionType"))
+                baseType.GetGenericTypeDefinition().Name.StartsWith("ConnectionTypeBase"))
             {
                 return true;
             }
@@ -116,7 +116,7 @@ public static class ServiceCollectionExtensions
         while (baseType != null && baseType.IsGenericType)
         {
             var genericDef = baseType.GetGenericTypeDefinition();
-            if (genericDef.Name.StartsWith("ConnectionType"))
+            if (genericDef.Name.StartsWith("ConnectionTypeBase"))
             {
                 var genericArgs = baseType.GetGenericArguments();
                 if (genericArgs.Length >= 2)
