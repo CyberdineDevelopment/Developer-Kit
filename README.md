@@ -11,7 +11,7 @@ A comprehensive .NET library framework providing foundational abstractions and i
 The FractalDataWorks Developer Kit is a layered architecture framework that provides:
 
 - **Core abstractions** for services, configuration, validation, and results
-- **Service patterns** with built-in validation, logging, and error handling
+- **Service patterns** with built-in validation, Serilog structured logging, and error handling
 - **Configuration management** with validation and registry patterns
 - **Enhanced messaging** using the EnhancedEnums pattern for type-safe, maintainable messages
 - **Extensible architecture** supporting dependency injection, data access, hosting, and tools
@@ -43,9 +43,10 @@ The framework follows a progressive layered architecture with clear separation b
 
 ### Layer 1 - Domain-Specific Implementations
 - **FractalDataWorks.Services** - Service patterns and base implementations
-  - `ServiceBase<TConfiguration, TCommand>` - Base service with validation and logging
+  - `ServiceBase<TConfiguration, TCommand>` - Base service with validation and Serilog structured logging
   - `DataConnection<TDataCommand, TConnection>` - Universal data service implementation
   - Built-in command validation and error handling
+  - Comprehensive logging with ServiceBaseLog using source generators and Serilog destructuring
   
 - **FractalDataWorks.Configuration** - Configuration providers and patterns
   - `ConfigurationBase<T>` - Self-validating configuration base class
@@ -230,13 +231,17 @@ public class MyConfiguration : ConfigurationBase<MyConfiguration>
 
 ### Enhanced Messaging
 ```csharp
-// Type-safe, discoverable service messages
-_logger.LogError(ServiceMessages.InvalidConfiguration.Format("Missing connection string"));
-_logger.LogInformation(ServiceMessages.ServiceStarted.Format(ServiceName));
+// Type-safe, discoverable service messages with Serilog structured logging
+_logger.LogError("Invalid configuration: {Error}", ServiceMessages.InvalidConfiguration.Format("Missing connection string"));
+_logger.LogInformation("Service started: {ServiceName}", ServiceName);
 
-// Messages are strongly-typed with consistent formatting
-var message = ServiceMessages.ConnectionFailed;
-_logger.LogError(message.Format(retries, errorMessage));
+// Enhanced structured logging with Serilog destructuring
+_logger.LogError("Connection failed after {Retries} attempts: {@Error}", 
+    retries, new { Message = errorMessage, Timestamp = DateTime.UtcNow });
+
+// Use ServiceBaseLog for comprehensive structured logging
+ServiceBaseLog.CommandExecutedWithContext(_logger, command);
+ServiceBaseLog.PerformanceMetrics(_logger, new PerformanceMetrics(150.5, 1000, "BatchProcess"));
 ```
 
 ### Result Pattern

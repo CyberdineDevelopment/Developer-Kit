@@ -192,15 +192,71 @@ else
 5. **Result**: Consistent result pattern with success/failure
 6. **Logging**: Automatic logging of execution time and results
 
-## Built-in Messages
+## Built-in Logging with Serilog
 
-The service automatically logs using the ServiceMessages system:
+The service automatically logs using structured logging with Serilog integration:
+
+### Standard Log Events
 - `ServiceStarted` - When service initializes successfully
 - `InvalidConfiguration` - When configuration validation fails
 - `InvalidCommand` - When command validation fails
 - `CommandExecuted` - When command executes successfully
 - `CommandFailed` - When command execution fails
 - `OperationFailed` - When an exception occurs
+
+### Structured Logging Examples
+
+```csharp
+// Use Serilog destructuring for complex objects
+ServiceBaseLog.CommandExecutedWithContext(logger, command);
+// Logs: "Command executed with detailed context {@Command}"
+
+ServiceBaseLog.ConfigurationValidated(logger, configuration);
+// Logs: "Service configuration validated {@Configuration}"
+
+ServiceBaseLog.PerformanceMetrics(logger, new PerformanceMetrics(
+    Duration: 150.5,
+    ItemsProcessed: 1000,
+    OperationType: "BatchProcess"));
+// Logs: "Performance metrics available {@Metrics}"
+
+ServiceBaseLog.ServiceOperationCompleted(logger, "DataProcessing", 250.0, result, context);
+// Logs: "Service operation DataProcessing completed in 250ms {@Result} {@Context}"
+```
+
+### Serilog Configuration
+
+Configure Serilog in your application startup:
+
+```csharp
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(new CompactJsonFormatter())
+    .WriteTo.File("logs/app-.txt", rollingInterval: RollingInterval.Day, 
+                  outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .Enrich.WithProperty("Application", "FractalDataWorks")
+    .CreateLogger();
+
+services.AddLogging(builder => builder.AddSerilog());
+```
+
+### Custom Structured Logging
+
+Add custom structured logging in your services:
+
+```csharp
+protected override async Task<FdwResult<T>> ExecuteCore<T>(CustomerCommand command)
+{
+    logger.LogInformation("Processing customer command {@Command} for tenant {TenantId}", 
+        command, Configuration.TenantId);
+    
+    var result = await ProcessCommand(command);
+    
+    logger.LogInformation("Customer operation completed with result {@Result}", 
+        new { Success = result.IsSuccess, RecordsAffected = result.Value });
+    
+    return result;
+}
+```
 
 ## Health Checks
 
