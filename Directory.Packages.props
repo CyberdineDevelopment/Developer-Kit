@@ -25,6 +25,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0-preview.6.25358.103" />
     <PackageVersion Include="Microsoft.Extensions.Telemetry" Version="9.7.0" />
     <PackageVersion Include="Microsoft.Extensions.Telemetry.Abstractions" Version="9.7.0" />
+    <PackageVersion Include="Microsoft.Extensions.Telemetry.Testing" Version="8.0.0-rc.2.23510.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="System.Collections.Immutable" Version="10.0.0-preview.6.25358.103" />
     <!-- Testing packages -->
