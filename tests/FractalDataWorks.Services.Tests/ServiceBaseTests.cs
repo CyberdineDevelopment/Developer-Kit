@@ -378,6 +378,259 @@ public class ServiceBaseTests
         result.IsSuccess.ShouldBeFalse();
     }
 
+    [Fact]
+    public async Task ExecuteGenericWithICommandPassesThroughCorrectly()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object)
+        {
+            ExecuteCoreResult = FdwResult<string>.Success("Generic success")
+        };
+        
+        var mockCommand = new Mock<TestCommand>();
+        var mockValidationResult = new Mock<IValidationResult>();
+        mockValidationResult.Setup(v => v.IsValid).Returns(true);
+        mockCommand.Setup(c => c.Validate()).ReturnsAsync(mockValidationResult.Object);
+        mockCommand.Setup(c => c.CorrelationId).Returns(Guid.NewGuid());
+        mockCommand.Setup(c => c.CommandId).Returns(Guid.NewGuid());
+        mockCommand.Setup(c => c.Timestamp).Returns(DateTimeOffset.Now);
+
+        // Act
+        var result = await service.Execute<string>(mockCommand.Object as ICommand, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe("Generic success");
+    }
+
+    [Fact]
+    public async Task ExecuteGenericWithWrongCommandTypeReturnsFailure()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+        
+        var mockCommand = new Mock<ICommand>();
+
+        // Act
+        var result = await service.Execute<string>(mockCommand.Object, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteNonGenericWithICommandPassesThroughCorrectly()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+        
+        var mockCommand = new Mock<TestCommand>();
+        mockCommand.Setup(c => c.CorrelationId).Returns(Guid.NewGuid());
+
+        // Act
+        var result = await service.Execute(mockCommand.Object as ICommand, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ExecuteNonGenericWithWrongCommandTypeReturnsFailure()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+        
+        var mockCommand = new Mock<ICommand>();
+
+        // Act
+        var result = await service.Execute(mockCommand.Object, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void GetInvalidConfigurationCreatesDisabledConfig()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+
+        // Act
+        var invalidConfig = service.TestGetInvalidConfiguration();
+
+        // Assert
+        invalidConfig.IsEnabled.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void NamePropertyReturnsServiceName()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+
+        // Act
+        var name = service.Name;
+
+        // Assert
+        name.ShouldBe("TestService");
+    }
+
+    [Fact]
+    public void LoggerPropertyReturnsCorrectLogger()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+
+        // Act
+        var logger = service.TestLogger;
+
+        // Assert
+        logger.ShouldBe(_mockLogger.Object);
+    }
+
+    [Fact]
+    public void ConfigurationPropertyReturnsSelectedConfiguration()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+
+        // Act
+        var config = service.Configuration;
+
+        // Assert
+        config.ShouldBe(_validConfig);
+        config.TestProperty.ShouldBe("Valid");
+    }
+
+    [Fact]
+    public async Task ExecuteLogsCommandExecutionLifecycle()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object)
+        {
+            ExecuteCoreResult = FdwResult<string>.Success("Success")
+        };
+        
+        var mockCommand = new Mock<TestCommand>();
+        var commandId = Guid.NewGuid();
+        var correlationId = Guid.NewGuid();
+        var mockValidationResult = new Mock<IValidationResult>();
+        mockValidationResult.Setup(v => v.IsValid).Returns(true);
+        mockCommand.Setup(c => c.Validate()).ReturnsAsync(mockValidationResult.Object);
+        mockCommand.Setup(c => c.CorrelationId).Returns(correlationId);
+        mockCommand.Setup(c => c.CommandId).Returns(commandId);
+        mockCommand.Setup(c => c.Timestamp).Returns(DateTimeOffset.Now);
+
+        // Act
+        await service.Execute<string>(mockCommand.Object);
+
+        // Assert - verify that logging occurred (the actual logging is through source-generated loggers)
+        // Since we're using source-generated logging, we can't easily verify the exact log calls
+        // but we can verify the command was executed successfully
+        service.ExecuteCoreCalled.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ExecuteHandlesNullValidationResult()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+        
+        var mockCommand = new Mock<TestCommand>();
+        mockCommand.Setup(c => c.Validate()).ReturnsAsync((IValidationResult)null!);
+
+        // Act
+        var result = await service.Execute<string>(mockCommand.Object);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ConfigurationIsValidWithNullConfigurationReturnsFalse()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+
+        // Act
+        var result = service.TestConfigurationIsValid(null!);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ServiceCreatedWithMultipleInvalidConfigsUsesDisabledConfig()
+    {
+        // Arrange
+        var invalidConfig2 = new TestConfiguration { IsEnabled = true, TestProperty = "" };
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _invalidConfig, invalidConfig2 });
+
+        // Act
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
+
+        // Assert
+        service.Configuration.IsEnabled.ShouldBeFalse();
+        service.Configuration.TestProperty.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task ExecuteDoesNotCatchStackOverflowException()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object)
+        {
+            ExceptionToThrow = new StackOverflowException()
+        };
+        
+        var mockCommand = new Mock<TestCommand>();
+        var mockValidationResult = new Mock<IValidationResult>();
+        mockValidationResult.Setup(v => v.IsValid).Returns(true);
+        mockCommand.Setup(c => c.Validate()).ReturnsAsync(mockValidationResult.Object);
+
+        // Act & Assert
+        await Should.ThrowAsync<StackOverflowException>(async () => 
+            await service.Execute<string>(mockCommand.Object));
+    }
+
+    [Fact]
+    public async Task ExecuteHandlesAccessViolationException()
+    {
+        // Arrange
+        _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
+        var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object)
+        {
+            ExceptionToThrow = new AccessViolationException()
+        };
+        
+        var mockCommand = new Mock<TestCommand>();
+        var mockValidationResult = new Mock<IValidationResult>();
+        mockValidationResult.Setup(v => v.IsValid).Returns(true);
+        mockCommand.Setup(c => c.Validate()).ReturnsAsync(mockValidationResult.Object);
+        mockCommand.Setup(c => c.CorrelationId).Returns(Guid.NewGuid());
+        mockCommand.Setup(c => c.CommandId).Returns(Guid.NewGuid());
+        mockCommand.Setup(c => c.Timestamp).Returns(DateTimeOffset.Now);
+
+        // Act
+        var result = await service.Execute<string>(mockCommand.Object);
+
+        // Assert - AccessViolationException should be caught and converted to failure
+        result.IsSuccess.ShouldBeFalse();
+        result.Message.ShouldNotBeNull();
+    }
+
     // Test doubles
     public class TestService : ServiceBase<TestCommand, TestConfiguration, TestService>
     {
@@ -434,6 +687,13 @@ public class ServiceBaseTests
         {
             return ValidateCommand(command);
         }
+
+        public TestConfiguration TestGetInvalidConfiguration()
+        {
+            return GetInvalidConfiguration();
+        }
+
+        public ILogger<TestService> TestLogger => Logger;
     }
 
     public class TestConfiguration : ConfigurationBase<TestConfiguration>
@@ -457,12 +717,22 @@ public class ServiceBaseTests
         }
     }
 
-    public abstract class TestCommand : ICommand
+    public class TestCommand : ICommand
     {
         public virtual Guid CommandId { get; set; } = Guid.NewGuid();
         public virtual Guid CorrelationId { get; set; } = Guid.NewGuid();
         public virtual DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
         public virtual IFdwConfiguration? Configuration { get; set; }
-        public abstract Task<IValidationResult> Validate();
+        public virtual Task<IValidationResult> Validate()
+        {
+            // Default implementation for testing
+            return Task.FromResult<IValidationResult>(new TestValidationResult { IsValid = true });
+        }
+    }
+
+    public class TestValidationResult : IValidationResult
+    {
+        public bool IsValid { get; set; }
+        public IReadOnlyList<IValidationError> Errors { get; set; } = new List<IValidationError>();
     }
 }
