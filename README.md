@@ -1,5 +1,7 @@
 # FractalDataWorks Developer Kit
 
+🚧 **IN PROGRESS** - Enhanced Enum Type Factories implementation in progress
+
 A comprehensive .NET library framework providing foundational abstractions and implementations for building scalable, maintainable enterprise applications.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
@@ -295,6 +297,44 @@ The framework enforces code quality through:
 - **Testing**: xUnit v3 with parallel execution
 - **Coverage**: Coverlet integration for code coverage
 - **Build Configurations**: Progressive quality gates from Debug to Release
+
+## Enhanced Enum Type Factories
+
+🚧 **IN PROGRESS** - New pattern for type registration using Enhanced Enums
+
+The Enhanced Enum Type Factories pattern provides compile-time safe, automatically registered factory types for services, connections, and tools. This pattern leverages source generators to create strongly-typed collections with full IntelliSense support.
+
+### Key Benefits
+
+- **Compile-time Safety**: All types are verified at compile time
+- **IntelliSense Support**: Full IDE support for generated collections (ServiceTypes.*, ConnectionTypes.*, ToolTypes.*)
+- **Automatic DI Registration**: Types are automatically registered with dependency injection
+- **Factory Pattern**: Each type acts as a factory for creating instances
+- **Discoverability**: Easy discovery of available types through generated static collections
+
+### Quick Example
+
+```csharp
+// Define a service type
+[EnumOption(1, "EmailNotification", "Email notification service")]
+public class EmailNotificationServiceType : ServiceTypeBase<INotificationService, EmailConfiguration>
+{
+    public override object Create(EmailConfiguration configuration)
+    {
+        return new EmailNotificationService(configuration);
+    }
+}
+
+// Use the generated collections
+var emailService = ServiceTypes.EmailNotification.Instance;
+var allServices = ServiceTypes.All;
+var service = ServiceTypes.GetByName("EmailNotification");
+
+// Automatic DI registration
+services.AddServiceTypes(Assembly.GetExecutingAssembly());
+```
+
+For detailed documentation, see [Enhanced Enum Type Factories Documentation](docs/EnhancedEnumTypeFactories.md).
 
 ### Quality Gate Configurations
 

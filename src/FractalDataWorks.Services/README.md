@@ -1,5 +1,7 @@
 # FractalDataWorks.Services
 
+🚧 **IN PROGRESS** - Enhanced Enum Type Factories implementation in progress
+
 Service patterns and base implementations for the FractalDataWorks framework. This package provides the foundational service abstractions and base classes that simplify service development with built-in validation, logging, and error handling.
 
 ## Overview
@@ -297,6 +299,84 @@ The service base class provides comprehensive error handling:
 5. **Log Sparingly**: The base class provides comprehensive logging already
 6. **Use DataConnection for Data**: Don't create domain-specific data services, use the universal DataConnection
 7. **Provider Agnostic Commands**: Write queries using universal expressions that work across providers
+
+## Enhanced Enum Type Factories
+
+🚧 **IN PROGRESS** - New pattern for service type registration using Enhanced Enums
+
+### Overview
+
+The Enhanced Enum Type Factories pattern uses source generators to create strongly-typed service registrations:
+
+```csharp
+[EnumOption(1, "EmailService", "Email notification service")]
+public class EmailServiceType : ServiceTypeBase<INotificationService, EmailConfiguration>
+{
+    public EmailServiceType() : base(1, "EmailService", "Email notification service")
+    {
+    }
+
+    public override object Create(EmailConfiguration configuration)
+    {
+        return new EmailService(configuration);
+    }
+
+    public override Task<INotificationService> GetService(string configurationName)
+    {
+        // Implementation to retrieve service by configuration name
+    }
+
+    public override Task<INotificationService> GetService(int configurationId)
+    {
+        // Implementation to retrieve service by configuration ID
+    }
+}
+```
+
+### ServiceTypeBase Pattern
+
+The new pattern introduces two base classes:
+- **ServiceTypeFactoryBase<TService, TConfiguration>**: Non-generic base with factory methods (no Enhanced Enum attributes)
+- **ServiceTypeBase<TService, TConfiguration>**: Enhanced Enum base with `[EnhancedEnumBase]` attribute
+
+### Benefits
+
+1. **Compile-time Safety**: Service types are generated at compile time
+2. **IntelliSense Support**: Full IDE support for ServiceTypes.* collections
+3. **Automatic DI Registration**: Services are automatically registered with dependency injection
+4. **Factory Pattern**: Each service type acts as a factory for creating service instances
+
+### Usage with Dependency Injection
+
+```csharp
+// Register all service types in an assembly
+services.AddServiceTypes(Assembly.GetExecutingAssembly());
+
+// Service types are registered as both themselves and their factory interfaces
+var emailFactory = provider.GetService<IServiceFactory<INotificationService, EmailConfiguration>>();
+var service = emailFactory.Create(emailConfig);
+```
+
+### Generated Collections
+
+Enhanced Enums generates static collections for easy access:
+
+```csharp
+// Access all service types
+var allServices = ServiceTypes.All;
+
+// Get by ID
+var emailService = ServiceTypes.GetById(1);
+
+// Get by name
+var smsService = ServiceTypes.GetByName("SmsService");
+
+// Iterate through all
+foreach (var serviceType in ServiceTypes.All)
+{
+    Console.WriteLine($"{serviceType.Id}: {serviceType.Name}");
+}
+```
 
 ## Advanced Scenarios
 

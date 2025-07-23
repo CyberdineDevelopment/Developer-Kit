@@ -1,5 +1,7 @@
 # FractalDataWorks.Tools
 
+🚧 **IN PROGRESS** - Enhanced Enum Type Factories implementation in progress
+
 Common utilities, helpers, and extension methods for the FractalDataWorks framework.
 
 ## Overview
@@ -463,6 +465,139 @@ using (new DisposableStopwatch(time => _logger.LogDebug($"Query took {time.Total
 ## Status
 
 This package is currently in planning phase. The utilities described above represent common patterns that will be implemented based on actual usage needs.
+
+## Enhanced Enum Type Factories
+
+🚧 **IN PROGRESS** - New pattern for tool type registration using Enhanced Enums
+
+### Overview
+
+The Enhanced Enum Type Factories pattern uses source generators to create strongly-typed tool registrations:
+
+```csharp
+[EnumOption(1, "CodeGenerator", "Source code generation tool")]
+public class CodeGeneratorToolType : ToolTypeBase<ICodeGeneratorTool, CodeGeneratorConfiguration>
+{
+    public CodeGeneratorToolType() : base(1, "CodeGenerator", "Source code generation tool")
+    {
+    }
+
+    public override object Create(CodeGeneratorConfiguration configuration)
+    {
+        return new CodeGeneratorTool(configuration);
+    }
+
+    public override Task<ICodeGeneratorTool> GetTool(string configurationName)
+    {
+        // Implementation to retrieve tool by configuration name
+    }
+
+    public override Task<ICodeGeneratorTool> GetTool(int configurationId)
+    {
+        // Implementation to retrieve tool by configuration ID
+    }
+}
+```
+
+### ToolTypeBase Pattern
+
+The new pattern introduces two base classes:
+- **ToolTypeFactoryBase<TTool, TConfiguration>**: Non-generic base with factory methods (no Enhanced Enum attributes)
+- **ToolTypeBase<TTool, TConfiguration>**: Enhanced Enum base with `[EnhancedEnumBase]` attribute
+
+### Benefits
+
+1. **Compile-time Safety**: Tool types are generated at compile time
+2. **IntelliSense Support**: Full IDE support for ToolTypes.* collections
+3. **Automatic DI Registration**: Tools are automatically registered with dependency injection
+4. **Factory Pattern**: Each tool type acts as a factory for creating tool instances
+
+### Usage with Dependency Injection
+
+```csharp
+// Register all tool types in an assembly
+services.AddToolTypes(Assembly.GetExecutingAssembly());
+
+// Tool types are registered as both themselves and their factory interfaces
+var generatorFactory = provider.GetService<IToolFactory<ICodeGeneratorTool, CodeGeneratorConfiguration>>();
+var tool = generatorFactory.Create(generatorConfig);
+```
+
+### Generated Collections
+
+Enhanced Enums generates static collections for easy access:
+
+```csharp
+// Access all tool types
+var allTools = ToolTypes.All;
+
+// Get by ID
+var codeGenerator = ToolTypes.GetById(1);
+
+// Get by name
+var migrationTool = ToolTypes.GetByName("MigrationTool");
+
+// Iterate through all
+foreach (var toolType in ToolTypes.All)
+{
+    Console.WriteLine($"{toolType.Id}: {toolType.Name}");
+}
+```
+
+### Example Implementation
+
+```csharp
+[EnumOption(2, "DataMigration", "Data migration and transformation tool")]
+public class DataMigrationToolType : ToolTypeBase<IDataMigrationTool, DataMigrationConfiguration>
+{
+    private readonly ILogger<DataMigrationToolType> _logger;
+    private readonly IDataConnectionProvider _connectionProvider;
+    
+    public DataMigrationToolType(
+        ILogger<DataMigrationToolType> logger,
+        IDataConnectionProvider connectionProvider) 
+        : base(2, "DataMigration", "Data migration and transformation tool")
+    {
+        _logger = logger;
+        _connectionProvider = connectionProvider;
+    }
+
+    public override object Create(DataMigrationConfiguration configuration)
+    {
+        return new DataMigrationTool(_logger, _connectionProvider, configuration);
+    }
+
+    public override async Task<IDataMigrationTool> GetTool(string configurationName)
+    {
+        var config = await _configurationRegistry.GetByName(configurationName);
+        return new DataMigrationTool(_logger, _connectionProvider, config);
+    }
+
+    public override async Task<IDataMigrationTool> GetTool(int configurationId)
+    {
+        var config = await _configurationRegistry.GetById(configurationId);
+        return new DataMigrationTool(_logger, _connectionProvider, config);
+    }
+}
+```
+
+### Tool Interface Example
+
+```csharp
+public interface ICodeGeneratorTool : IFdwTool
+{
+    Task<GenerationResult> GenerateAsync(GenerationRequest request);
+    Task<ValidationResult> ValidateTemplateAsync(string template);
+    IEnumerable<string> GetSupportedLanguages();
+}
+
+public interface IDataMigrationTool : IFdwTool
+{
+    Task<MigrationResult> MigrateAsync(MigrationPlan plan);
+    Task<ValidationResult> ValidatePlanAsync(MigrationPlan plan);
+    Task<MigrationStatus> GetStatusAsync(string migrationId);
+}
+```
 
 ## Contributing
 
