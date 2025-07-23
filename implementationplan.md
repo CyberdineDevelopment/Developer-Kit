@@ -18,30 +18,30 @@
 - [ ] **Expected Result**: Enhanced Enums will support generic types, fixing ENH001 error
 
 ### 1.2 Clean Project References in Services
-- [ ] **File**: `C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\FractalDataWorks.Services.csproj`
-- [ ] **Action**: Remove line that references non-existent `FractalDataWorks.EnumTypes.Services` project
-- [ ] **Specific Change**: Delete any `<ProjectReference Include="..\..\messages\src\FractalDataWorks.EnumTypes.Services\FractalDataWorks.EnumTypes.Services.csproj" />` lines
-- [ ] **Expected Result**: Fixes MSB9008 warning about missing project
+- [x] **File**: `C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\FractalDataWorks.Services.csproj`
+- [x] **Action**: Remove line that references non-existent `FractalDataWorks.EnumTypes.Services` project
+- [x] **Specific Change**: Delete any `<ProjectReference Include="..\..\messages\src\FractalDataWorks.EnumTypes.Services\FractalDataWorks.EnumTypes.Services.csproj" />` lines
+- [x] **Expected Result**: Fixes MSB9008 warning about missing project
 
 ### 1.3 Fix ServiceBase Generic Usage in DataConnectionBase
-- [ ] **File**: `C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\Data\DataConnectionBase.cs`
-- [ ] **Action**: Fix line 6 to provide correct number of generic type arguments to ServiceBase
-- [ ] **Specific Change**: Change `ServiceBase<TCommand, TConfiguration>` to `ServiceBase<TCommand, TConfiguration, TService>` or correct pattern
-- [ ] **Expected Result**: Fixes CS0305 error about generic type arguments
+- [x] **File**: `C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\Data\DataConnectionBase.cs`
+- [x] **Action**: Fix line 6 to provide correct number of generic type arguments to ServiceBase
+- [x] **Specific Change**: Change `ServiceBase<TCommand, TConfiguration>` to `ServiceBase<TCommand, TConfiguration, TService>` or correct pattern
+- [x] **Expected Result**: Fixes CS0305 error about generic type arguments
 
 ### 1.4 Fix ServiceBase Interface Implementation
-- [ ] **File**: `C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\ServiceBase.cs`
-- [ ] **Action**: Fix line 277 interface declaration for IFdwService
-- [ ] **Specific Change**: Change `IFdwService<TConfiguration, TCommand, IFdwResult>` to correct interface signature like `IFdwService<TCommand>`
-- [ ] **Expected Result**: Fixes CS0305 and CS0538 errors about interface declaration
+- [x] **File**: `C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\ServiceBase.cs`
+- [x] **Action**: Fix line 277 interface declaration for IFdwService
+- [x] **Specific Change**: Change `IFdwService<TConfiguration, TCommand, IFdwResult>` to correct interface signature like `IFdwService<TCommand>`
+- [x] **Expected Result**: Fixes CS0305 and CS0538 errors about interface declaration
 
 ### 1.5 Fix ServiceTypeBase Attribute Properties
-- [ ] **File**: `C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\ServiceTypeBase.cs`
-- [ ] **Action**: Change attribute properties to correct names
-- [ ] **Specific Change**: 
+- [x] **File**: `C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\ServiceTypeBase.cs`
+- [x] **Action**: Change attribute properties to correct names
+- [x] **Specific Change**: 
    - Line 12: Change `DefaultGenericReturnType = "IServiceFactory<IFdwService, IFdwConfiguration>"` to `ReturnType = "IServiceFactory<IFdwService, IFdwConfiguration>"`
    - Line 13: Change `DefaultGenericReturnTypeNamespace = "FractalDataWorks.Services"` to `ReturnTypeNamespace = "FractalDataWorks.Services"`
-- [ ] **Expected Result**: Fixes CS0246 errors about missing attribute properties
+- [x] **Expected Result**: Fixes CS0246 errors about missing attribute properties
 
 ## Phase 2: Services Implementation
 

@@ -274,7 +274,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <summary>
     /// Explicit interface implementation for the base interface with constraint.
     /// </summary>
-    Task<IFdwResult<T>> IFdwService<TConfiguration, TCommand, IFdwResult>.Execute<T>(TCommand command)
+    Task<IFdwResult<T>> IFdwService<TCommand>.Execute<T>(TCommand command, CancellationToken cancellationToken)
     {
         return Execute<T>(command);
     }

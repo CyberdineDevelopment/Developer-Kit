@@ -3,7 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="..\FractalDataWorks.net\FractalDataWorks.net.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
-    <ProjectReference Include="..\..\..\messages\src\FractalDataWorks.EnumTypes.Services\FractalDataWorks.EnumTypes.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>
