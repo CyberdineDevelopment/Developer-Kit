@@ -1,3 +1,4 @@
+using System;
 using FractalDataWorks;
 
 namespace FractalDataWorks;
@@ -13,9 +14,14 @@ public interface IFdwResult
     bool IsSuccess { get; }
     
     /// <summary>
-    /// Gets a value indicating whether this result represents a failure.
+    /// Gets a value indicating whether this represents an empty result
     /// </summary>
-    bool IsFailure { get; }
+    bool IsEmpty { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether this result represents an error.
+    /// </summary>
+    bool Error { get; }
     
     /// <summary>
     /// Gets the message associated with this result, if any.
@@ -27,11 +33,10 @@ public interface IFdwResult
 /// Represents a result that can be either success or failure with a value.
 /// </summary>
 /// <typeparam name="T">The type of the value.</typeparam>
-public interface IFdwResult<T> : IFdwResult
+public interface IFdwResult<out T> : IFdwResult
 {
     /// <summary>
     /// Gets the value of this result.
     /// </summary>
-    /// <exception cref="System.InvalidOperationException">Thrown when accessing value on a failed result.</exception>
     T Value { get; }
 }

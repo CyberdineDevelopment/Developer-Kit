@@ -27,17 +27,26 @@ This is a layered .NET library architecture with progressive abstraction layers:
 
 **Layer 0.5 - Core Foundation** (`FractalDataWorks.net`):
 - Targets netstandard2.0 for maximum compatibility
-- Contains core abstractions: `IFractalService`, `IFractalConfiguration`, `IServiceResult`
+- Contains ALL core abstractions (interfaces moved from Layer 1):
+  - `IFdwService`, `IFdwConfiguration`, `IFdwResult`
+  - `IServiceFactory`, `IConfigurationRegistry`
+  - `IExternalConnection`, `IFdwConnection`
+  - `IDataConnection`, `IFdwDataCommand`
 - Base types that all other layers depend on
 
-**Layer 1 - Domain-Specific Abstractions**:
-- `FractalDataWorks.Services`: Service patterns and abstractions
-- `FractalDataWorks.Connections`: Data and messaging connection abstractions
+**Layer 1 - Domain-Specific Implementations**:
+- `FractalDataWorks.Services`: Service base implementations
+  - `ServiceBase<TConfiguration, TCommand>`
+  - `DataConnection<TDataCommand, TConnection>` - Universal data service
+- `FractalDataWorks.Connections`: External connection implementations
+  - `ExternalConnectionBase<TCommandBuilder, TCommand, TConnection, TFactory, TConfig>`
+  - Provider-specific connections (MsSql, Postgres, etc.)
+  - Command builders for transforming universal commands
 - `FractalDataWorks.Configuration`: Configuration providers and patterns
 - `FractalDataWorks.DependencyInjection`: DI container abstractions
 - `FractalDataWorks.Tools`: Common utilities and helpers
 - `FractalDataWorks.Hosts`: Web and worker host abstractions
-- `FractalDataWorks.Data`: Data abstractions and common types
+- `FractalDataWorks.Data`: Entity base classes and patterns
 
 Each source project has a corresponding `.Tests` project for unit testing.
 
@@ -81,11 +90,14 @@ The project follows git-flow:
 
 ## Key Patterns
 
-1. **Interface-based design**: All major components start with interfaces (e.g., `IFractalService`)
-2. **Generic service pattern**: Services can be typed with configuration (`IFractalService<TConfig>`)
-3. **Result pattern**: Operations return `IServiceResult` for consistent error handling
+1. **Interface-based design**: All major components start with interfaces (e.g., `IFdwService`)
+2. **Generic service pattern**: Services can be typed with configuration (`IFdwService<TConfig>`)
+3. **Result pattern**: Operations return `IFdwResult` for consistent error handling
 4. **Testability**: Every component designed for unit testing
 5. **Package independence**: Each Layer 1 package can be used independently
+6. **Universal Data Service**: Single data service with command pattern and provider-specific implementations
+7. **External Connections as Boundaries**: External connections isolated from core architecture
+8. **Command Transformation**: Universal commands transformed to provider-specific via builders
 
 ## Documentation Requirements
 
@@ -108,7 +120,7 @@ The project generates XML documentation files for all builds.
 Projects follow a consistent internal structure:
 - **Folder by concept**: Types organized by functional area (e.g., `/Configuration/`, `/Services/`, `/Results/`)
 - **One type per file**: Each interface or class gets its own file
-- **File naming**: Matches type name exactly (e.g., `IFractalService.cs`)
+- **File naming**: Matches type name exactly (e.g., `IFdwService.cs`)
 - **Namespace hierarchy**: 
   - `FractalDataWorks.net` project uses `FractalDataWorks` as root namespace
   - Subfolders add to namespace (e.g., `FractalDataWorks.Configuration`)
@@ -119,3 +131,21 @@ Projects follow a consistent internal structure:
 
 - Do NOT add promotional text or emojis to commits or code
 - Keep commit messages professional and descriptive
+
+## Naming Conventions
+
+- All framework types use the `Fdw` prefix (e.g., `IFdwService`, `FdwResult`)
+- External connections use descriptive names (e.g., `MsSqlConnection`, `PostgresConnection`)
+- Command builders follow pattern: `{Provider}CommandBuilder`
+
+## Data Service Architecture
+
+The data layer is implemented as a universal service:
+
+1. **Universal Commands**: `IFdwDataCommand` contains LINQ-like queries
+2. **Data Service**: `DataConnection<TDataCommand, TConnection>` inherits from `ServiceBase`
+3. **Provider Selection**: `ExternalConnectionProvider` selects appropriate connection
+4. **Command Transformation**: Provider-specific command builders transform universal commands
+5. **Execution**: Provider executes transformed commands and returns results
+
+Flow: `IFdwDataCommand → DataConnection → ExternalConnectionProvider → Provider Connection → Command Builder → Execute → Result`

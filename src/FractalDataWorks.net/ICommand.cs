@@ -22,7 +22,7 @@ public interface ICommand
     /// <summary>
     /// Gets the timestamp when this command was created.
     /// </summary>
-    DateTime Timestamp { get; }
+    DateTimeOffset Timestamp { get; }
     
     /// <summary>
     /// Gets the configuration associated with this command.
@@ -34,4 +34,17 @@ public interface ICommand
     /// </summary>
     /// <returns>A task containing the validation result.</returns>
     Task<IValidationResult> Validate();
+}
+
+
+/// <summary>
+/// Represents a command that can be executed.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public interface ICommand<T> : ICommand
+{
+    /// <summary>
+    /// Gets the payload of the command;
+    /// </summary>
+    T? Payload { get; init; }
 }

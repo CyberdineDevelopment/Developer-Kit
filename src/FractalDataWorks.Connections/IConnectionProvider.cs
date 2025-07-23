@@ -12,21 +12,29 @@ public interface IConnectionProvider
     /// <summary>
     /// Gets the name of this connection provider.
     /// </summary>
-    string ProviderName { get; }
+    string Name { get; }
     
     /// <summary>
-    /// Establishes a connection asynchronously.
+    /// Gets the Connection from the Configuration
     /// </summary>
-    /// <param name="connectionString">The connection string.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="configuration">The connection string.</param>
     /// <returns>A result containing the connection if successful.</returns>
-    Task<IFdwResult<IConnection>> ConnectAsync(string connectionString, CancellationToken cancellationToken = default);
-    
+    IFdwResult<IFdwConnection> GetConnection(IFdwConfiguration configuration);
+
     /// <summary>
-    /// Tests if a connection can be established.
+    /// Gets the Connection from the Configuration
     /// </summary>
-    /// <param name="connectionString">The connection string.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A result indicating success or failure.</returns>
-    Task<IFdwResult> TestConnectionAsync(string connectionString, CancellationToken cancellationToken = default);
+    /// <param name="connectionId">The connection string.</param>
+    /// <returns>A result containing the connection if successful.</returns>
+    IFdwResult<IExternalConnection> GetConnection(int connectionId);
+}
+
+/// <summary>
+/// Defines a connection provider that can establish connections.
+/// </summary>
+/// <typeparam name="TConnection">The type of connection the provider provides</typeparam>
+public interface IConnectionProvider<TConnection>
+    where TConnection : IExternalConnection
+{
+
 }

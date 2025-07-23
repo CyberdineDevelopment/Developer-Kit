@@ -1,4 +1,4 @@
-namespace FractalDataWorks;
+namespace FractalDataWorks.Configuration;
 
 /// <summary>
 /// Registry for managing configuration objects.

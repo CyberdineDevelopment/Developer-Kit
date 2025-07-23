@@ -1,6 +1,6 @@
 # FractalDataWorks.Data
 
-Data access abstractions and common data types for the FractalDataWorks framework.
+Entity base classes and data patterns for the FractalDataWorks framework. This package provides domain entity foundations, NOT data access implementations.
 
 ## Overview
 
@@ -8,8 +8,8 @@ FractalDataWorks.Data provides:
 - Base entity classes with audit fields and soft delete support
 - Optimistic concurrency control via version fields
 - Entity validation logic
-- Data operation abstractions
-- Interfaces for data connections, transactions, and commands
+- Domain-driven design patterns
+- NO data access implementations (those belong in Services/Connections)
 
 ## Current Implementation
 
@@ -74,43 +74,39 @@ public abstract class GuidEntityBase : EntityBase<Guid>
 }
 ```
 
-### Data Operation Interfaces
+### Domain Patterns
 
-**IDataCommand** - Command pattern for data operations:
+This package focuses on domain entity patterns following Domain-Driven Design principles. Data access is handled by the universal DataConnection service in FractalDataWorks.Services.
+
+**Key Concepts:**
+- Entities are domain objects with identity
+- Base classes provide common functionality
+- Validation is part of the domain model
+- Data access is delegated to services
+
+### Integration with Data Services
+
+Entities defined using these base classes work seamlessly with the universal data service:
+
 ```csharp
-public interface IDataCommand : ICommand
+// Define your entity
+public class Customer : GuidEntityBase
 {
-    DataOperation Operation { get; }
+    public string Name { get; set; }
+    public string Email { get; set; }
 }
-```
 
-**IDataConnection** - Data connection abstraction:
-```csharp
-public interface IDataConnection : IFdwConnection
+// Use with DataConnection service
+var query = new FdwDataCommand
 {
-    Task<FdwResult<T>> ExecuteCommandAsync<T>(IDataCommand command, CancellationToken cancellationToken = default);
-    Task<FdwResult<IDataTransaction>> BeginTransactionAsync(CancellationToken cancellationToken = default);
-}
+    Operation = DataOperation.Query,
+    EntityType = nameof(Customer),
+    QueryExpression = customers => customers.Where(c => !c.IsDeleted && c.Name.StartsWith("John")),
+    ConnectionId = "primary"
+};
+
+var result = await dataConnection.Execute<IEnumerable<Customer>>(query);
 ```
-
-**IDataTransaction** - Transaction management:
-```csharp
-public interface IDataTransaction : IDisposable, IAsyncDisposable
-{
-    Guid TransactionId { get; }
-    bool IsActive { get; }
-    Task<FdwResult> CommitAsync(CancellationToken cancellationToken = default);
-    Task<FdwResult> RollbackAsync(CancellationToken cancellationToken = default);
-}
-```
-
-### Data Messages
-
-The package includes predefined messages for common data scenarios:
-- **RecordNotFound** - When requested data cannot be found
-- **DuplicateKey** - When a unique constraint is violated
-- **DatabaseConnectionLost** - When database connection is lost
-- **DataMessageBase** - Base class for data-related messages
 
 ## Usage Examples
 
@@ -199,27 +195,58 @@ public class Document : EntityBase<string>
 }
 ```
 
-## Planned Features
+## Design Philosophy
 
-### Repository Pattern
-- Generic repository interface
-- Specification pattern for complex queries
-- Async operations throughout
+This package intentionally does NOT include:
+- Repository interfaces (use DataConnection service)
+- Data access abstractions (in FractalDataWorks.net)
+- Query builders (handled by external connections)
+- Database-specific code (in provider implementations)
 
-### Unit of Work
-- Transaction coordination across repositories
-- Change tracking
-- Batch operations
+Instead, it focuses on:
+- Clean domain entity design
+- Consistent audit and versioning patterns
+- Entity validation as part of the domain
+- Base classes that work with any data provider
 
-### Query Specifications
-- Fluent API for building queries
-- Include/eager loading support
-- Paging and sorting
+## Advanced Entity Patterns
 
-### Advanced Entity Features
-- Domain events
-- Value objects
-- Aggregate root markers
+### Value Objects
+```csharp
+public class Address : ValueObject
+{
+    public string Street { get; }
+    public string City { get; }
+    public string PostalCode { get; }
+    
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Street;
+        yield return City;
+        yield return PostalCode;
+    }
+}
+```
+
+### Aggregate Roots
+```csharp
+public abstract class AggregateRoot<TKey> : EntityBase<TKey>
+    where TKey : IEquatable<TKey>
+{
+    private readonly List<IDomainEvent> _domainEvents = new();
+    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents;
+    
+    protected void AddDomainEvent(IDomainEvent domainEvent)
+    {
+        _domainEvents.Add(domainEvent);
+    }
+    
+    public void ClearDomainEvents()
+    {
+        _domainEvents.Clear();
+    }
+}
+```
 
 ## Installation
 
@@ -229,14 +256,16 @@ public class Document : EntityBase<string>
 
 ## Dependencies
 
-- FractalDataWorks.net (core abstractions)
-- FractalDataWorks.Connections (connection interfaces)
+- FractalDataWorks.net (core abstractions only)
 
 ## Contributing
 
 This package welcomes contributions for:
-- Repository pattern implementations
-- Query specification system
 - Additional entity base classes
-- Data access utilities
-- Unit and integration tests
+- Value object patterns
+- Domain event implementations
+- Aggregate root patterns
+- Entity validation strategies
+- Unit tests for domain logic
+
+Remember: This package is for domain entities only. Data access belongs in the Services/Connections layer.

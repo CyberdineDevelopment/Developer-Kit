@@ -8,18 +8,37 @@ namespace FractalDataWorks;
 /// </summary>
 public class FdwResult : IFdwResult
 {
-    private FdwResult(bool isSuccess, IFdwMessage? message = null)
+    /// <summary>
+    /// Constructor for FdwResult
+    /// </summary>
+    /// <param name="isSuccess"></param>
+    /// <param name="message"></param>
+    protected FdwResult(bool isSuccess, IFdwMessage? message = null)
     {
         IsSuccess = isSuccess;
         Message = message;
     }
 
     /// <inheritdoc/>
-    public bool IsSuccess { get; }
-    
-    /// <inheritdoc/>
-    public bool IsFailure => !IsSuccess;
-    
+    public virtual bool IsSuccess { get; }
+
+    /// <summary>
+    /// Returns a value indicating whether there is an error
+    /// </summary>
+    public bool Error
+    {
+        get
+        {
+            if ((Message is not null)) return false;
+            return Message is { Severity: MessageSeverity.Error };
+        }
+    }
+
+    /// <summary>
+    /// Returns a value indicating whether there is a message;
+    /// </summary>
+    public virtual bool IsEmpty => Message is not null;
+
     /// <inheritdoc/>
     public IFdwMessage? Message { get; }
 
@@ -40,31 +59,25 @@ public class FdwResult : IFdwResult
 /// <summary>
 /// Basic implementation of IFdwResult with a value.
 /// </summary>
-/// <typeparam name="T">The type of the value.</typeparam>
-public class FdwResult<T> : IFdwResult<T>
+/// <typeparam name="TResult">The type of the value.</typeparam>
+public class FdwResult<TResult> : FdwResult,IFdwResult<TResult>
 {
-    private readonly T _value;
+    private readonly TResult _value;
     private readonly bool _hasValue;
 
-    private FdwResult(bool isSuccess, T value, IFdwMessage? message = null)
+    private FdwResult(bool isSuccess, TResult value, IFdwMessage? message = null):base(isSuccess,message)
     {
-        IsSuccess = isSuccess;
         _value = value;
         _hasValue = isSuccess;
-        Message = message;
     }
 
-    /// <inheritdoc/>
-    public bool IsSuccess { get; }
-    
-    /// <inheritdoc/>
-    public bool IsFailure => !IsSuccess;
-    
-    /// <inheritdoc/>
-    public IFdwMessage? Message { get; }
+    /// <summary>
+    /// Returns a value indicating whether it is empty
+    /// </summary>
+    public override bool IsEmpty => !_hasValue;
 
     /// <inheritdoc/>
-    public T Value
+    public TResult Value
     {
         get
         {
@@ -79,12 +92,13 @@ public class FdwResult<T> : IFdwResult<T>
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>A successful result.</returns>
-    public static FdwResult<T> Success(T value) => new(true, value);
+    public static FdwResult<TResult> Success(TResult value) => new(true, value);
 
     /// <summary>
     /// Creates a failed result with a message.
     /// </summary>
     /// <param name="message">The failure message.</param>
+    /// <typeparam name="T">The type of the result</typeparam>
     /// <returns>A failed result.</returns>
-    public static FdwResult<T> Failure(IFdwMessage message) => new(false, default!, message ?? throw new ArgumentNullException(nameof(message)));
+    public static FdwResult<T> Failure<T>(IFdwMessage message) => new(false, default!, message);
 }

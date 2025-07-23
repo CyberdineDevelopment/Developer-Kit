@@ -6,7 +6,7 @@ Service patterns and base implementations for the FractalDataWorks framework. Th
 
 FractalDataWorks.Services provides:
 - Base service implementation with automatic validation
-- Configuration registry pattern for managing multiple configurations
+- Universal data service for all data operations
 - Built-in command validation and execution pipeline
 - Comprehensive logging and error handling
 - Health check support
@@ -18,14 +18,14 @@ FractalDataWorks.Services provides:
 The primary base class for implementing services:
 
 ```csharp
-public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TConfiguration, TCommand>
+public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfiguration, TCommand>
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
     where TCommand : ICommand
 {
     protected ServiceBase(ILogger logger, IConfigurationRegistry<TConfiguration> configurations);
     
     // Override this to implement your service logic
-    protected abstract Task<FractalResult<T>> ExecuteCore<T>(TCommand command);
+    protected abstract Task<FdwResult<T>> ExecuteCore<T>(TCommand command);
 }
 ```
 
@@ -37,19 +37,33 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFractalService<TC
 - **Error Handling**: Consistent error handling and logging
 - **Health Checks**: Built-in health status based on configuration validity
 
-### IConfigurationRegistry<T>
+### DataConnection<TDataCommand, TConnection>
 
-Registry pattern for managing multiple service configurations:
+Universal data service implementation that works with any data source:
 
 ```csharp
-public interface IConfigurationRegistry<TConfiguration>
-    where TConfiguration : IFractalConfiguration
+public class DataConnection<TDataCommand, TConnection> : ServiceBase<DataConnectionConfiguration, TDataCommand>
+    where TDataCommand : IFdwDataCommand
+    where TConnection : IExternalConnection
 {
-    TConfiguration? Get(int id);
-    IEnumerable<TConfiguration> GetAll();
-    bool TryGet(int id, out TConfiguration? configuration);
+    private readonly IExternalConnectionProvider _connectionProvider;
+    
+    protected override async Task<FdwResult<T>> ExecuteCore<T>(TDataCommand command)
+    {
+        // Get the appropriate external connection based on command
+        var connection = await _connectionProvider.GetConnection<TConnection>(command.ConnectionId);
+        
+        // External connection's command builder transforms universal command to provider-specific
+        return await connection.Execute<T>(command);
+    }
 }
 ```
+
+#### Key Features
+- **Provider Agnostic**: Works with any data source (SQL, NoSQL, APIs, Files)
+- **Universal Commands**: Uses LINQ-like expressions that get transformed by providers
+- **Command Transformation**: Each provider's CommandBuilder handles the transformation
+- **Single Service**: One data service handles all data operations across all providers
 
 ## Usage Examples
 
@@ -69,7 +83,7 @@ public class CustomerService : ServiceBase<CustomerConfiguration, CustomerComman
         _repository = repository;
     }
     
-    protected override async Task<FractalResult<T>> ExecuteCore<T>(CustomerCommand command)
+    protected override async Task<FdwResult<T>> ExecuteCore<T>(CustomerCommand command)
     {
         // Your service implementation here
         // Validation has already been performed
@@ -79,29 +93,48 @@ public class CustomerService : ServiceBase<CustomerConfiguration, CustomerComman
         {
             GetCustomerCommand getCmd => await GetCustomer<T>(getCmd),
             CreateCustomerCommand createCmd => await CreateCustomer<T>(createCmd),
-            _ => FractalResult<T>.Failure(ServiceMessages.InvalidCommand.Format(command.GetType().Name))
+            _ => FdwResult<T>.Failure(ServiceMessages.InvalidCommand.Format(command.GetType().Name))
         };
     }
     
-    private async Task<FractalResult<T>> GetCustomer<T>(GetCustomerCommand command)
+    private async Task<FdwResult<T>> GetCustomer<T>(GetCustomerCommand command)
     {
         var customer = await _repository.GetAsync(command.CustomerId);
         if (customer == null)
         {
-            return FractalResult<T>.Failure(
+            return FdwResult<T>.Failure(
                 ServiceMessages.RecordNotFound.Format("Customer", command.CustomerId));
         }
         
-        return FractalResult<T>.Success((T)(object)customer);
+        return FdwResult<T>.Success((T)(object)customer);
     }
 }
+```
+
+### Using the Universal Data Service
+
+```csharp
+// Configure data service with multiple providers
+services.AddSingleton<IExternalConnectionProvider, ExternalConnectionProvider>();
+services.AddScoped<DataConnection<IFdwDataCommand, IExternalConnection>>();
+
+// Query example - works with any data source
+var queryCommand = new FdwDataCommand
+{
+    Operation = DataOperation.Query,
+    EntityType = "Customer",
+    QueryExpression = customers => customers.Where(c => c.City == "Seattle"),
+    ConnectionId = "sql-primary" // Could be "mongo-primary", "api-customers", etc.
+};
+
+var result = await dataConnection.Execute<IEnumerable<Customer>>(queryCommand);
 ```
 
 ### Implementing a Configuration Registry
 
 ```csharp
 public class InMemoryConfigurationRegistry<T> : IConfigurationRegistry<T>
-    where T : IFractalConfiguration
+    where T : IFdwConfiguration
 {
     private readonly Dictionary<int, T> _configurations = new();
     
@@ -181,7 +214,7 @@ Services implement `IsHealthy` which returns true when:
 The service base class provides comprehensive error handling:
 - Validation errors return failure results with descriptive messages
 - Exceptions are caught and logged (except OutOfMemoryException)
-- All errors use the consistent FractalResult pattern
+- All errors use the consistent FdwResult pattern
 - Correlation IDs track requests through the system
 
 ## Installation
@@ -204,15 +237,17 @@ The service base class provides comprehensive error handling:
 1. **Keep ExecuteCore Focused**: Implement only business logic, let the base class handle infrastructure
 2. **Use Configuration Registry**: Manage multiple configurations for different environments/tenants
 3. **Leverage Built-in Validation**: Don't duplicate validation that the base class provides
-4. **Return Appropriate Results**: Use FractalResult for consistent error handling
+4. **Return Appropriate Results**: Use FdwResult for consistent error handling
 5. **Log Sparingly**: The base class provides comprehensive logging already
+6. **Use DataConnection for Data**: Don't create domain-specific data services, use the universal DataConnection
+7. **Provider Agnostic Commands**: Write queries using universal expressions that work across providers
 
 ## Advanced Scenarios
 
 ### Custom Validation
 Override `ValidateCommand` for additional validation:
 ```csharp
-protected override async Task<FractalResult<TCommand>> ValidateCommand(ICommand command)
+protected override async Task<FdwResult<TCommand>> ValidateCommand(ICommand command)
 {
     var result = await base.ValidateCommand(command);
     if (result.IsFailure) return result;
@@ -220,7 +255,7 @@ protected override async Task<FractalResult<TCommand>> ValidateCommand(ICommand 
     // Add custom validation
     if (customValidationFails)
     {
-        return FractalResult<TCommand>.Failure("Custom validation error");
+        return FdwResult<TCommand>.Failure("Custom validation error");
     }
     
     return result;
