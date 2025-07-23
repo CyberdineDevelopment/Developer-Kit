@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using FractalDataWorks.Services;
 
 namespace FractalDataWorks.Connections.Extensions;
 

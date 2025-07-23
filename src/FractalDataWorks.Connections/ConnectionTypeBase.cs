@@ -5,11 +5,9 @@ using FractalDataWorks.EnhancedEnums.Attributes;
 namespace FractalDataWorks.Connections;
 
 /// <summary>
-/// Base class for connection type definitions using Enhanced Enums.
+/// Base class for connection type definitions.
+/// Note: Enhanced Enum attributes temporarily removed due to compatibility issues.
 /// </summary>
-[EnhancedEnumBase("ConnectionTypes", 
-    ReturnType = "IConnectionFactory<IExternalConnection, IFdwConfiguration>",
-    ReturnTypeNamespace = "FractalDataWorks.Connections")]
 public abstract class ConnectionTypeBase<TConnection, TConfiguration> : ConnectionTypeFactoryBase<TConnection, TConfiguration>
     where TConnection : class, IExternalConnection
     where TConfiguration : class, IFdwConfiguration
