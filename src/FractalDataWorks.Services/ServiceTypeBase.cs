@@ -9,8 +9,8 @@ namespace FractalDataWorks.Services;
 /// This class should have the Enhanced Enum attribute and constraints.
 /// </summary>
 [EnhancedEnumBase("ServiceTypes", 
-    DefaultGenericReturnType = "IServiceFactory<IFdwService, IFdwConfiguration>",
-    DefaultGenericReturnTypeNamespace = "FractalDataWorks.Services")]
+    ReturnType = "IServiceFactory<IFdwService, IFdwConfiguration>",
+    ReturnTypeNamespace = "FractalDataWorks.Services")]
 public abstract class ServiceTypeBase<TService, TConfiguration> : ServiceTypeFactoryBase<TService, TConfiguration>
     where TService : class, IFdwService
     where TConfiguration : class, IFdwConfiguration
