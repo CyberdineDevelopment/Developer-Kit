@@ -82,9 +82,9 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
 
             // Load from source
             var loadResult = await _source.Load<TConfiguration>().ConfigureAwait(false);
-            if (loadResult.IsFailure)
+            if (loadResult.Error)
             {
-                return FdwResult<TConfiguration>.Failure(loadResult.Message!);
+                return FdwResult<TConfiguration>.Failure<TConfiguration>(loadResult.Message!);
             }
 
             // Update cache
@@ -96,7 +96,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             // Return requested configuration
             return _cache.TryGetValue(id, out var configuration)
                 ? FdwResult<TConfiguration>.Success(configuration)
-                : FdwResult<TConfiguration>.Failure(new ConfigurationNotFound());
+                : FdwResult<TConfiguration>.Failure<TConfiguration>(new ConfigurationNotFound());
         }
         finally
         {
@@ -113,13 +113,13 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return FdwResult<TConfiguration>.Failure(new GenericError());
+            return FdwResult<TConfiguration>.Failure<TConfiguration>(new GenericError());
         }
 
         var allResult = await GetAll().ConfigureAwait(false);
-        if (allResult.IsFailure)
+        if (allResult.Error)
         {
-            return FdwResult<TConfiguration>.Failure(allResult.Message!);
+            return FdwResult<TConfiguration>.Failure<TConfiguration>(allResult.Message!);
         }
 
         var configuration = allResult.Value!
@@ -127,7 +127,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
 
         return configuration != null
             ? FdwResult<TConfiguration>.Success(configuration)
-            : FdwResult<TConfiguration>.Failure(new ConfigurationNotFound());
+            : FdwResult<TConfiguration>.Failure<TConfiguration>(new ConfigurationNotFound());
     }
 
     /// <summary>
@@ -143,9 +143,9 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             if (_cache.Count == 0)
             {
                 var loadResult = await _source.Load<TConfiguration>().ConfigureAwait(false);
-                if (loadResult.IsFailure)
+                if (loadResult.Error)
                 {
-                    return FdwResult<IEnumerable<TConfiguration>>.Failure(loadResult.Message!);
+                    return FdwResult<IEnumerable<TConfiguration>>.Failure<IEnumerable<TConfiguration>>(loadResult.Message!);
                 }
 
                 // Update cache
@@ -170,7 +170,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     public async Task<IFdwResult<IEnumerable<TConfiguration>>> GetEnabled()
     {
         var allResult = await GetAll().ConfigureAwait(false);
-        if (allResult.IsFailure)
+        if (allResult.Error)
         {
             return allResult;
         }
@@ -188,14 +188,14 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     {
         if (configuration == null)
         {
-            return FdwResult<TConfiguration>.Failure(new GenericError());
+            return FdwResult<TConfiguration>.Failure<TConfiguration>(new GenericError());
         }
 
         // Validate configuration
         var validationResult = await Validate(configuration).ConfigureAwait(false);
         if (!validationResult.IsValid)
         {
-            return FdwResult<TConfiguration>.Failure(new ValidationFailed());
+            return FdwResult<TConfiguration>.Failure<TConfiguration>(new ValidationFailed());
         }
 
         // Mark as modified if updating
@@ -206,7 +206,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
 
         // Save to source
         var saveResult = await _source.Save(configuration).ConfigureAwait(false);
-        if (saveResult.IsFailure)
+        if (saveResult.Error)
         {
             return saveResult;
         }
@@ -236,12 +236,12 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     {
         if (id <= 0)
         {
-            return FdwResult<NonResult>.Failure(new GenericError());
+            return FdwResult<NonResult>.Failure<NonResult>(new GenericError());
         }
 
         // Delete from source
         var deleteResult = await _source.Delete<TConfiguration>(id).ConfigureAwait(false);
-        if (deleteResult.IsFailure)
+        if (deleteResult.Error)
         {
             return deleteResult;
         }

@@ -18,20 +18,33 @@ The FractalDataWorks Developer Kit is a layered architecture framework that prov
 
 ## Architecture
 
-The framework follows a progressive layered architecture:
+The framework follows a progressive layered architecture with clear separation between core abstractions and implementations. All core interfaces reside in Layer 0.5, while implementations are provided in Layer 1 packages.
+
+### Key Architectural Patterns
+
+1. **Universal Data Service**: A single data service handles all data operations through a command pattern with provider-specific implementations
+2. **External Connections as Boundaries**: External connections represent the boundary between the framework and external systems
+3. **Command Transformation**: Universal commands (LINQ-like) are transformed to provider-specific commands via command builders
+4. **Service Factory Pattern**: Services use factories to obtain and manage connections internally
 
 ### Layer 0.5 - Core Foundation (No Dependencies)
 - **FractalDataWorks.net** - Core abstractions and base types (targets netstandard2.0 for maximum compatibility)
-  - `IFractalService` - Base service abstraction
-  - `IFractalConfiguration` - Configuration abstraction
-  - `IServiceResult` & `FractalResult<T>` - Consistent result pattern
+  - `IFdwService` - Base service abstraction
+  - `IFdwConfiguration` - Configuration abstraction
+  - `IFdwResult` & `FdwResult<T>` - Consistent result pattern
   - `ServiceMessage` - Enhanced enum-based messaging system
-  - `IFractalValidator<T>` - Validation abstractions
+  - `IFdwValidator<T>` - Validation abstractions
+  - `IServiceFactory` - Service factory abstraction
+  - `IConfigurationRegistry` - Configuration registry abstraction
+  - `IExternalConnection` - External connection boundary interface
+  - `IFdwConnection` - Framework connection wrapper
+  - `IDataConnection` - Universal data service abstraction
+  - `IFdwDataCommand` - Universal data command interface (Query/Insert/Update/Upsert/Delete)
 
-### Layer 1 - Domain-Specific Abstractions
+### Layer 1 - Domain-Specific Implementations
 - **FractalDataWorks.Services** - Service patterns and base implementations
   - `ServiceBase<TConfiguration, TCommand>` - Base service with validation and logging
-  - `IConfigurationRegistry<T>` - Configuration management pattern
+  - `DataConnection<TDataCommand, TConnection>` - Universal data service implementation
   - Built-in command validation and error handling
   
 - **FractalDataWorks.Configuration** - Configuration providers and patterns
@@ -39,9 +52,11 @@ The framework follows a progressive layered architecture:
   - `ConfigurationProviderBase` - Provider pattern implementation
   - `ConfigurationSourceBase` - Configuration source abstractions
   
-- **FractalDataWorks.Connections** - Data and messaging connection abstractions
-  - Connection interfaces for various data sources
-  - Retry and resilience patterns
+- **FractalDataWorks.Connections** - External connection implementations
+  - `ExternalConnectionBase<TCommandBuilder, TCommand, TConnection, TFactory, TConfig>` - Base for provider-specific connections
+  - `ExternalConnectionProvider` - Selects appropriate connection factory
+  - Provider implementations (e.g., `MsSqlConnection`, `PostgresConnection`)
+  - Command builders that transform universal commands to provider-specific commands
   
 - **FractalDataWorks.DependencyInjection** - DI container abstractions
   - Container-agnostic dependency injection patterns
@@ -55,9 +70,10 @@ The framework follows a progressive layered architecture:
   - Host service abstractions
   - Background service patterns
   
-- **FractalDataWorks.Data** - Data abstractions and common types
-  - Repository patterns
-  - Data access abstractions
+- **FractalDataWorks.Data** - Entity base classes and data patterns
+  - Entity base classes with audit fields
+  - Soft delete and versioning support
+  - Entity validation patterns
 
 ## Package Documentation
 
@@ -190,7 +206,7 @@ public class MyService : ServiceBase<MyConfiguration, MyCommand>
     {
     }
 
-    protected override async Task<FractalResult<TResult>> ExecuteCore<TResult>(MyCommand command)
+    protected override async Task<FdwResult<TResult>> ExecuteCore<TResult>(MyCommand command)
     {
         // Implementation with automatic validation and error handling
     }
@@ -234,6 +250,33 @@ if (result.IsSuccess)
 else
 {
     return BadRequest(result.Error);
+}
+```
+
+### Universal Data Service Pattern
+```csharp
+// Universal data service that works with any data source
+public class DataConnection<TDataCommand, TConnection> : ServiceBase<TDataCommand>
+    where TDataCommand : IFdwDataCommand
+{
+    private readonly IExternalConnectionProvider _connectionProvider;
+    
+    protected override async Task<FdwResult<TResult>> ExecuteCore<TResult>(TDataCommand command)
+    {
+        // Provider selects appropriate connection based on configuration
+        var connection = await _connectionProvider.GetConnection(command.ConnectionId);
+        return await connection.Execute<TResult>(command);
+    }
+}
+
+// SQL Server provider implementation
+public class MsSqlConnection : ExternalConnectionBase<SqlCommandBuilder, SqlCommand, SqlConnection, SqlConnectionFactory, SqlConfiguration>
+{
+    protected override SqlCommand BuildCommand(IFdwDataCommand dataCommand)
+    {
+        // SqlCommandBuilder transforms universal command to SQL
+        return CommandBuilder.Build(dataCommand);
+    }
 }
 ```
 

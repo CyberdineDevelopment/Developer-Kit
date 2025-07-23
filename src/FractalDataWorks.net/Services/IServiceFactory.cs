@@ -1,4 +1,6 @@
-﻿namespace FractalDataWorks.Services;
+using System.Threading.Tasks;
+
+namespace FractalDataWorks.Services;
 
 /// <summary>
 /// Generic factory interface for creating Service instances
@@ -51,4 +53,18 @@ public interface IServiceFactory<TService, TConfiguration> : IServiceFactory<TSe
     /// <param name="configuration">The configuration for the service.</param>
     /// <returns>A result containing the created service or an error message.</returns>
     IFdwResult<TService> Create(TConfiguration configuration);
+    
+    /// <summary>
+    /// Creates a service instance for the specified configuration name.
+    /// </summary>
+    /// <param name="configurationName">The name of the configuration to use.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the service instance.</returns>
+    Task<TService> GetService(string configurationName);
+    
+    /// <summary>
+    /// Creates a service instance for the specified configuration ID.
+    /// </summary>
+    /// <param name="configurationId">The ID of the configuration to use.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the service instance.</returns>
+    Task<TService> GetService(int configurationId);
 }

@@ -7,42 +7,53 @@ Core abstractions and base types for the FractalDataWorks framework. This packag
 FractalDataWorks.net is the Layer 0.5 foundation package that:
 - Targets .NET Standard 2.0 for maximum compatibility
 - Has zero external dependencies (except for enhanced enums and System.Collections.Immutable)
-- Provides core abstractions used throughout the framework
+- Contains ALL core abstractions (interfaces) used throughout the framework
 - Defines the messaging system using EnhancedEnums
+- Serves as the single source of truth for all framework contracts
 
 ## Key Components
 
 ### Service Abstractions
 
-#### IFractalService
+#### IFdwService
 Base interface for all services in the framework:
 ```csharp
-public interface IFractalService
+public interface IFdwService
 {
     string ServiceName { get; }
     bool IsHealthy { get; }
 }
 
-public interface IFractalService<TConfiguration> : IFractalService
-    where TConfiguration : IFractalConfiguration
+public interface IFdwService<TConfiguration> : IFdwService
+    where TConfiguration : IFdwConfiguration
 {
     TConfiguration Configuration { get; }
 }
 
-public interface IFractalService<TConfiguration, TCommand> : IFractalService<TConfiguration>
-    where TConfiguration : IFractalConfiguration
+public interface IFdwService<TConfiguration, TCommand> : IFdwService<TConfiguration>
+    where TConfiguration : IFdwConfiguration
     where TCommand : ICommand
 {
-    Task<FractalResult<T>> Execute<T>(TCommand command);
+    Task<FdwResult<T>> Execute<T>(TCommand command);
+}
+```
+
+#### IServiceFactory
+Factory abstraction for creating service instances:
+```csharp
+public interface IServiceFactory<TService>
+{
+    Task<TService> GetService(string configurationName);
+    Task<TService> GetService(int configurationId);
 }
 ```
 
 ### Configuration Abstractions
 
-#### IFractalConfiguration
+#### IFdwConfiguration
 Base interface for all configuration types:
 ```csharp
-public interface IFractalConfiguration
+public interface IFdwConfiguration
 {
     int Id { get; set; }
     string Name { get; set; }
@@ -53,13 +64,25 @@ public interface IFractalConfiguration
 }
 ```
 
+#### IConfigurationRegistry
+Registry for managing multiple configurations:
+```csharp
+public interface IConfigurationRegistry<TConfiguration>
+    where TConfiguration : IFdwConfiguration
+{
+    Task<TConfiguration> GetConfiguration(string name);
+    Task<TConfiguration> GetConfiguration(int id);
+    Task<IEnumerable<TConfiguration>> GetAllConfigurations();
+}
+```
+
 ### Result Pattern
 
-#### IServiceResult & FractalResult<T>
+#### IFdwResult & FdwResult<T>
 Consistent result pattern for service operations:
 ```csharp
 // Non-generic result
-public interface IServiceResult
+public interface IFdwResult
 {
     bool IsSuccess { get; }
     bool IsFailure { get; }
@@ -67,24 +90,24 @@ public interface IServiceResult
 }
 
 // Generic result with value
-public class FractalResult<T> : IServiceResult
+public class FdwResult<T> : IFdwResult
 {
     public T? Value { get; }
     
-    public static FractalResult<T> Success(T value);
-    public static FractalResult<T> Failure(string error);
+    public static FdwResult<T> Success(T value);
+    public static FdwResult<T> Failure(string error);
 }
 ```
 
 ### Validation
 
-#### IFractalValidator<T>
+#### IFdwValidator<T>
 Validation abstraction for consistent validation across the framework:
 ```csharp
-public interface IFractalValidator<T>
+public interface IFdwValidator<T>
 {
     Task<IValidationResult> Validate(T instance);
-    Task<FractalResult<T>> ValidateToResult(T instance);
+    Task<FdwResult<T>> ValidateToResult(T instance);
 }
 ```
 
@@ -137,8 +160,57 @@ public interface ICommand
 {
     Guid CorrelationId { get; }
     DateTime Timestamp { get; }
-    IFractalConfiguration? Configuration { get; }
+    IFdwConfiguration? Configuration { get; }
     Task<IValidationResult> Validate();
+}
+```
+
+### Connection Abstractions
+
+#### IExternalConnection
+Boundary interface for external system connections:
+```csharp
+public interface IExternalConnection
+{
+    string ConnectionId { get; }
+    ConnectionState State { get; }
+    Task<bool> OpenAsync();
+    Task<bool> CloseAsync();
+    Task<bool> TestConnectionAsync();
+}
+```
+
+#### IFdwConnection
+Framework wrapper for connections:
+```csharp
+public interface IFdwConnection<TConnection, TCommand>
+    where TConnection : IExternalConnection
+{
+    TConnection ExternalConnection { get; }
+    Task<FdwResult<T>> Execute<T>(TCommand command);
+}
+```
+
+### Data Service Abstractions
+
+#### IDataConnection
+Universal data service interface:
+```csharp
+public interface IDataConnection : IFdwService<IFdwConfiguration, IFdwDataCommand>
+{
+    // Inherits Execute<T> method for data operations
+}
+```
+
+#### IFdwDataCommand
+Universal data command interface:
+```csharp
+public interface IFdwDataCommand : ICommand
+{
+    DataOperation Operation { get; } // Query, Insert, Update, Upsert, Delete
+    string EntityType { get; }
+    object QueryExpression { get; } // LINQ-like expression
+    string ConnectionId { get; }
 }
 ```
 
@@ -146,7 +218,7 @@ public interface ICommand
 
 ### Creating a Service
 ```csharp
-public interface ICustomerService : IFractalService<CustomerConfiguration, CustomerCommand>
+public interface ICustomerService : IFdwService<CustomerConfiguration, CustomerCommand>
 {
     // Service-specific methods
 }
@@ -165,23 +237,38 @@ var errorMessages = ServiceMessages.All.Where(m => m.Level == ServiceLevel.Error
 
 ### Working with Results
 ```csharp
-public async Task<FractalResult<Customer>> GetCustomerAsync(int id)
+public async Task<FdwResult<Customer>> GetCustomerAsync(int id)
 {
     if (id <= 0)
     {
-        return FractalResult<Customer>.Failure(
+        return FdwResult<Customer>.Failure(
             ServiceMessages.InvalidId.Format(id));
     }
     
     var customer = await _repository.GetAsync(id);
     if (customer == null)
     {
-        return FractalResult<Customer>.Failure(
+        return FdwResult<Customer>.Failure(
             ServiceMessages.RecordNotFound.Format("Customer", id));
     }
     
-    return FractalResult<Customer>.Success(customer);
+    return FdwResult<Customer>.Success(customer);
 }
+```
+
+### Using the Universal Data Service
+```csharp
+// Create a data command
+var query = new FdwDataCommand
+{
+    Operation = DataOperation.Query,
+    EntityType = "Customer",
+    QueryExpression = customers => customers.Where(c => c.City == "Seattle"),
+    ConnectionId = "primary-db"
+};
+
+// Execute through data service
+var result = await dataConnection.Execute<IEnumerable<Customer>>(query);
 ```
 
 ## Installation

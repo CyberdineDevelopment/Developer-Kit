@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FractalDataWorks.Configuration;
 using FractalDataWorks.Configuration.Messages;
@@ -18,7 +19,7 @@ namespace FractalDataWorks.Services;
 /// <typeparam name="TConfiguration">The configuration type.</typeparam>
 /// <typeparam name="TCommand">The command type.</typeparam>
 /// <typeparam name="TService">The concrete service type for logging category.</typeparam>
-public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwService<TConfiguration, TCommand>
+public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwService<TCommand>
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
     where TCommand : ICommand
     where TService : class
@@ -227,7 +228,7 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
             }
 
             var validationResult = await ValidateCommand(command).ConfigureAwait(false);
-            if (validationResult.IsFailure)
+            if (validationResult.Error)
             {
                 return FdwResult<T>.Failure(validationResult.Message!);
             }
@@ -286,4 +287,63 @@ public abstract class ServiceBase<TConfiguration, TCommand, TService> : IFdwServ
     {
         return new TConfiguration { IsEnabled = false };
     }
+
+    #region Implementation of IFdwService
+
+    /// <summary>
+    /// Gets the service name.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Executes a command and returns the result.
+    /// </summary>
+    /// <param name="command">The command to execute.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing the result of the command execution.</returns>
+    public async Task<IFdwResult> Execute(ICommand command, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Executes a command and returns the result.
+    /// </summary>
+    /// <param name="command">The command to execute.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <typeparam name="TOut">The type of result the command should return.</typeparam>
+    /// <returns>A task containing the result of the command execution.</returns>
+    public async Task<IFdwResult<TOut>> Execute<TOut>(ICommand command, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
+
+    #region Implementation of IFdwService<in TCommand>
+
+    /// <summary>
+    /// Executes a command and returns the result.
+    /// </summary>
+    /// <typeparam name="TOut">The type of result returned by the command.</typeparam>
+    /// <param name="command">The command to execute.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing the result of the command execution.</returns>
+    public async Task<IFdwResult<TOut>> Execute<TOut>(TCommand command, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Executes a command and returns the result.
+    /// </summary>
+    /// <param name="command">The command to execute.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task containing the result of the command execution.</returns>
+    public async Task<IFdwResult> Execute(TCommand command, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
 }

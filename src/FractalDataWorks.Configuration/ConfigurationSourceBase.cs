@@ -71,7 +71,7 @@ public abstract class ConfigurationSourceBase : IFdwConfigurationSource
         if (!IsWritable)
         {
             return Task.FromResult<IFdwResult<TConfiguration>>(
-                FdwResult<TConfiguration>.Failure(new FormattedMessage(new GenericError(), $"Configuration source '{Name}' is read-only")));
+                FdwResult<TConfiguration>.Failure<TConfiguration>(new FormattedMessage(new GenericError(), $"Configuration source '{Name}' is read-only")));
         }
 
         return SaveCore(configuration);
@@ -89,7 +89,7 @@ public abstract class ConfigurationSourceBase : IFdwConfigurationSource
         if (!IsWritable)
         {
             return Task.FromResult<IFdwResult<NonResult>>(
-                FdwResult<NonResult>.Failure(new FormattedMessage(new GenericError(), $"Configuration source '{Name}' is read-only")));
+                FdwResult<NonResult>.Failure<NonResult>(new FormattedMessage(new GenericError(), $"Configuration source '{Name}' is read-only")));
         }
 
         return DeleteCore<TConfiguration>(id);
