@@ -12,6 +12,12 @@ namespace FractalDataWorks.Tools.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers all tool types from the specified assembly with the dependency injection container.
+    /// </summary>
+    /// <param name="services">The service collection to add the tool types to.</param>
+    /// <param name="assembly">The assembly to scan for tool types. If null, uses the calling assembly.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddToolTypes(this IServiceCollection services, Assembly? assembly = null)
     {
         assembly ??= Assembly.GetCallingAssembly();

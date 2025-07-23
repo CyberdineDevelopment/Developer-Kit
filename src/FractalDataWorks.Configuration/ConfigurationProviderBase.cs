@@ -19,30 +19,6 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     IFdwConfigurationProvider<TConfiguration>, IDisposable
     where TConfiguration : ConfigurationBase<TConfiguration>, IFdwConfiguration, new()
 {
-    private static readonly Action<ILogger, string, int, Exception?> _logSavedConfiguration =
-        LoggerMessage.Define<string, int>(
-            LogLevel.Information,
-            new EventId(1, nameof(Save)),
-            "Saved configuration {ConfigurationType} with ID {Id}");
-
-    private static readonly Action<ILogger, string, int, Exception?> _logDeletedConfiguration =
-        LoggerMessage.Define<string, int>(
-            LogLevel.Information,
-            new EventId(2, nameof(Delete)),
-            "Deleted configuration {ConfigurationType} with ID {Id}");
-
-    private static readonly Action<ILogger, string, Exception?> _logReloadedConfiguration =
-        LoggerMessage.Define<string>(
-            LogLevel.Information,
-            new EventId(3, nameof(Reload)),
-            "Reloaded configuration cache for {ConfigurationType}");
-
-    private static readonly Action<ILogger, ConfigurationChangeType, Exception?> _logCacheUpdated =
-        LoggerMessage.Define<ConfigurationChangeType>(
-            LogLevel.Debug,
-            new EventId(4, nameof(OnSourceChanged)),
-            "Configuration cache updated due to {ChangeType} event");
-
     private readonly ILogger _logger;
     private readonly IFdwConfigurationSource _source;
     private readonly Dictionary<int, TConfiguration> _cache = new();
@@ -222,7 +198,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             _cacheLock.Release();
         }
 
-        _logSavedConfiguration(_logger, typeof(TConfiguration).Name, configuration.Id, null);
+        ConfigurationProviderLog.SavedConfiguration(_logger, typeof(TConfiguration).Name, configuration.Id);
 
         return FdwResult<TConfiguration>.Success(configuration);
     }
@@ -257,7 +233,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             _cacheLock.Release();
         }
 
-        _logDeletedConfiguration(_logger, typeof(TConfiguration).Name, id, null);
+        ConfigurationProviderLog.DeletedConfiguration(_logger, typeof(TConfiguration).Name, id);
 
         return FdwResult<NonResult>.Success(NonResult.Value);
     }
@@ -272,7 +248,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         try
         {
             _cache.Clear();
-            _logReloadedConfiguration(_logger, typeof(TConfiguration).Name, null);
+            ConfigurationProviderLog.ReloadedConfiguration(_logger, typeof(TConfiguration).Name);
             return FdwResult<NonResult>.Success(NonResult.Value);
         }
         finally
@@ -337,7 +313,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
                 _cacheLock.Release();
             }
 
-            _logCacheUpdated(_logger, e.ChangeType, null);
+            ConfigurationProviderLog.CacheUpdated(_logger, e.ChangeType);
         });
     }
 
