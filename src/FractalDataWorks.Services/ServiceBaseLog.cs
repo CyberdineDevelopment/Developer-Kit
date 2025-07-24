@@ -144,19 +144,3 @@ public static partial class ServiceBaseLog
         object? result, 
         object? context = null);
 }
-
-/// <summary>
-/// Performance metrics for structured logging.
-/// Serilog will automatically destructure this record for structured logging.
-/// </summary>
-public record PerformanceMetrics(
-    double Duration,
-    int ItemsProcessed,
-    string OperationType,
-    string? SensitiveData = null)
-{
-    /// <summary>
-    /// Override ToString to provide clean string representation while preserving structured data.
-    /// </summary>
-    public override string ToString() => $"{OperationType}: {ItemsProcessed} items in {Duration}ms";
-};

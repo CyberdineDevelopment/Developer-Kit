@@ -331,7 +331,7 @@ public class ServiceBaseTests
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _validConfig });
-        _mockConfigRegistry.Setup(c => c.TryGet(It.IsAny<int>(), out It.Ref<TestConfiguration>.IsAny))
+        _mockConfigRegistry.Setup(c => c.TryGet(It.IsAny<int>(), out It.Ref<TestConfiguration?>.IsAny))
             .Returns(false);
         var service = new TestService(_mockLogger.Object, _mockConfigRegistry.Object);
 

@@ -6,11 +6,9 @@ namespace FractalDataWorks.Services;
 
 /// <summary>
 /// Base class for service type definitions.
-/// Note: Enhanced Enum attributes temporarily disabled due to compatibility issues.
 /// </summary>
-// TODO: Re-enable when Enhanced Enum supports factory pattern
-// [EnhancedEnumBase("ServiceTypes", ReturnType = "IServiceFactory", ReturnTypeNamespace = "FractalDataWorks.Services")]
-public abstract class ServiceTypeBase
+[EnhancedEnumBase("ServiceTypes", ReturnType = "IServiceFactory", ReturnTypeNamespace = "FractalDataWorks")]
+public abstract class ServiceTypeBase : IServiceFactory
 {
     /// <summary>
     /// Gets the unique identifier for this service type.
@@ -46,7 +44,28 @@ public abstract class ServiceTypeBase
     /// <returns>The service factory.</returns>
     public virtual IServiceFactory CreateFactory()
     {
-        throw new NotImplementedException("Enhanced Enum implementation should override this method.");
+        throw new NotSupportedException($"Service type {Name} does not support factory creation.");
+    }
+
+    /// <summary>
+    /// Creates a service instance of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of service to create.</typeparam>
+    /// <param name="configuration">The configuration for the service.</param>
+    /// <returns>A result containing the created service or an error message.</returns>
+    public virtual IFdwResult<T> Create<T>(IFdwConfiguration configuration) where T : IFdwService
+    {
+        throw new NotSupportedException($"Service type {Name} does not support direct service creation.");
+    }
+
+    /// <summary>
+    /// Creates a service instance.
+    /// </summary>
+    /// <param name="configuration">The configuration for the service.</param>
+    /// <returns>A result containing the created service or an error message.</returns>
+    public virtual IFdwResult<IFdwService> Create(IFdwConfiguration configuration)
+    {
+        throw new NotSupportedException($"Service type {Name} does not support direct service creation.");
     }
 }
 
@@ -55,7 +74,7 @@ public abstract class ServiceTypeBase
 /// </summary>
 /// <typeparam name="TService">The service type.</typeparam>
 /// <typeparam name="TConfiguration">The configuration type.</typeparam>
-public abstract class ServiceTypeBase<TService, TConfiguration> : ServiceTypeBase
+public abstract class ServiceTypeBase<TService, TConfiguration> : ServiceTypeBase, IServiceFactory<TService, TConfiguration>
     where TService : class, IFdwService
     where TConfiguration : class, IFdwConfiguration
 {
@@ -81,4 +100,83 @@ public abstract class ServiceTypeBase<TService, TConfiguration> : ServiceTypeBas
     /// </summary>
     /// <returns>The service factory.</returns>
     public override IServiceFactory CreateFactory() => CreateTypedFactory();
+
+    /// <summary>
+    /// Creates a service instance with the specified configuration.
+    /// </summary>
+    /// <param name="configuration">The configuration for the service.</param>
+    /// <returns>A result containing the created service or an error message.</returns>
+    public IFdwResult<TService> Create(TConfiguration configuration)
+    {
+        return CreateTypedFactory().Create(configuration);
+    }
+
+    /// <summary>
+    /// Creates a service instance.
+    /// </summary>
+    /// <param name="configuration">The configuration for the service.</param>
+    /// <returns>A result containing the created service or an error message.</returns>
+    IFdwResult<TService> IServiceFactory<TService>.Create(IFdwConfiguration configuration)
+    {
+        if (configuration is TConfiguration typedConfig)
+        {
+            return Create(typedConfig);
+        }
+        return FdwResult<TService>.Failure(Messages.ServiceMessages.InvalidCommand);
+    }
+
+    /// <summary>
+    /// Creates a service instance of the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type of service to create.</typeparam>
+    /// <param name="configuration">The configuration for the service.</param>
+    /// <returns>A result containing the created service or an error message.</returns>
+    public override IFdwResult<T> Create<T>(IFdwConfiguration configuration)
+    {
+        if (typeof(T) == typeof(TService))
+        {
+            var result = Create(configuration);
+            if (result.IsSuccess)
+            {
+                return (IFdwResult<T>)(object)result;
+            }
+            return FdwResult<T>.Failure(result.Message!);
+        }
+        return FdwResult<T>.Failure(Messages.ServiceMessages.InvalidCommand);
+    }
+
+    /// <summary>
+    /// Creates a service instance.
+    /// </summary>
+    /// <param name="configuration">The configuration for the service.</param>
+    /// <returns>A result containing the created service or an error message.</returns>
+    public override IFdwResult<IFdwService> Create(IFdwConfiguration configuration)
+    {
+        var result = Create(configuration);
+        if (result.IsSuccess)
+        {
+            return FdwResult<IFdwService>.Success(result.Value);
+        }
+        return FdwResult<IFdwService>.Failure(result.Message!);
+    }
+
+    /// <summary>
+    /// Creates a service instance for the specified configuration name.
+    /// </summary>
+    /// <param name="configurationName">The name of the configuration to use.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task<TService> GetService(string configurationName)
+    {
+        return CreateTypedFactory().GetService(configurationName);
+    }
+
+    /// <summary>
+    /// Creates a service instance for the specified configuration ID.
+    /// </summary>
+    /// <param name="configurationId">The ID of the configuration to use.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public Task<TService> GetService(int configurationId)
+    {
+        return CreateTypedFactory().GetService(configurationId);
+    }
 }

@@ -28,6 +28,9 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     private readonly IConfigurationRegistry<TConfiguration> _configurations;
     private readonly TConfiguration _primaryConfiguration;
 
+    /// <inheritdoc/>
+    public string Name => typeof(TService).Name;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ServiceBase{TCommand, TConfiguration, TService}"/> class.
     /// </summary>
@@ -142,6 +145,15 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
 
         // Validate the command itself
         var validationResult = await cmd.Validate().ConfigureAwait(false);
+        if (validationResult == null)
+        {
+            ServiceBaseLog.InvalidConfigurationWarning(_logger,
+                ServiceMessages.ValidationFailed.Format("Validation returned null"));
+            
+            return FdwResult<TCommand>.Failure(
+                ServiceMessages.ValidationFailed);
+        }
+        
         if (!validationResult.IsValid)
         {
             var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
@@ -246,10 +258,6 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
 
     #region Implementation of IFdwService
 
-    /// <summary>
-    /// Gets the service name.
-    /// </summary>
-    public string Name { get; }
 
     /// <summary>
     /// Executes a command and returns the result.
@@ -259,7 +267,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <returns>A task containing the result of the command execution.</returns>
     public async Task<IFdwResult> Execute(ICommand command, CancellationToken cancellationToken)
     {
-        if (command is TCommand cmd) return await Execute(cmd, cancellationToken);
+        if (command is TCommand cmd) return await Execute(cmd, cancellationToken).ConfigureAwait(false);
         Logger.LogWarning("Invalid command for {type}: {command}",nameof(ServiceBase<TCommand,TConfiguration,TService>),command);
         return FdwResult.Failure(ServiceMessages.InvalidCommand);
 
@@ -274,7 +282,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <returns>A task containing the result of the command execution.</returns>
     public async Task<IFdwResult<TOut>> Execute<TOut>(ICommand command, CancellationToken cancellationToken)
     {
-        if (command is TCommand cmd) return await Execute<TOut>(cmd);
+        if (command is TCommand cmd) return await Execute<TOut>(cmd).ConfigureAwait(false);
         Logger.LogWarning("Invalid command for {type}: {command}",
             nameof(ServiceBase<TCommand, TConfiguration, TService>), command);
         return FdwResult<TOut>.Failure(ServiceMessages.InvalidCommand);
