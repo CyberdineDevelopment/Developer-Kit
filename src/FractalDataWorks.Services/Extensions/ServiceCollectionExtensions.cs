@@ -64,7 +64,7 @@ public static class ServiceCollectionExtensions
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => !a.IsDynamic)
             .Where(a => a.GetReferencedAssemblies()
-                .Any(ra => ra.Name?.StartsWith("FractalDataWorks.Services") == true))
+                .Any(ra => ra.Name?.StartsWith("FractalDataWorks.Services", StringComparison.Ordinal) == true))
             .ToList();
 
         foreach (var assembly in assemblies)
@@ -81,6 +81,7 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TServiceType">The service type to register.</typeparam>
     /// <param name="services">The service collection.</param>
     /// <returns>The service collection for chaining.</returns>
+#pragma warning disable MA0015 // TServiceType is an accurate and descriptive name for this context
     public static IServiceCollection AddServiceType<TServiceType>(this IServiceCollection services)
         where TServiceType : class
     {
@@ -88,6 +89,7 @@ public static class ServiceCollectionExtensions
         {
             throw new ArgumentException($"Type {typeof(TServiceType).Name} is not a valid service type", nameof(TServiceType));
         }
+#pragma warning restore MA0015
 
         services.TryAddSingleton<TServiceType>();
         RegisterAsServiceFactory(services, typeof(TServiceType));
@@ -101,7 +103,7 @@ public static class ServiceCollectionExtensions
         while (baseType != null)
         {
             if (baseType.IsGenericType && 
-                baseType.GetGenericTypeDefinition().Name.StartsWith("ServiceTypeBase"))
+                baseType.GetGenericTypeDefinition().Name.StartsWith("ServiceTypeBase", StringComparison.Ordinal))
             {
                 return true;
             }
@@ -116,7 +118,7 @@ public static class ServiceCollectionExtensions
         while (baseType != null && baseType.IsGenericType)
         {
             var genericDef = baseType.GetGenericTypeDefinition();
-            if (genericDef.Name.StartsWith("ServiceTypeBase"))
+            if (genericDef.Name.StartsWith("ServiceTypeBase", StringComparison.Ordinal))
             {
                 var genericArgs = baseType.GetGenericArguments();
                 if (genericArgs.Length >= 2)

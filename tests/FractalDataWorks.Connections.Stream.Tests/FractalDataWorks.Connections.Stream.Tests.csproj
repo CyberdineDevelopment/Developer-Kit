@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\FractalDataWorks.Connections\FractalDataWorks.Connections.csproj" />
+    <ProjectReference Include="..\..\src\FractalDataWorks.Connections.Stream\FractalDataWorks.Connections.Stream.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,8 +4,10 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using FractalDataWorks.EnhancedEnums;
 using FractalDataWorks.EnhancedEnums.Attributes;
 using FractalDataWorks.Services.Extensions;
+using FractalDataWorks.Services.Messages;
 using Shouldly;
 using Xunit;
 
@@ -29,7 +31,7 @@ public class EnhancedEnumIntegrationTests
         testServiceType.Description.ShouldBe("Test service for unit testing", $"Description should be set correctly");
     }
 
-    [Fact(Skip = "Enhanced Enum attributes temporarily disabled")]
+    [Fact]
     public void ServiceCollectionExtensionsRegistersServiceTypes()
     {
         // Arrange
@@ -48,7 +50,7 @@ public class EnhancedEnumIntegrationTests
         // TestServiceTypeOption implements the factory pattern
     }
 
-    [Fact(Skip = "Enhanced Enum attributes temporarily disabled")]
+    [Fact]
     public void ServiceTypeWithEnumOptionAttributeIsDetected()
     {
         // Arrange
@@ -61,7 +63,7 @@ public class EnhancedEnumIntegrationTests
         // Assert
         enumOptionAttr.ShouldNotBeNull($"TestServiceTypeOption should have [EnumOption] attribute");
         // EnumOptionAttribute properties will be validated when Enhanced Enums analyzer is active
-        enumOptionAttr.Name.ShouldBe("TestService", $"EnumOption Name should be 'TestService'");
+        // EnumOption attribute doesn't have a Name property - name comes from class
         
         baseType.ShouldNotBeNull($"Should have a base type");
         baseType.GetGenericTypeDefinition().ShouldBe(typeof(ServiceTypeBase<,>), 
@@ -77,7 +79,7 @@ public class EnhancedEnumIntegrationTests
 
         // Act
         var typedFactory = factory.CreateTypedFactory();
-        var result = typedFactory.Create(config);
+        var result = await Task.FromResult(typedFactory.Create(config));
 
         // Assert
         result.ShouldNotBeNull($"Create should return a result");
@@ -123,7 +125,7 @@ public class EnhancedEnumIntegrationTests
 
         public Task<IFdwResult<TOut>> Execute<TOut>(ICommand command, CancellationToken cancellationToken)
         {
-            return Task.FromResult<IFdwResult<TOut>>(FdwResult<TOut>.Success(default(TOut)));
+            return Task.FromResult<IFdwResult<TOut>>(FdwResult<TOut>.Success(default(TOut)!));
         }
     }
 
@@ -156,7 +158,7 @@ public class EnhancedEnumIntegrationTests
             {
                 return (IFdwResult<T>)(object)Create((TestConfiguration)configuration);
             }
-            return FdwResult<T>.Failure<T>(null);
+            return FdwResult<T>.Failure(ServiceMessages.InvalidCommand);
         }
 
         IFdwResult<ITestService> IServiceFactory<ITestService>.Create(IFdwConfiguration configuration)
@@ -171,7 +173,7 @@ public class EnhancedEnumIntegrationTests
             {
                 return FdwResult<IFdwService>.Success(result.Value);
             }
-            return FdwResult<IFdwService>.Failure(result.Message);
+            return FdwResult<IFdwService>.Failure(result.Message ?? ServiceMessages.InvalidCommand);
         }
 
         public Task<ITestService> GetService(string configurationName)
@@ -185,6 +187,7 @@ public class EnhancedEnumIntegrationTests
         }
     }
 
+    [EnumOption]
     public class TestServiceTypeOption : ServiceTypeBase<ITestService, TestConfiguration>
     {
         public TestServiceTypeOption() : base(1, "TestService", "Test service for unit testing")
@@ -197,6 +200,7 @@ public class EnhancedEnumIntegrationTests
         }
     }
 
+    [EnumOption]
     public class AnotherServiceTypeOption : ServiceTypeBase<ITestService, TestConfiguration>
     {
         public AnotherServiceTypeOption() : base(2, "AnotherService", "Another test service")
