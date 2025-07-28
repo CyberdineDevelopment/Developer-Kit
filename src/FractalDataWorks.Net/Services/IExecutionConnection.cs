@@ -26,7 +26,7 @@ public interface IPlatformConnection : IProcessingService
 /// Connection interface with strongly-typed configuration
 /// </summary>
 /// <typeparam name="TConfiguration">The connection configuration type</typeparam>
-public interface IExecutionConnection<TConfiguration> : IExecutionConnection, IProcessingService<TConfiguration>
+public interface IExecutionConnection<TConfiguration> : IPlatformConnection, IProcessingService<TConfiguration>
     where TConfiguration : IConfigurationBase
 {
     /// <summary>

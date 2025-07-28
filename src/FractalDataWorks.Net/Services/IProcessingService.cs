@@ -31,5 +31,5 @@ public interface IProcessingService<TConfiguration> : IProcessingService, IGener
     /// <typeparam name="T">The expected result type</typeparam>
     /// <param name="configuration">The strongly-typed configuration</param>
     /// <returns>IGenericResult of the processing operation</returns>
-    new IGenericResult<T> Process<T>(TConfiguration configuration);
+    IGenericResult<T> Process<T>(TConfiguration configuration);
 }

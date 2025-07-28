@@ -151,7 +151,7 @@ public class StageExecution
     /// <summary>
     /// Error message if the stage failed
     /// </summary>
-    public string Error { get; set; }
+    public string Error { get; set; } = string.Empty;
     
     /// <summary>
     /// Stage-specific metrics

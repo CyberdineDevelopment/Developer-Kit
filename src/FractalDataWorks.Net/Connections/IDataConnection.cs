@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using FractalDataWorks.Data;
 
 namespace FractalDataWorks.Connections;
 
@@ -9,6 +10,15 @@ namespace FractalDataWorks.Connections;
 /// </summary>
 public interface IDataConnection : IConnection
 {
+    /// <summary>
+    /// Executes a data command and returns the result
+    /// </summary>
+    /// <typeparam name="TResult">The expected result type</typeparam>
+    /// <param name="command">The command to execute</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The execution result</returns>
+    Task<IGenericResult<TResult>> Execute<TResult>(IDataCommand command, CancellationToken cancellationToken = default);
+    
     /// <summary>
     /// Queries data using universal LINQ expressions.
     /// Works the same whether data is in SQL Server, JSON files, XML, etc.
