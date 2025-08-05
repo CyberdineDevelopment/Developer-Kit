@@ -9,7 +9,7 @@
 	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 
     <!-- Temporarily keep .net reference until refactoring is complete -->
-    <ProjectReference Include="..\FractalDataWorks.net\FractalDataWorks.net.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Net\FractalDataWorks.Net.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
   </ItemGroup>
