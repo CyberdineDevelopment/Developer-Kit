@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\FractalDataWorks.net\FractalDataWorks.net.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Net\FractalDataWorks.Net.csproj" />
   </ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="FractalDataWorks.EnhancedEnums">
