@@ -22,7 +22,7 @@ public abstract class CodeBuilderBase : ICodeBuilder
     /// <summary>
     /// Gets the current indentation level.
     /// </summary>
-    public int IndentLevel { get; protected set; }
+    public int IndentLevel { get; private set; }
 
     /// <summary>
     /// Builds the code and returns it as a string.

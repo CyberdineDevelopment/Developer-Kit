@@ -128,9 +128,9 @@ public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
 
             foreach (var param in _parameters)
             {
-                if (_paramDocs.ContainsKey(param.Name))
+                if (_paramDocs.TryGetValue(param.Name, out var paramDoc))
                 {
-                    AppendLine($"/// <param name=\"{param.Name}\">{_paramDocs[param.Name]}</param>");
+                    AppendLine($"/// <param name=\"{param.Name}\">{paramDoc}</param>");
                 }
             }
         }
