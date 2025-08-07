@@ -101,7 +101,6 @@ public interface IExternalConnectionFactory
     /// A task representing the asynchronous connectivity test operation.
     /// The result indicates whether connectivity can be established.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration"/> is null.</exception>
     /// <remarks>
     /// This method creates a temporary connection, tests connectivity, and immediately
     /// disposes the connection. Useful for validation and health checks.

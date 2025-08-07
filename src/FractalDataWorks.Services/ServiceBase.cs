@@ -18,12 +18,12 @@ namespace FractalDataWorks.Services;
 /// <typeparam name="TCommand">The command type.</typeparam>
 /// <typeparam name="TService">The concrete service type for logging category.</typeparam>
 public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwService<TCommand>
-    where TConfiguration : ConfigurationBase<TConfiguration>, new()
+    where TConfiguration : IFdwConfiguration
     where TCommand : ICommand
     where TService : class
 {
     private readonly ILogger<TService> _logger;
-    private readonly IConfigurationRegistry<TConfiguration> _configurations;
+    private readonly TConfiguration _configuration;
     private readonly TConfiguration _primaryConfiguration;
 
     /// <inheritdoc/>
@@ -36,25 +36,12 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <param name="configurations">The configuration registry.</param>
     protected ServiceBase(
         ILogger<TService>? logger,
-        IConfigurationRegistry<TConfiguration> configurations)
+        TConfiguration configuration)
     {
         // Use Microsoft's NullLogger for consistency with ILogger<T> abstractions
         // This works seamlessly when Serilog is registered via services.AddSerilog()
         _logger = logger ?? NullLogger<TService>.Instance;
-        _configurations = configurations ?? throw new ArgumentNullException(nameof(configurations));
-
-        // Validate we have at least one configuration
-        var allConfigs = _configurations.GetAll();
-        if (!allConfigs.Any())
-        {
-            ServiceBaseLog.InvalidConfiguration(_logger, "No configurations available");
-            _primaryConfiguration = new TConfiguration { IsEnabled = false };
-        }
-        else
-        {
-            _primaryConfiguration = allConfigs.FirstOrDefault(c => c.IsEnabled && c.IsValid)
-                                  ?? new TConfiguration { IsEnabled = false };
-        }
+        _configuration = configuration;
 
         ServiceBaseLog.ServiceStarted(_logger, typeof(TService).Name);
     }
@@ -73,22 +60,6 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// Gets a value indicating whether the service is currently available for use.
     /// </summary>
     public virtual bool IsAvailable => true;
-
-    /// <summary>
-    /// Performs health check on the service.
-    /// </summary>
-    /// <returns>A task representing the asynchronous health check operation.</returns>
-    public virtual Task<IFdwResult> HealthCheckAsync()
-    {
-        return Task.FromResult<IFdwResult>(IsAvailable && IsHealthy 
-            ? FdwResult.Success() 
-            : Logger.FailureWithLog("Service is not healthy or available"));
-    }
-
-    /// <summary>
-    /// Gets whether the service is in a healthy state.
-    /// </summary>
-    public virtual bool IsHealthy => _primaryConfiguration.IsValid;
 
     /// <summary>
     /// Gets the service configuration.
@@ -110,7 +81,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         IFdwConfiguration configuration,
         out TConfiguration validConfiguration)
     {
-        if (configuration is TConfiguration config && config.IsValid)
+        if (configuration is TConfiguration config && config.Validate())
         {
             validConfiguration = config;
             return FdwResult<TConfiguration>.Success(config);
@@ -122,28 +93,6 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         validConfiguration = GetInvalidConfiguration();
         return FdwResult<TConfiguration>.Failure(
             "Invalid configuration.");
-    }
-
-    /// <summary>
-    /// Validates a configuration by ID.
-    /// </summary>
-    /// <param name="configurationId">The configuration ID.</param>
-    /// <returns>The validation result.</returns>
-    protected FdwResult<TConfiguration> ConfigurationIsValid(int configurationId)
-    {
-        if (configurationId <= 0)
-        {
-            return FdwResult<TConfiguration>.Failure(
-                "Invalid configuration ID.");
-        }
-
-        if (!_configurations.TryGet(configurationId, out var config))
-        {
-            return FdwResult<TConfiguration>.Failure(
-                "Configuration not found.");
-        }
-
-        return ConfigurationIsValid(config!, out _);
     }
 
     /// <summary>
@@ -181,7 +130,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         }
 
         // Validate command configuration if present
-        if (cmd.Configuration is TConfiguration config && !config.IsValid)
+        if (cmd.Configuration is TConfiguration config && !config.Validate())
         {
             ServiceBaseLog.InvalidConfigurationWarning(_logger,
                 string.Format("Invalid configuration: {0} of type {1}", "Command configuration", config.GetType().Name));
@@ -211,13 +160,15 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
             // Validate the command
             if (command == null)
             {
-                return Logger.FailureWithLog<T>("Invalid command type");
+                ServiceBaseLog.InvalidCommandType(Logger);
+                return FdwResult<T>.Failure("Invalid command type");
             }
 
             var validationResult = await ValidateCommand(command).ConfigureAwait(false);
             if (validationResult.Error)
             {
-                return Logger.FailureWithLog<T>(validationResult.Message!);
+                ServiceBaseLog.CommandValidationFailed(Logger, validationResult.Message!);
+                return FdwResult<T>.Failure(validationResult.Message!);
             }
 
             try
@@ -258,7 +209,6 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <returns>A task containing the result of the command execution.</returns>
     protected abstract Task<IFdwResult<T>> ExecuteCore<T>(TCommand command);
 
-
     /// <summary>
     /// Gets the invalid configuration instance for this service type.
     /// </summary>
@@ -281,7 +231,8 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     {
         if (command is TCommand cmd) return await Execute(cmd, cancellationToken).ConfigureAwait(false);
         Logger.LogWarning("Invalid command for {type}: {command}",nameof(ServiceBase<TCommand,TConfiguration,TService>),command);
-        return Logger.FailureWithLog("Invalid command type");
+        ServiceBaseLog.InvalidCommandType(Logger);
+        return FdwResult.Failure("Invalid command type");
 
     }
 
@@ -297,7 +248,8 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         if (command is TCommand cmd) return await Execute<TOut>(cmd).ConfigureAwait(false);
         Logger.LogWarning("Invalid command for {type}: {command}",
             nameof(ServiceBase<TCommand, TConfiguration, TService>), command);
-        return Logger.FailureWithLog<TOut>("Invalid command type");
+        ServiceBaseLog.InvalidCommandType(Logger);
+        return FdwResult<TOut>.Failure("Invalid command type");
 
     }
 

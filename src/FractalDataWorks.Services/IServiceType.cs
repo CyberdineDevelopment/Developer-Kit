@@ -28,8 +28,6 @@ public interface IServiceType
     /// </summary>
     /// <param name="serviceProvider">The service provider for dependency resolution.</param>
     /// <returns>An instance of the service.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceProvider"/> is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the service cannot be created.</exception>
     object CreateService(IServiceProvider serviceProvider);
     
     /// <summary>
@@ -37,6 +35,5 @@ public interface IServiceType
     /// This method is called during application startup to configure the dependency injection container.
     /// </summary>
     /// <param name="services">The service collection to register with.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
     void RegisterService(IServiceCollection services);
 }

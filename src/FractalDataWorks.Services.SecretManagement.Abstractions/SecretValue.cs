@@ -84,8 +84,6 @@ public sealed class SecretValue : IDisposable
         DateTimeOffset? createdAt = null, DateTimeOffset? modifiedAt = null, 
         DateTimeOffset? expiresAt = null, IReadOnlyDictionary<string, object>? metadata = null)
     {
-        ArgumentNullException.ThrowIfNull(key, nameof(key));
-        ArgumentNullException.ThrowIfNull(value, nameof(value));
         
         if (string.IsNullOrWhiteSpace(key))
         {
@@ -124,8 +122,6 @@ public sealed class SecretValue : IDisposable
         DateTimeOffset? createdAt = null, DateTimeOffset? modifiedAt = null, 
         DateTimeOffset? expiresAt = null, IReadOnlyDictionary<string, object>? metadata = null)
     {
-        ArgumentNullException.ThrowIfNull(key, nameof(key));
-        ArgumentNullException.ThrowIfNull(value, nameof(value));
         
         if (string.IsNullOrWhiteSpace(key))
         {
@@ -223,7 +219,6 @@ public sealed class SecretValue : IDisposable
     /// </remarks>
     public TResult AccessStringValue<TResult>(Func<string, TResult> accessor)
     {
-        ArgumentNullException.ThrowIfNull(accessor, nameof(accessor));
         
         var value = GetStringValue();
         try
@@ -252,7 +247,6 @@ public sealed class SecretValue : IDisposable
     /// </remarks>
     public TResult AccessBinaryValue<TResult>(Func<byte[], TResult> accessor)
     {
-        ArgumentNullException.ThrowIfNull(accessor, nameof(accessor));
         
         var value = GetBinaryValue();
         try

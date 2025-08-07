@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using FractalDataWorks;
 using FractalDataWorks.Configuration;
 using FractalDataWorks.Connections;
-// Removed old messages namespace
 using FractalDataWorks.Results;
 using FractalDataWorks.Services;
 using Microsoft.Extensions.Logging;
@@ -65,7 +64,8 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         }
         catch (Exception)
         {
-            return Logger.FailureWithLog("Stream operation failed");
+            StreamConnectionLog.StreamOperationFailed(Logger);
+            return FdwResult.Failure("Stream operation failed");
         }
     }
 
@@ -84,7 +84,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         }
         catch (Exception)
         {
-            return Logger.FailureWithLog("Stream operation failed");
+            return FdwResult.Failure("Stream operation failed");
         }
     }
 
@@ -110,11 +110,13 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
                 return await Task.FromResult(FdwResult.Success());
             }
 
-            return Logger.FailureWithLog("Stream operation failed");
+            StreamConnectionLog.StreamOperationFailed(Logger);
+            return FdwResult.Failure("Stream operation failed");
         }
         catch (Exception)
         {
-            return Logger.FailureWithLog("Stream operation failed");
+            StreamConnectionLog.StreamOperationFailed(Logger);
+            return FdwResult.Failure("Stream operation failed");
         }
     }
 
@@ -140,7 +142,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
                 StreamOperation.Write => await ExecuteWriteAsync<T>(stream, command, CancellationToken.None),
                 StreamOperation.Seek => await ExecuteSeekAsync<T>(stream, command, CancellationToken.None),
                 StreamOperation.GetInfo => await ExecuteGetInfoAsync<T>(stream, command, CancellationToken.None),
-                _ => FdwResult<T>.Failure(new StreamOperationFailed())
+                _ => FdwResult<T>.Failure("Stream operation failed")
             };
         }
         catch (Exception)
@@ -162,7 +164,8 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         var validationResult = await ValidateCommand(command);
         if (!validationResult.IsSuccess)
         {
-            return Logger.FailureWithLog<TOut>(validationResult.Message!);
+            StreamConnectionLog.StreamCommandValidationFailed(Logger, validationResult.Message!);
+            return FdwResult<TOut>.Failure(validationResult.Message!);
         }
 
         return await ExecuteCore<TOut>(validationResult.Value);
@@ -200,7 +203,8 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     {
         if (!stream.CanRead)
         {
-            return Logger.FailureWithLog<TResult>("Stream operation failed");
+            StreamConnectionLog.StreamOperationFailed(Logger);
+            return FdwResult.Failure<TResult>("Stream operation failed");
         }
 
         var buffer = new byte[command.BufferSize ?? _configuration.BufferSize];
@@ -219,7 +223,8 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
             return FdwResult<TResult>.Success((TResult)(object)data);
         }
         
-        return Logger.FailureWithLog<TResult>("Stream operation failed");
+        StreamConnectionLog.StreamOperationFailed(Logger);
+        return FdwResult.Failure<TResult>("Stream operation failed");
     }
 
     private async Task<IFdwResult<TResult>> ExecuteWriteAsync<TResult>(
@@ -229,12 +234,14 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     {
         if (!stream.CanWrite)
         {
-            return Logger.FailureWithLog<TResult>("Stream operation failed");
+            StreamConnectionLog.StreamOperationFailed(Logger);
+            return FdwResult.Failure<TResult>("Stream operation failed");
         }
 
         if (command.Data == null)
         {
-            return Logger.FailureWithLog<TResult>("Stream operation failed");
+            StreamConnectionLog.StreamOperationFailed(Logger);
+            return FdwResult.Failure<TResult>("Stream operation failed");
         }
 
         await stream.WriteAsync(command.Data, 0, command.Data.Length, cancellationToken).ConfigureAwait(false);
@@ -259,7 +266,8 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     {
         if (!stream.CanSeek)
         {
-            return Logger.FailureWithLog<TResult>("Stream operation failed");
+            StreamConnectionLog.StreamOperationFailed(Logger);
+            return FdwResult.Failure<TResult>("Stream operation failed");
         }
 
         var newPosition = stream.Seek(command.Position ?? 0, command.SeekOrigin ?? SeekOrigin.Begin);

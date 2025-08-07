@@ -21,7 +21,7 @@ where TConnection : class
     /// <param name="configurations">The configuration registry.</param>
     protected DataConnectionBase(
         ILogger<DataConnectionBase<TCommand, TConnection, TConfiguration>>? logger,
-        IConfigurationRegistry<TConfiguration> configurations)
+        TConfiguration configurations)
         : base(logger, configurations)
     {
     }

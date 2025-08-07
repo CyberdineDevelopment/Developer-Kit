@@ -5,9 +5,13 @@ using FractalDataWorks;
 
 using FractalDataWorks.EnhancedEnums.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Services.ExternalConnections.Abstractions;
-
+public interface IExternalConnectionConfiguration : IFdwConfiguration
+{
+    // Define properties and methods that are common to all external connection configurations
+}
 /// <summary>
 /// Base class for external connection providers that generates the ExternalConnectionProviders collection.
 /// Integrates with the EnhancedEnums system for automatic service discovery and registration.
@@ -21,7 +25,10 @@ namespace FractalDataWorks.Services.ExternalConnections.Abstractions;
     CollectionName = "ExternalConnectionProviders", 
     IncludeReferencedAssemblies = true,
     ReturnType = typeof(IExternalConnectionProvider))]
-public abstract class ExternalConnectionProviderBase : ServiceTypeBase, IExternalConnectionProvider, IServiceType
+public abstract class ExternalConnectionProviderBase<TCommand,TConfiguration,TConnection> : ServiceBase<TCommand,TConfiguration,TConnection>, IExternalConnectionProvider, IServiceType
+where TCommand : ICommand
+      where TConfiguration : class, IExternalConnectionConfiguration
+      where TConnection : class, IExternalConnection
 {
     /// <summary>
     /// Gets the service interface type that this service type provides.
@@ -113,11 +120,6 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase, IExterna
         int priority = 0) 
         : base(id, name)
     {
-        ArgumentNullException.ThrowIfNull(supportedDataStores, nameof(supportedDataStores));
-        ArgumentNullException.ThrowIfNull(providerName, nameof(providerName));
-        ArgumentNullException.ThrowIfNull(connectionType, nameof(connectionType));
-        ArgumentNullException.ThrowIfNull(configurationType, nameof(configurationType));
-        ArgumentNullException.ThrowIfNull(supportedConnectionModes, nameof(supportedConnectionModes));
         
         if (supportedDataStores.Length == 0)
         {
@@ -167,11 +169,11 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase, IExterna
     /// <inheritdoc />
     public virtual IFdwResult ValidateCapability(string dataStore, string? connectionMode = null)
     {
-        ArgumentNullException.ThrowIfNull(dataStore, nameof(dataStore));
         
         if (string.IsNullOrWhiteSpace(dataStore))
         {
-            return Logger.FailureWithLog("Data store name cannot be empty or whitespace.");
+            ExternalConnectionProviderBaseLog.EmptyDataStoreName(Logger);
+            return FdwResult.Failure("Data store name cannot be empty or whitespace.");
         }
         
         // Check if this provider supports the specified data store
@@ -187,7 +189,8 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase, IExterna
         
         if (!supportsDataStore)
         {
-            return Logger.FailureWithLog($"Provider '{ProviderName}' does not support data store '{dataStore}'.");
+            ExternalConnectionProviderBaseLog.UnsupportedDataStore(Logger, ProviderName, dataStore);
+            return FdwResult.Failure($"Provider '{ProviderName}' does not support data store '{dataStore}'.");
         }
         
         // Check connection mode if specified
@@ -205,7 +208,8 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase, IExterna
             
             if (!supportsConnectionMode)
             {
-                return Logger.FailureWithLog($"Provider '{ProviderName}' does not support connection mode '{connectionMode}'.");
+                ExternalConnectionProviderBaseLog.UnsupportedConnectionMode(Logger, ProviderName, connectionMode);
+                return FdwResult.Failure($"Provider '{ProviderName}' does not support connection mode '{connectionMode}'.");
             }
         }
         

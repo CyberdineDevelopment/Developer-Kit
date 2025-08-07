@@ -48,7 +48,7 @@ public class FdwResult : IFdwResult
     /// </summary>
     /// <param name="message">The failure message.</param>
     /// <returns>A failed result.</returns>
-    public static FdwResult Failure(string message) => new(false, message ?? throw new ArgumentNullException(nameof(message)));
+    public static FdwResult Failure(string message) => new(false, message);
 
 }
 
@@ -109,8 +109,6 @@ public class FdwResult<TResult> : FdwResult, IFdwResult<TResult>
     /// <inheritdoc/>
     public IGenericResult<TNew> Map<TNew>(Func<TResult, TNew> mapper)
     {
-        if (mapper == null)
-            throw new ArgumentNullException(nameof(mapper));
 
         return IsSuccess 
             ? (IGenericResult<TNew>)FdwResult<TNew>.Success(mapper(Value))
@@ -120,10 +118,6 @@ public class FdwResult<TResult> : FdwResult, IFdwResult<TResult>
     /// <inheritdoc/>
     public T Match<T>(Func<TResult, T> success, Func<string, T> failure)
     {
-        if (success == null)
-            throw new ArgumentNullException(nameof(success));
-        if (failure == null)
-            throw new ArgumentNullException(nameof(failure));
 
         return IsSuccess ? success(Value) : failure(Message);
     }

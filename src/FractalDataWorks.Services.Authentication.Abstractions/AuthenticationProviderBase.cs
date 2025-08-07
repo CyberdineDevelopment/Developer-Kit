@@ -5,31 +5,21 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using FractalDataWorks;
-using FractalDataWorks.EnhancedEnums.Attributes;
+using FractalDataWorks.Services;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FractalDataWorks.Services.Authentication.Abstractions;
 
 /// <summary>
-/// Base class for authentication providers that generates the AuthenticationProviders collection.
-/// Integrates with the EnhancedEnums system for automatic service discovery and registration.
+/// Base class for authentication providers that executes authentication commands.
 /// </summary>
 /// <remarks>
 /// This base class provides the foundation for all authentication providers in the framework.
-/// It handles provider registration, command validation, and integration with the EnhancedEnums
-/// system for automatic collection generation and lookup capabilities.
+/// It handles command execution, validation, and logging for authentication operations.
 /// </remarks>
-[EnumCollection(
-    CollectionName = "AuthenticationProviders", 
-    IncludeReferencedAssemblies = true,
-    ReturnType = typeof(IAuthenticationProvider))]
-public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticationProvider
+public abstract class AuthenticationProviderBase : ServiceBase<IAuthenticationCommand, AuthenticationConfiguration, AuthenticationProviderBase>, IAuthenticationProvider
 {
-    /// <summary>
-    /// Gets the logger for this authentication provider.
-    /// </summary>
-    protected ILogger Logger { get; } = NullLogger.Instance;
     /// <summary>
     /// Gets the unique identifier for this authentication provider.
     /// </summary>
@@ -46,7 +36,6 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticat
     /// Gets the provider type identifier.
     /// </summary>
     /// <value>The provider type (e.g., "AzureEntra", "Okta", "Auth0", "LDAP").</value>
-    [EnumLookup("GetByProviderType")]
     public string ProviderType { get; }
     
     /// <summary>
@@ -59,93 +48,60 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticat
     /// Gets the supported authentication flows for this provider.
     /// </summary>
     /// <value>A collection of authentication flow names supported by this provider.</value>
-    [EnumLookup("GetByAuthenticationFlow", allowMultiple: true)]
     public IReadOnlyCollection<string> SupportedAuthenticationFlows { get; }
     
     /// <summary>
     /// Gets the supported authentication command types for this provider.
     /// </summary>
     /// <value>A collection of command type names supported by this provider.</value>
-    [EnumLookup("GetByCommandType", allowMultiple: true)]
     public IReadOnlyCollection<string> SupportedCommandTypes { get; }
     
     /// <summary>
     /// Gets the supported realms or domains for this provider.
     /// </summary>
     /// <value>A collection of realm identifiers supported by this provider.</value>
-    [EnumLookup("GetByRealm", allowMultiple: true)]
     public IReadOnlyCollection<string> SupportedRealms { get; }
     
     /// <summary>
     /// Gets a value indicating whether this provider supports multi-factor authentication.
     /// </summary>
     /// <value><c>true</c> if MFA is supported; otherwise, <c>false</c>.</value>
-    [EnumLookup("GetMfaSupported")]
     public bool SupportsMfa { get; }
     
     /// <summary>
     /// Gets a value indicating whether this provider supports token refresh.
     /// </summary>
     /// <value><c>true</c> if token refresh is supported; otherwise, <c>false</c>.</value>
-    [EnumLookup("GetTokenRefreshSupported")]
     public bool SupportsTokenRefresh { get; }
     
     /// <summary>
     /// Gets a value indicating whether this provider supports user information retrieval.
     /// </summary>
     /// <value><c>true</c> if user info retrieval is supported; otherwise, <c>false</c>.</value>
-    [EnumLookup("GetUserInfoSupported")]
     public bool SupportsUserInfo { get; }
     
     /// <summary>
     /// Gets a value indicating whether this provider supports password operations.
     /// </summary>
     /// <value><c>true</c> if password operations are supported; otherwise, <c>false</c>.</value>
-    [EnumLookup("GetPasswordOperationsSupported")]
     public bool SupportsPasswordOperations { get; }
     
     /// <summary>
     /// Gets a value indicating whether this provider supports session management.
     /// </summary>
     /// <value><c>true</c> if session management is supported; otherwise, <c>false</c>.</value>
-    [EnumLookup("GetSessionManagementSupported")]
     public bool SupportsSessionManagement { get; }
-    
-    /// <summary>
-    /// Gets the configuration for this provider.
-    /// </summary>
-    /// <value>The provider configuration object.</value>
-    public AuthenticationConfiguration Configuration { get; }
-    
-    /// <summary>
-    /// Gets the unique identifier for this service instance.
-    /// </summary>
-    /// <value>A unique identifier for the service instance.</value>
-    public string ServiceId { get; }
-    
-    /// <summary>
-    /// Gets the display name of the service.
-    /// </summary>
-    /// <value>A human-readable name for the service.</value>
-    public string ServiceName => Name;
-    
-    /// <summary>
-    /// Gets a value indicating whether the service is currently available for use.
-    /// </summary>
-    /// <value><c>true</c> if the service is available; otherwise, <c>false</c>.</value>
-    public virtual bool IsAvailable => true;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthenticationProviderBase"/> class.
     /// </summary>
-    /// <param name="id">The unique identifier for this authentication provider.</param>
-    /// <param name="name">The display name of this authentication provider.</param>
+    /// <param name="logger">The logger instance for this authentication provider.</param>
+    /// <param name="configuration">The provider configuration.</param>
     /// <param name="providerType">The provider type identifier.</param>
     /// <param name="version">The provider version.</param>
     /// <param name="supportedAuthenticationFlows">The authentication flows this provider supports.</param>
     /// <param name="supportedCommandTypes">The command types this provider can execute.</param>
     /// <param name="supportedRealms">The realms this provider can work with.</param>
-    /// <param name="configuration">The provider configuration.</param>
     /// <param name="supportsMfa">Whether MFA is supported.</param>
     /// <param name="supportsTokenRefresh">Whether token refresh is supported.</param>
     /// <param name="supportsUserInfo">Whether user info retrieval is supported.</param>
@@ -158,28 +114,20 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticat
     /// Thrown when any string parameter is empty or whitespace, or when collections are empty.
     /// </exception>
     protected AuthenticationProviderBase(
-        int id, 
-        string name, 
+        ILogger<AuthenticationProviderBase> logger,
+        AuthenticationConfiguration configuration,
         string providerType,
         string version,
         IReadOnlyCollection<string> supportedAuthenticationFlows,
         IReadOnlyCollection<string> supportedCommandTypes,
         IReadOnlyCollection<string> supportedRealms,
-        AuthenticationConfiguration configuration,
         bool supportsMfa = false,
         bool supportsTokenRefresh = true,
         bool supportsUserInfo = true,
         bool supportsPasswordOperations = false,
         bool supportsSessionManagement = true) 
-        : base(id, name)
+        : base(logger, configuration)
     {
-        ArgumentNullException.ThrowIfNull(providerType, nameof(providerType));
-        ArgumentNullException.ThrowIfNull(version, nameof(version));
-        ArgumentNullException.ThrowIfNull(supportedAuthenticationFlows, nameof(supportedAuthenticationFlows));
-        ArgumentNullException.ThrowIfNull(supportedCommandTypes, nameof(supportedCommandTypes));
-        ArgumentNullException.ThrowIfNull(supportedRealms, nameof(supportedRealms));
-        ArgumentNullException.ThrowIfNull(configuration, nameof(configuration));
-        
         if (string.IsNullOrWhiteSpace(providerType))
         {
             throw new ArgumentException("Provider type cannot be empty or whitespace.", nameof(providerType));
@@ -232,117 +180,32 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticat
             }
         }
         
-        // Validate configuration
-        var configErrors = configuration.Validate();
-        if (configErrors.Count > 0)
-        {
-            throw new ArgumentException($"Configuration validation failed: {string.Join(", ", configErrors)}", nameof(configuration));
-        }
-        
         ProviderId = configuration.ProviderId;
         ProviderType = providerType;
         Version = version;
         SupportedAuthenticationFlows = supportedAuthenticationFlows;
         SupportedCommandTypes = supportedCommandTypes;
         SupportedRealms = supportedRealms;
-        Configuration = configuration;
         SupportsMfa = supportsMfa;
         SupportsTokenRefresh = supportsTokenRefresh;
         SupportsUserInfo = supportsUserInfo;
         SupportsPasswordOperations = supportsPasswordOperations;
         SupportsSessionManagement = supportsSessionManagement;
-        ServiceId = $"AuthenticationProvider_{id}_{name}";
     }
     
     /// <inheritdoc />
-    public abstract Task<IFdwResult<object?>> Execute(IAuthenticationCommand command, CancellationToken cancellationToken = default);
+    public abstract Task<IFdwResult<TOut>> Execute<TOut>(IAuthenticationCommand command, CancellationToken cancellationToken);
     
     /// <inheritdoc />
-    public abstract Task<IFdwResult<TResult>> Execute<TResult>(IAuthenticationCommand<TResult> command, CancellationToken cancellationToken = default);
+    public abstract Task<IFdwResult> Execute(IAuthenticationCommand command, CancellationToken cancellationToken);
     
     /// <inheritdoc />
-    public virtual async Task<IFdwResult<IAuthenticationBatchResult>> ExecuteBatch(IReadOnlyList<IAuthenticationCommand> commands, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(commands, nameof(commands));
-        
-        if (commands.Count == 0)
-        {
-            return Logger.FailureWithLog<IAuthenticationBatchResult>("Command list cannot be empty.");
-        }
-        
-        // Default implementation executes commands sequentially
-        // Override in derived classes for optimized batch processing
-        return await ExecuteSequentially(commands, cancellationToken);
-    }
+    protected abstract Task<IFdwResult<T>> ExecuteCore<T>(IAuthenticationCommand command);
     
-    /// <summary>
-    /// Executes commands sequentially for batch operations.
-    /// </summary>
-    /// <param name="commands">The commands to execute.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The batch result.</returns>
-    private async Task<IFdwResult<IAuthenticationBatchResult>> ExecuteSequentially(IReadOnlyList<IAuthenticationCommand> commands, CancellationToken cancellationToken)
-    {
-        var batchId = Guid.NewGuid().ToString();
-        var startTime = DateTimeOffset.UtcNow;
-        var commandResults = new List<IAuthenticationCommandResult>();
-        
-        int successCount = 0;
-        int failCount = 0;
-        
-        try
-        {
-            for (int i = 0; i < commands.Count; i++)
-            {
-                var command = commands[i];
-                var commandStartTime = DateTimeOffset.UtcNow;
-                
-                try
-                {
-                    var result = await Execute(command, cancellationToken);
-                    var commandEndTime = DateTimeOffset.UtcNow;
-                    
-                    if (result.IsSuccess)
-                    {
-                        successCount++;
-                        commandResults.Add(CreateCommandResult(command, i, true, result.Value, null, null, null, 
-                            commandEndTime - commandStartTime, commandStartTime, commandEndTime));
-                    }
-                    else
-                    {
-                        failCount++;
-                        commandResults.Add(CreateCommandResult(command, i, false, null, result.ErrorMessage, 
-                            result.ErrorDetails, result.Exception, commandEndTime - commandStartTime, 
-                            commandStartTime, commandEndTime));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var commandEndTime = DateTimeOffset.UtcNow;
-                    failCount++;
-                    commandResults.Add(CreateCommandResult(command, i, false, null, ex.Message, 
-                        new[] { ex.ToString() }, ex, commandEndTime - commandStartTime, 
-                        commandStartTime, commandEndTime));
-                }
-            }
-            
-            var endTime = DateTimeOffset.UtcNow;
-            var batchResult = CreateBatchResult(batchId, commands.Count, successCount, failCount, 0,
-                endTime - startTime, startTime, endTime, commandResults, Array.Empty<string>());
-            
-            return FdwResult<IAuthenticationBatchResult>.Success(batchResult);
-        }
-        catch (Exception ex)
-        {
-            var endTime = DateTimeOffset.UtcNow;
-            return Logger.FailureWithLog<IAuthenticationBatchResult>($"Batch execution failed: {ex.Message}");
-        }
-    }
     
     /// <inheritdoc />
     public virtual IFdwResult ValidateCommand(IAuthenticationCommand command)
     {
-        ArgumentNullException.ThrowIfNull(command, nameof(command));
         
         // Check if this provider supports the command type
         bool supportsCommandType = false;
@@ -357,7 +220,8 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticat
         
         if (!supportsCommandType)
         {
-            return Logger.FailureWithLog($"Provider '{Name}' does not support command type '{command.CommandType}'.");
+            AuthenticationProviderBaseLog.UnsupportedCommandType(Logger, Name, command.CommandType);
+            return FdwResult.Failure($"Provider '{Name}' does not support command type '{command.CommandType}'.");
         }
         
         // Check if this provider supports the authentication flow
@@ -373,7 +237,8 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticat
         
         if (!supportsFlow)
         {
-            return Logger.FailureWithLog($"Provider '{Name}' does not support authentication flow '{command.AuthenticationFlow}'.");
+            AuthenticationProviderBaseLog.UnsupportedAuthenticationFlow(Logger, Name, command.AuthenticationFlow);
+            return FdwResult.Failure($"Provider '{Name}' does not support authentication flow '{command.AuthenticationFlow}'.");
         }
         
         // Validate the command itself
@@ -404,19 +269,6 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticat
     /// <inheritdoc />
     public abstract Task<IFdwResult<IAuthenticationProviderHealth>> HealthCheckAsync(CancellationToken cancellationToken = default);
     
-    /// <summary>
-    /// Performs health check on the service (IFdwService implementation).
-    /// </summary>
-    /// <returns>A task representing the asynchronous health check operation.</returns>
-    async Task<IFdwResult> IFdwService.HealthCheckAsync()
-    {
-        var healthResult = await HealthCheckAsync();
-        if (healthResult.IsSuccess)
-        {
-            return FdwResult.Success();
-        }
-        return Logger.FailureWithLog(healthResult.ErrorMessage ?? "Health check failed");
-    }
     
     /// <inheritdoc />
     public abstract Task<IFdwResult<IReadOnlyCollection<IAuthenticationRealm>>> GetRealmsAsync(CancellationToken cancellationToken = default);
@@ -436,42 +288,4 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticat
     /// <inheritdoc />
     public abstract Task<IFdwResult> RevokeUserSessionsAsync(string userId, CancellationToken cancellationToken = default);
     
-    
-    /// <summary>
-    /// Creates a command result instance.
-    /// </summary>
-    /// <param name="command">The original command.</param>
-    /// <param name="batchPosition">The position in the batch.</param>
-    /// <param name="isSuccessful">Whether the command succeeded.</param>
-    /// <param name="resultData">The result data.</param>
-    /// <param name="errorMessage">The error message if failed.</param>
-    /// <param name="errorDetails">Additional error details.</param>
-    /// <param name="exception">The exception if one occurred.</param>
-    /// <param name="executionTime">The command execution time.</param>
-    /// <param name="startedAt">When the command started.</param>
-    /// <param name="completedAt">When the command completed.</param>
-    /// <returns>A command result instance.</returns>
-    protected abstract IAuthenticationCommandResult CreateCommandResult(
-        IAuthenticationCommand command, int batchPosition, bool isSuccessful, object? resultData,
-        string? errorMessage, IReadOnlyList<string>? errorDetails, Exception? exception,
-        TimeSpan executionTime, DateTimeOffset startedAt, DateTimeOffset completedAt);
-    
-    /// <summary>
-    /// Creates a batch result instance.
-    /// </summary>
-    /// <param name="batchId">The batch identifier.</param>
-    /// <param name="totalCommands">The total number of commands.</param>
-    /// <param name="successfulCommands">The number of successful commands.</param>
-    /// <param name="failedCommands">The number of failed commands.</param>
-    /// <param name="skippedCommands">The number of skipped commands.</param>
-    /// <param name="executionTime">The total execution time.</param>
-    /// <param name="startedAt">When the batch started.</param>
-    /// <param name="completedAt">When the batch completed.</param>
-    /// <param name="commandResults">The individual command results.</param>
-    /// <param name="batchErrors">Any batch-level errors.</param>
-    /// <returns>A batch result instance.</returns>
-    protected abstract IAuthenticationBatchResult CreateBatchResult(
-        string batchId, int totalCommands, int successfulCommands, int failedCommands, int skippedCommands,
-        TimeSpan executionTime, DateTimeOffset startedAt, DateTimeOffset completedAt,
-        IReadOnlyList<IAuthenticationCommandResult> commandResults, IReadOnlyList<string> batchErrors);
 }
