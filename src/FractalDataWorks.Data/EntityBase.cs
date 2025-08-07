@@ -13,7 +13,7 @@ public abstract class EntityBase<TKey> where TKey : IEquatable<TKey>
     /// <summary>
     /// Gets or sets the entity's unique identifier.
     /// </summary>
-    public TKey Id { get; set; } = default!;
+    public TKey Id { get; init; } = default!;
 
     /// <summary>
     /// Gets or sets the timestamp when the entity was created.
@@ -23,7 +23,7 @@ public abstract class EntityBase<TKey> where TKey : IEquatable<TKey>
     /// <summary>
     /// Gets or sets the user who created the entity.
     /// </summary>
-    public virtual string? CreatedBy { get; set; }
+    public virtual string? CreatedBy { get; protected set; }
 
     /// <summary>
     /// Gets or sets the timestamp when the entity was last modified.
@@ -33,7 +33,7 @@ public abstract class EntityBase<TKey> where TKey : IEquatable<TKey>
     /// <summary>
     /// Gets or sets the user who last modified the entity.
     /// </summary>
-    public virtual string? ModifiedBy { get; set; }
+    public virtual string? ModifiedBy { get; protected set; }
 
     /// <summary>
     /// Gets or sets the entity version for optimistic concurrency control.
@@ -53,7 +53,7 @@ public abstract class EntityBase<TKey> where TKey : IEquatable<TKey>
     /// <summary>
     /// Gets or sets the user who deleted the entity.
     /// </summary>
-    public virtual string? DeletedBy { get; set; }
+    public virtual string? DeletedBy { get; protected set; }
 
     /// <summary>
     /// Determines whether this entity is equal to another entity.

@@ -8,7 +8,7 @@ namespace FractalDataWorks.Data;
 /// </summary>
 /// <typeparam name="TSource">The source query type (e.g., IQueryable).</typeparam>
 /// <typeparam name="TTarget">The target query type (e.g., SQL, JSON query).</typeparam>
-public interface IQueryParser<TSource, TTarget>
+public interface IQueryParser<in TSource, out TTarget>
 {
     /// <summary>
     /// Parses a source query into a target query format.

@@ -54,7 +54,7 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
     /// <summary>
     /// Gets the timestamp when this configuration was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Gets or sets the timestamp when this configuration was last modified.
