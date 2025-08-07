@@ -15,7 +15,8 @@ The FractalDataWorks Developer Kit is a layered architecture framework that prov
 - **Core abstractions** for services, configuration, validation, and results
 - **Service patterns** with built-in validation, Serilog structured logging, and error handling
 - **Configuration management** with validation and registry patterns
-- **Enhanced messaging** using the EnhancedEnums pattern for type-safe, maintainable messages
+- **Service and Message architecture** using Enhanced Enums for type-safe, discoverable service types and messages
+- **Cross-assembly discovery** with optional source generators for automatic collection generation
 - **Extensible architecture** supporting dependency injection, data access, hosting, and tools
 
 ## Architecture
@@ -44,11 +45,16 @@ The framework follows a progressive layered architecture with clear separation b
   - `IFdwDataCommand` - Universal data command interface (Query/Insert/Update/Upsert/Delete)
 
 ### Layer 1 - Domain-Specific Implementations
-- **FractalDataWorks.Services** - Service patterns and base implementations
+- **FractalDataWorks.Services** - Service patterns, base implementations, and service/message infrastructure
   - `ServiceBase<TConfiguration, TCommand>` - Base service with validation and Serilog structured logging
+  - `ServiceTypeBase<T>` - Base class for service type definitions with Enhanced Enum support
+  - `MessageBase<T>` - Base class for result messages (moved from separate Messages project) with Enhanced Enum support
+  - `ServiceTypeAttribute` - Attribute for marking service types for discovery
+  - `MessageAttribute` - Attribute for marking messages for discovery
   - `DataConnection<TDataCommand, TConnection>` - Universal data service implementation
   - Built-in command validation and error handling
   - Comprehensive logging with ServiceBaseLog using source generators and Serilog destructuring
+  - All service-related infrastructure consolidated in one package
   
 - **FractalDataWorks.Configuration** - Configuration providers and patterns
   - `ConfigurationBase<T>` - Self-validating configuration base class
@@ -77,6 +83,79 @@ The framework follows a progressive layered architecture with clear separation b
   - Entity base classes with audit fields
   - Soft delete and versioning support
   - Entity validation patterns
+
+## Service and Message Architecture
+
+The framework provides a unified approach to service types and messages using Enhanced Enums. **FractalDataWorks.Services** now contains all service-related infrastructure in one consolidated package:
+
+### Core Components
+
+#### Service Types and Messages (`FractalDataWorks.Services`)
+- **ServiceTypeBase&lt;T&gt;** - Base class for defining service types with Enhanced Enum attributes
+- **ServiceTypeAttribute** - Marks classes as service types for discovery
+- **MessageBase&lt;T&gt;** - Base class for defining result messages (moved from separate Messages project) with Enhanced Enum attributes  
+- **MessageAttribute** - Marks classes as messages for discovery
+- All service-related infrastructure consolidated in one package
+
+#### Message Purpose
+- Messages are for **result values** in `FdwResult<T>`, not for logging
+- They provide structured, type-safe error and success messages
+- Enhanced Enum support enables compile-time safety and discoverability
+
+### Cross-Assembly Discovery Options
+
+#### Option 1: Automatic Discovery with Source Generator (Recommended)
+Add the optional cross-assembly package to automatically generate static collections:
+
+```xml
+<!-- Basic services -->
+<PackageReference Include="FractalDataWorks.Services" />
+
+<!-- With automatic cross-assembly discovery -->
+<PackageReference Include="FractalDataWorks.ServiceTypes.CrossAssembly" />
+```
+
+This generates static collections like:
+```csharp
+// Automatically generated
+ServiceTypes.All              // All service types across assemblies
+ServiceTypes.GetById(1)       // Get by ID
+ServiceTypes.GetByName("...")  // Get by name
+Messages.All                  // All messages across assemblies
+```
+
+#### Option 2: Manual Collection Creation
+Create your own collections without source generators - this approach is always available:
+
+```csharp
+public static class MyServiceTypes
+{
+    public static readonly List<ServiceTypeBase> All = new()
+    {
+        new EmailServiceType(),
+        new SmsServiceType(),
+        // ... other service types
+    };
+}
+```
+
+### Architecture Separation
+
+- **EnhancedEnums** - Cross-functional Enhanced Enum base functionality (separate project)
+- **Services** - Consolidated service and message patterns using Enhanced Enums
+- **ServiceTypes.CrossAssembly** - Optional source generator for automatic service type discovery
+
+#### Key Points:
+- **Messages are for result values** in `FdwResult<T>`, not logging
+- **EnhancedEnums remains separate** as a cross-functional project 
+- **Cross-assembly generators are optional** - manual collection creation always available
+- **Services project contains all service-related infrastructure** in one consolidated package
+
+This separation ensures:
+- Clean architecture with focused responsibilities
+- Optional cross-assembly discovery via separate packages
+- EnhancedEnums remains reusable across different domains
+- All service/message infrastructure consolidated for easier management
 
 ## Package Documentation
 

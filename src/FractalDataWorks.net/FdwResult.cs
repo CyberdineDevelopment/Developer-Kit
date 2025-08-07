@@ -1,5 +1,4 @@
 using System;
-using FractalDataWorks;
 
 namespace FractalDataWorks;
 
@@ -13,34 +12,30 @@ public class FdwResult : IFdwResult
     /// </summary>
     /// <param name="isSuccess"></param>
     /// <param name="message"></param>
-    protected FdwResult(bool isSuccess, IFdwMessage? message = null)
+    protected FdwResult(bool isSuccess, string? message = null)
     {
         IsSuccess = isSuccess;
-        Message = message;
+        Message = message ?? string.Empty;
     }
 
     /// <inheritdoc/>
     public virtual bool IsSuccess { get; }
 
+    /// <inheritdoc/>
+    public bool IsFailure => !IsSuccess;
+
     /// <summary>
     /// Returns a value indicating whether there is an error
     /// </summary>
-    public bool Error
-    {
-        get
-        {
-            if ((Message is not null)) return false;
-            return Message is { Severity: MessageSeverity.Error };
-        }
-    }
+    public bool Error => !IsSuccess;
 
     /// <summary>
     /// Returns a value indicating whether there is a message;
     /// </summary>
-    public virtual bool IsEmpty => Message is not null;
+    public virtual bool IsEmpty => string.IsNullOrEmpty(Message);
 
     /// <inheritdoc/>
-    public IFdwMessage? Message { get; }
+    public string Message { get; }
 
     /// <summary>
     /// Creates a successful result.
@@ -53,19 +48,20 @@ public class FdwResult : IFdwResult
     /// </summary>
     /// <param name="message">The failure message.</param>
     /// <returns>A failed result.</returns>
-    public static FdwResult Failure(IFdwMessage message) => new(false, message ?? throw new ArgumentNullException(nameof(message)));
+    public static FdwResult Failure(string message) => new(false, message ?? throw new ArgumentNullException(nameof(message)));
+
 }
 
 /// <summary>
 /// Basic implementation of IFdwResult with a value.
 /// </summary>
 /// <typeparam name="TResult">The type of the value.</typeparam>
-public class FdwResult<TResult> : FdwResult,IFdwResult<TResult>
+public class FdwResult<TResult> : FdwResult, IFdwResult<TResult>
 {
     private readonly TResult _value;
     private readonly bool _hasValue;
 
-    private FdwResult(bool isSuccess, TResult value, IFdwMessage? message = null):base(isSuccess,message)
+    private FdwResult(bool isSuccess, TResult value, string? message = null) : base(isSuccess, message)
     {
         _value = value;
         _hasValue = isSuccess;
@@ -100,12 +96,35 @@ public class FdwResult<TResult> : FdwResult,IFdwResult<TResult>
     /// <param name="message">The failure message.</param>
     /// <typeparam name="T">The type of the result</typeparam>
     /// <returns>A failed result.</returns>
-    public static FdwResult<T> Failure<T>(IFdwMessage message) => new(false, default!, message);
+    public static FdwResult<T> Failure<T>(string message) => new(false, default!, message);
 
     /// <summary>
     /// Creates a failed result with a message.
     /// </summary>
     /// <param name="message">The failure message.</param>
     /// <returns>A failed result.</returns>
-    public new static FdwResult<TResult> Failure(IFdwMessage message) => new(false, default!, message);
+    public new static FdwResult<TResult> Failure(string message) => new(false, default!, message);
+
+
+    /// <inheritdoc/>
+    public IGenericResult<TNew> Map<TNew>(Func<TResult, TNew> mapper)
+    {
+        if (mapper == null)
+            throw new ArgumentNullException(nameof(mapper));
+
+        return IsSuccess 
+            ? (IGenericResult<TNew>)FdwResult<TNew>.Success(mapper(Value))
+            : FdwResult<TNew>.Failure(Message);
+    }
+
+    /// <inheritdoc/>
+    public T Match<T>(Func<TResult, T> success, Func<string, T> failure)
+    {
+        if (success == null)
+            throw new ArgumentNullException(nameof(success));
+        if (failure == null)
+            throw new ArgumentNullException(nameof(failure));
+
+        return IsSuccess ? success(Value) : failure(Message);
+    }
 }

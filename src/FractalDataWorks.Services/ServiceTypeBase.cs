@@ -1,13 +1,12 @@
 using System;
 using System.Threading.Tasks;
-using FractalDataWorks.EnhancedEnums.Attributes;
+using FractalDataWorks.Results;
 
 namespace FractalDataWorks.Services;
 
 /// <summary>
-/// Base class for service type definitions.
+/// Base class for service type definitions using factory pattern.
 /// </summary>
-[EnhancedEnumBase("ServiceTypes", ReturnType = "IServiceFactory", ReturnTypeNamespace = "FractalDataWorks")]
 public abstract class ServiceTypeBase : IServiceFactory
 {
     /// <summary>
@@ -122,7 +121,7 @@ public abstract class ServiceTypeBase<TService, TConfiguration> : ServiceTypeBas
         {
             return Create(typedConfig);
         }
-        return FdwResult<TService>.Failure(Messages.ServiceMessages.InvalidCommand);
+        return FdwResult<TService>.Failure("Invalid command type.");
     }
 
     /// <summary>
@@ -142,7 +141,7 @@ public abstract class ServiceTypeBase<TService, TConfiguration> : ServiceTypeBas
             }
             return FdwResult<T>.Failure(result.Message!);
         }
-        return FdwResult<T>.Failure(Messages.ServiceMessages.InvalidCommand);
+        return FdwResult<T>.Failure("Invalid command type.");
     }
 
     /// <summary>

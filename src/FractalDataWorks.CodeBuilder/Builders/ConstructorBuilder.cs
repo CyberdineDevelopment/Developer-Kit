@@ -1,249 +1,195 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using FractalDataWorks.CodeBuilder.Abstractions;
-using FractalDataWorks.CodeBuilder.Definitions;
-using FractalDataWorks.CodeBuilder.Types;
 
 namespace FractalDataWorks.CodeBuilder.Builders;
 
 /// <summary>
-/// True builder pattern implementation for constructor definitions.
-/// Builds immutable ConstructorDefinition products following the TRUE builder pattern.
-/// Each method returns a new builder instance, keeping builders immutable.
+/// Builder for generating C# constructor definitions.
 /// </summary>
-public sealed class ConstructorBuilder : IAstBuilder<ConstructorDefinition>, IValidatableBuilder
+public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
 {
-    private readonly ConstructorBuilderState _state;
+    private string _className = "MyClass";
+    private string _accessModifier = "public";
+    private bool _isStatic;
+    private readonly List<(string Type, string Name, string? Default)> _parameters = new();
+    private readonly List<string> _baseCallArguments = new();
+    private readonly List<string> _thisCallArguments = new();
+    private readonly List<string> _attributes = new();
+    private readonly List<string> _bodyLines = new();
+    private string? _xmlDocSummary;
+    private readonly Dictionary<string, string> _paramDocs = new();
 
     /// <summary>
-    /// Initializes a new instance of ConstructorBuilder.
+    /// Sets the class name for the constructor.
     /// </summary>
-    public ConstructorBuilder()
+    /// <param name="className">The class name.</param>
+    /// <returns>The builder for method chaining.</returns>
+    public ConstructorBuilder WithClassName(string className)
     {
-        _state = new ConstructorBuilderState();
+        _className = className;
+        return this;
     }
 
-    /// <summary>
-    /// Initializes a new instance of ConstructorBuilder with the given state.
-    /// </summary>
-    /// <param name="state">The builder state.</param>
-    private ConstructorBuilder(ConstructorBuilderState state)
+    /// <inheritdoc/>
+    public IConstructorBuilder WithAccessModifier(string accessModifier)
     {
-        _state = state;
+        _accessModifier = accessModifier;
+        return this;
     }
 
-    /// <summary>
-    /// Sets the access modifier of the constructor.
-    /// </summary>
-    /// <param name="access">The access modifier.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder WithAccess(AccessModifier access)
+    /// <inheritdoc/>
+    public IConstructorBuilder AsStatic()
     {
-        var newState = _state.Clone();
-        newState.Access = access ?? throw new ArgumentNullException(nameof(access));
-        return new ConstructorBuilder(newState);
+        _isStatic = true;
+        return this;
     }
 
-    /// <summary>
-    /// Adds a modifier to the constructor.
-    /// </summary>
-    /// <param name="modifier">The modifier to add.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder WithModifier(Modifiers modifier)
+    /// <inheritdoc/>
+    public IConstructorBuilder WithParameter(string type, string name, string? defaultValue = null)
     {
-        var newState = _state.Clone();
-        newState.Modifiers = newState.Modifiers.AddModifier(modifier);
-        return new ConstructorBuilder(newState);
+        _parameters.Add((type, name, defaultValue));
+        return this;
     }
 
-    /// <summary>
-    /// Sets multiple modifiers for the constructor.
-    /// </summary>
-    /// <param name="modifiers">The modifiers to set.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder WithModifiers(Modifiers modifiers)
+    /// <inheritdoc/>
+    public IConstructorBuilder WithBaseCall(params string[] arguments)
     {
-        var newState = _state.Clone();
-        newState.Modifiers = modifiers;
-        return new ConstructorBuilder(newState);
+        _baseCallArguments.Clear();
+        _baseCallArguments.AddRange(arguments);
+        _thisCallArguments.Clear();
+        return this;
     }
 
-    /// <summary>
-    /// Makes the constructor static.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder AsStatic()
+    /// <inheritdoc/>
+    public IConstructorBuilder WithThisCall(params string[] arguments)
     {
-        return WithModifier(Modifiers.Static);
+        _thisCallArguments.Clear();
+        _thisCallArguments.AddRange(arguments);
+        _baseCallArguments.Clear();
+        return this;
     }
 
-    /// <summary>
-    /// Adds a parameter to the constructor.
-    /// </summary>
-    /// <param name="type">The parameter type.</param>
-    /// <param name="name">The parameter name.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder AddParameter(string type, string name)
+    /// <inheritdoc/>
+    public IConstructorBuilder WithAttribute(string attribute)
     {
-        if (string.IsNullOrWhiteSpace(type))
-            throw new ArgumentException("Parameter type cannot be null or empty.", nameof(type));
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Parameter name cannot be null or empty.", nameof(name));
+        _attributes.Add(attribute);
+        return this;
+    }
 
-        var paramBuilder = new ParameterBuilder()
-            .WithName(name)
-            .WithType(type);
+    /// <inheritdoc/>
+    public IConstructorBuilder WithBody(string body)
+    {
+        _bodyLines.Clear();
+        _bodyLines.AddRange(body.Split('\n'));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IConstructorBuilder AddBodyLine(string line)
+    {
+        _bodyLines.Add(line);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IConstructorBuilder WithXmlDoc(string summary)
+    {
+        _xmlDocSummary = summary;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IConstructorBuilder WithParamDoc(string parameterName, string description)
+    {
+        _paramDocs[parameterName] = description;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public override string Build()
+    {
+        Clear();
+
+        // XML documentation
+        if (!string.IsNullOrEmpty(_xmlDocSummary) || _paramDocs.Count > 0)
+        {
+            if (!string.IsNullOrEmpty(_xmlDocSummary))
+            {
+                AppendLine("/// <summary>");
+                foreach (var line in _xmlDocSummary.Split('\n'))
+                {
+                    AppendLine($"/// {line.Trim()}");
+                }
+                AppendLine("/// </summary>");
+            }
+
+            foreach (var param in _parameters)
+            {
+                if (_paramDocs.ContainsKey(param.Name))
+                {
+                    AppendLine($"/// <param name=\"{param.Name}\">{_paramDocs[param.Name]}</param>");
+                }
+            }
+        }
+
+        // Attributes
+        foreach (var attribute in _attributes)
+        {
+            AppendLine($"[{attribute}]");
+        }
+
+        // Constructor signature
+        var signature = new StringBuilder();
         
-        var parameter = paramBuilder.Build();
-        var newState = _state.Clone();
-        newState.Parameters.Add(parameter);
-        return new ConstructorBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds a parameter to the constructor using a parameter builder configuration.
-    /// </summary>
-    /// <param name="configure">Configuration action for the parameter.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder AddParameter(Action<ParameterBuilder> configure)
-    {
-        if (configure == null)
-            throw new ArgumentNullException(nameof(configure));
-
-        var paramBuilder = new ParameterBuilder();
-        configure(paramBuilder);
-        var parameter = paramBuilder.Build();
-        
-        var newState = _state.Clone();
-        newState.Parameters.Add(parameter);
-        return new ConstructorBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets a base constructor call.
-    /// </summary>
-    /// <param name="baseCall">The base constructor call (e.g., "base(param1, param2)" or "this(param1)").</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder WithBaseCall(string baseCall)
-    {
-        if (string.IsNullOrWhiteSpace(baseCall))
-            throw new ArgumentException("Base call cannot be null or empty.", nameof(baseCall));
-
-        var newState = _state.Clone();
-        newState.BaseCall = baseCall;
-        return new ConstructorBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets a call to the base class constructor.
-    /// </summary>
-    /// <param name="arguments">Arguments to pass to the base constructor.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder CallBase(params string[] arguments)
-    {
-        var args = arguments != null && arguments.Length > 0 ? string.Join(", ", arguments) : "";
-        return WithBaseCall($"base({args})");
-    }
-
-    /// <summary>
-    /// Sets a call to another constructor in the same class.
-    /// </summary>
-    /// <param name="arguments">Arguments to pass to the other constructor.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder CallThis(params string[] arguments)
-    {
-        var args = arguments != null && arguments.Length > 0 ? string.Join(", ", arguments) : "";
-        return WithBaseCall($"this({args})");
-    }
-
-    /// <summary>
-    /// Sets the constructor body.
-    /// </summary>
-    /// <param name="body">The constructor body code.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder WithBody(string body)
-    {
-        var newState = _state.Clone();
-        newState.Body = body;
-        return new ConstructorBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds an attribute to the constructor.
-    /// </summary>
-    /// <param name="name">The attribute name.</param>
-    /// <param name="arguments">Optional attribute arguments.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder AddAttribute(string name, params object[] arguments)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Attribute name cannot be null or empty.", nameof(name));
-
-        var newState = _state.Clone();
-        var attribute = new AttributeDefinition(name, arguments);
-        newState.Attributes.Add(attribute);
-        return new ConstructorBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets the XML documentation for the constructor.
-    /// </summary>
-    /// <param name="documentation">The documentation text.</param>
-    /// <returns>A new builder instance.</returns>
-    public ConstructorBuilder WithDocumentation(string documentation)
-    {
-        var newState = _state.Clone();
-        newState.XmlDocumentation = documentation;
-        return new ConstructorBuilder(newState);
-    }
-
-    /// <inheritdoc/>
-    public bool IsValid
-    {
-        get
+        if (_isStatic)
         {
-            var errors = GetValidationErrors();
-            return errors.Length == 0;
+            signature.Append("static ");
+            signature.Append(_className);
         }
-    }
-
-    /// <inheritdoc/>
-    public string[] GetValidationErrors()
-    {
-        var errors = new List<string>();
-
-        if (!_state.Modifiers.IsValid())
+        else
         {
-            errors.Add("Invalid modifier combination");
+            signature.Append(_accessModifier);
+            signature.Append($" {_className}");
         }
 
-        if (_state.Modifiers.HasModifier(Modifiers.Static) && _state.Parameters.Count > 0)
+        signature.Append("(");
+
+        var paramStrings = _parameters.Select(p =>
         {
-            errors.Add("Static constructor cannot have parameters");
+            var paramStr = $"{p.Type} {p.Name}";
+            if (p.Default != null)
+                paramStr += $" = {p.Default}";
+            return paramStr;
+        });
+
+        signature.Append(string.Join(", ", paramStrings));
+        signature.Append(")");
+
+        // Base or this call
+        if (_baseCallArguments.Count > 0)
+        {
+            signature.Append($" : base({string.Join(", ", _baseCallArguments)})");
+        }
+        else if (_thisCallArguments.Count > 0)
+        {
+            signature.Append($" : this({string.Join(", ", _thisCallArguments)})");
         }
 
-        if (_state.Modifiers.HasModifier(Modifiers.Static) && !string.IsNullOrEmpty(_state.BaseCall))
+        AppendLine(signature.ToString());
+        AppendLine("{");
+        Indent();
+
+        foreach (var line in _bodyLines)
         {
-            errors.Add("Static constructor cannot have base/this calls");
+            AppendLine(line.TrimEnd());
         }
 
-        if (_state.Modifiers.HasModifier(Modifiers.Static) && _state.Access != AccessModifier.None)
-        {
-            errors.Add("Static constructor cannot have access modifiers");
-        }
+        Outdent();
+        AppendLine("}");
 
-        return errors.ToArray();
-    }
-
-    /// <inheritdoc/>
-    public ConstructorDefinition Build()
-    {
-        if (!IsValid)
-        {
-            var errors = GetValidationErrors();
-            throw new InvalidOperationException($"Cannot build invalid constructor: {string.Join(", ", errors)}");
-        }
-
-        return new ConstructorDefinition(_state);
+        return Builder.ToString().TrimEnd();
     }
 }

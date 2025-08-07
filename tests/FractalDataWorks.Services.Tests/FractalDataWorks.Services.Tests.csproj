@@ -2,12 +2,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
+    <ProjectReference Include="..\..\src\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
-    <PackageReference Include="FractalDataWorks.EnhancedEnums" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="shouldly" />

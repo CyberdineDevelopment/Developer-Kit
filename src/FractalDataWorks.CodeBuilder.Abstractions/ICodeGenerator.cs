@@ -1,88 +1,49 @@
-using System;
+using System.Collections.Generic;
 
 namespace FractalDataWorks.CodeBuilder.Abstractions;
 
 /// <summary>
-/// Interface for code generators that convert AST definitions to source code strings.
+/// Interface for code generators that transform syntax trees or definitions into source code.
 /// </summary>
 public interface ICodeGenerator
 {
     /// <summary>
-    /// Gets the language this generator supports (e.g., "C#", "Java", "TypeScript").
+    /// Gets the target language for this generator.
     /// </summary>
-    string Language { get; }
+    string TargetLanguage { get; }
 
     /// <summary>
-    /// Generates source code from an AST node.
+    /// Generates code from a syntax tree.
     /// </summary>
-    /// <param name="node">The AST node to generate code for.</param>
+    /// <param name="syntaxTree">The syntax tree to generate from.</param>
     /// <returns>The generated source code.</returns>
-    string Generate(IAstNode node);
+    string Generate(ISyntaxTree syntaxTree);
 
     /// <summary>
-    /// Generates source code from an AST node with specific options.
+    /// Generates code from a class builder.
     /// </summary>
-    /// <param name="node">The AST node to generate code for.</param>
-    /// <param name="options">Code generation options.</param>
+    /// <param name="classBuilder">The class builder.</param>
     /// <returns>The generated source code.</returns>
-    string Generate(IAstNode node, CodeGenerationOptions options);
-}
-
-/// <summary>
-/// Options for controlling code generation behavior.
-/// </summary>
-public sealed record CodeGenerationOptions
-{
-    /// <summary>
-    /// Gets the indentation string to use (default: 4 spaces).
-    /// </summary>
-    public string Indentation { get; init; } = "    ";
+    string Generate(IClassBuilder classBuilder);
 
     /// <summary>
-    /// Gets whether to generate XML documentation comments.
+    /// Generates code from an interface builder.
     /// </summary>
-    public bool GenerateDocumentation { get; init; } = true;
+    /// <param name="interfaceBuilder">The interface builder.</param>
+    /// <returns>The generated source code.</returns>
+    string Generate(IInterfaceBuilder interfaceBuilder);
 
     /// <summary>
-    /// Gets whether to generate attributes/annotations.
+    /// Generates code from an enum builder.
     /// </summary>
-    public bool GenerateAttributes { get; init; } = true;
+    /// <param name="enumBuilder">The enum builder.</param>
+    /// <returns>The generated source code.</returns>
+    string Generate(IEnumBuilder enumBuilder);
 
     /// <summary>
-    /// Gets whether to use file-scoped namespaces (C# 10+).
+    /// Generates a compilation unit with multiple types.
     /// </summary>
-    public bool UseFileScopedNamespaces { get; init; } = true;
-
-    /// <summary>
-    /// Gets whether to generate nullable reference type annotations.
-    /// </summary>
-    public bool GenerateNullableAnnotations { get; init; } = true;
-
-    /// <summary>
-    /// Gets the line ending style to use.
-    /// </summary>
-    public LineEndingStyle LineEndings { get; init; } = LineEndingStyle.Environment;
-
-    /// <summary>
-    /// Gets whether to sort using statements alphabetically.
-    /// </summary>
-    public bool SortUsings { get; init; } = true;
-
-    /// <summary>
-    /// Gets the maximum line length before wrapping (0 = no limit).
-    /// </summary>
-    public int MaxLineLength { get; init; } = 120;
-}
-
-/// <summary>
-/// Represents line ending styles for generated code.
-/// </summary>
-public enum LineEndingStyle
-{
-    /// <summary>Use the current environment's line endings.</summary>
-    Environment,
-    /// <summary>Use Windows-style CRLF line endings.</summary>
-    Windows,
-    /// <summary>Use Unix-style LF line endings.</summary>
-    Unix
+    /// <param name="builders">The builders for the types to include.</param>
+    /// <returns>The generated source code.</returns>
+    string GenerateCompilationUnit(IEnumerable<ICodeBuilder> builders);
 }

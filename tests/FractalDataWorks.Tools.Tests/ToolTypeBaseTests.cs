@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using FractalDataWorks.EnhancedEnums.Attributes;
 using FractalDataWorks.Services;
 using Shouldly;
 using Xunit;
@@ -21,7 +20,7 @@ public class ToolTypeBaseTests
         var toolTypeBaseType = typeof(ToolTypeBase);
 
         // Act
-        var attribute = toolTypeBaseType.GetCustomAttribute<EnhancedEnumBaseAttribute>();
+        var attribute = toolTypeBaseType.GetCustomAttribute<EnumOption>();
 
         // Assert
         attribute.ShouldNotBeNull($"ToolTypeBase should have EnhancedEnumBaseAttribute");

@@ -1,17 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsNotAsErrors>NU1608</WarningsNotAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FractalDataWorks.CodeBuilder.Abstractions\FractalDataWorks.CodeBuilder.Abstractions.csproj" />
-    <ProjectReference Include="..\FractalDataWorks.Framework.Abstractions\FractalDataWorks.Framework.Abstractions.csproj" />
-    <PackageReference Include="FractalDataWorks.EnhancedEnums" />
+    <ProjectReference Include="..\FractalDataWorks.net\FractalDataWorks.net.csproj" />
   </ItemGroup>
 
 </Project>

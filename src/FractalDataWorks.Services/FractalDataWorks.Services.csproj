@@ -6,12 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="FractalDataWorks.EnhancedEnums">
-		  <PrivateAssets>all</PrivateAssets>
-	  </PackageReference>
-	  <PackageReference Include="FractalDataWorks.Messages" />
-	  <PackageReference Include="FractalDataWorks.SmartGenerators" />
-	  <PackageReference Include="Serilog" />
+    <ProjectReference Include="..\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,47 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+namespace FractalDataWorks.EnhancedEnums.Attributes;
+
+/// <summary>
+/// Marks a property for which to generate lookup methods.
+/// </summary>
+/// <remarks>
+/// Excluded from code coverage: Attribute class with only constructor and properties for metadata.
+/// </remarks>
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+[ExcludeFromCodeCoverage]
+public sealed class EnumLookupAttribute : Attribute
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EnumLookupAttribute"/> class.
+    /// </summary>
+    /// <param name="methodName">Custom method name for the lookup (e.g. ByName).</param>
+    /// <param name="allowMultiple">Allow multiple results per lookup key.</param>
+    /// <param name="returnType">The return type for this specific lookup method.</param>
+    public EnumLookupAttribute(
+        string methodName = "",
+        bool allowMultiple = false,
+        Type? returnType = null)
+    {
+        MethodName = methodName;
+        AllowMultiple = allowMultiple;
+        ReturnType = returnType;
+    }
+
+    /// <summary>
+    /// Gets the custom method name for the lookup (e.g. ByName).
+    /// </summary>
+    public string MethodName { get; }
+
+    /// <summary>
+    /// Gets whether to allow multiple results per lookup key.
+    /// </summary>
+    public bool AllowMultiple { get; }
+
+    /// <summary>
+    /// Gets the return type for this specific lookup method.
+    /// If not specified, inherits from the EnumCollection attribute ReturnType or auto-detected type.
+    /// </summary>
+    public Type? ReturnType { get; }
+}

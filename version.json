@@ -9,7 +9,7 @@
     "buildNumber": {
       "enabled": true,
       "includeCommitId": {
-        "when": "nonPublicReleaseOnly",
+        "when": "always",
         "where": "buildMetadata"
       }
     },

@@ -162,7 +162,7 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
         {
             Severity.Error => ValidationSeverity.Error,
             Severity.Warning => ValidationSeverity.Warning,
-            Severity.Info => ValidationSeverity.Info,
+            Severity.Info => ValidationSeverity.Information,
             _ => ValidationSeverity.Error
         };
     }

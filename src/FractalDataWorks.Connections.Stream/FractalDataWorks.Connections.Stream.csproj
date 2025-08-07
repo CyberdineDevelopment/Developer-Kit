@@ -1,11 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="FractalDataWorks.EnhancedEnums">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="FractalDataWorks.Messages" />
-    <PackageReference Include="FractalDataWorks.SmartGenerators" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 
     <ProjectReference Include="..\FractalDataWorks.Net\FractalDataWorks.Net.csproj" />

@@ -2,7 +2,7 @@
 
 🚧 **IN PROGRESS** - Enhanced Enum Type Factories implementation in progress
 
-Service patterns and base implementations for the FractalDataWorks framework. This package provides the foundational service abstractions and base classes that simplify service development with built-in validation, logging, and error handling.
+Service patterns and base implementations for the FractalDataWorks framework. This package provides the consolidated service and message infrastructure, including service abstractions, base classes, and message types that simplify service development with built-in validation, logging, and error handling.
 
 ## Overview
 
@@ -12,8 +12,48 @@ FractalDataWorks.Services provides:
 - Built-in command validation and execution pipeline
 - Comprehensive logging and error handling
 - Health check support
+- **Consolidated service and message infrastructure** with Enhanced Enum support
+- **ServiceTypeBase<T>** - Base class for service types with Enhanced Enum attributes
+- **MessageBase<T>** - Base class for result messages (moved from separate Messages project)
+- **Service and Message attributes** for discovery and cross-assembly generation
 
 ## Key Components
+
+### ServiceTypeBase<T> and MessageBase<T>
+
+The consolidated Services package now contains all service-related infrastructure:
+
+```csharp
+// Service type definition
+[ServiceType]
+public class EmailServiceType : ServiceTypeBase<INotificationService>
+{
+    public EmailServiceType() : base(1, "EmailService", "Email notification service")
+    {
+    }
+
+    // Factory method for creating service instances
+    public override INotificationService CreateService(IServiceProvider serviceProvider)
+    {
+        return serviceProvider.GetRequiredService<EmailNotificationService>();
+    }
+}
+
+// Message definition - for result values in FdwResult<T>, not logging
+[Message]
+public class InvalidEmailAddress : MessageBase<string>
+{
+    public InvalidEmailAddress() : base(2001, "InvalidEmailAddress", "The email address '{0}' is not valid", MessageSeverity.Error)
+    {
+    }
+}
+```
+
+#### Key Points:
+- **Messages are for result values** in `FdwResult<T>`, not for logging
+- **ServiceTypeBase<T>** enables Enhanced Enum patterns for service discovery
+- **MessageBase<T>** provides structured, type-safe error and success messages
+- **Attributes** enable automatic discovery and cross-assembly generation
 
 ### ServiceBase<TConfiguration, TCommand>
 
@@ -275,10 +315,69 @@ The service base class provides comprehensive error handling:
 - All errors use the consistent FdwResult pattern
 - Correlation IDs track requests through the system
 
+## Cross-Assembly Discovery
+
+The Services package supports optional cross-assembly discovery for service types and messages:
+
+### Option 1: Automatic Discovery (Recommended)
+
+```xml
+<!-- Basic services -->
+<PackageReference Include="FractalDataWorks.Services" />
+
+<!-- With automatic cross-assembly discovery -->
+<PackageReference Include="FractalDataWorks.ServiceTypes.CrossAssembly" />
+```
+
+This automatically generates static collections:
+
+```csharp
+// Automatically generated collections
+var allServiceTypes = ServiceTypes.All;
+var emailService = ServiceTypes.GetByName("EmailService");
+var serviceById = ServiceTypes.GetById(1);
+
+var allMessages = Messages.All;
+var invalidEmail = Messages.GetByName("InvalidEmailAddress");
+```
+
+### Option 2: Manual Collection Creation
+
+You can always create collections manually without source generators:
+
+```csharp
+public static class MyServiceTypes
+{
+    public static readonly List<ServiceTypeBase> All = new()
+    {
+        new EmailServiceType(),
+        new SmsServiceType(),
+        new PushNotificationServiceType(),
+    };
+    
+    public static ServiceTypeBase GetByName(string name) 
+        => All.FirstOrDefault(s => s.Name == name);
+}
+
+public static class MyMessages
+{
+    public static readonly List<MessageBase> All = new()
+    {
+        new InvalidEmailAddress(),
+        new EmailSentSuccessfully(),
+        new SmsSentSuccessfully(),
+    };
+}
+```
+
 ## Installation
 
 ```xml
+<!-- Basic services -->
 <PackageReference Include="FractalDataWorks.Services" Version="*" />
+
+<!-- Optional: Add cross-assembly discovery -->
+<PackageReference Include="FractalDataWorks.ServiceTypes.CrossAssembly" Version="*" />
 ```
 
 ## Dependencies

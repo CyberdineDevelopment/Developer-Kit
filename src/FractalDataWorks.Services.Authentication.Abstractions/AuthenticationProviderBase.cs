@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using FractalDataWorks;
 using FractalDataWorks.EnhancedEnums.Attributes;
-using FractalDataWorks.Framework.Abstractions;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FractalDataWorks.Services.Authentication.Abstractions;
@@ -21,8 +24,12 @@ namespace FractalDataWorks.Services.Authentication.Abstractions;
     CollectionName = "AuthenticationProviders", 
     IncludeReferencedAssemblies = true,
     ReturnType = typeof(IAuthenticationProvider))]
-public abstract class AuthenticationProviderBase : ServiceTypeBase<IAuthenticationProvider>, IAuthenticationProvider
+public abstract class AuthenticationProviderBase : ServiceTypeBase, IAuthenticationProvider
 {
+    /// <summary>
+    /// Gets the logger for this authentication provider.
+    /// </summary>
+    protected ILogger Logger { get; } = NullLogger.Instance;
     /// <summary>
     /// Gets the unique identifier for this authentication provider.
     /// </summary>
@@ -164,7 +171,7 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase<IAuthenticati
         bool supportsUserInfo = true,
         bool supportsPasswordOperations = false,
         bool supportsSessionManagement = true) 
-        : base(id, name, typeof(IAuthenticationProvider), "AuthenticationProvider")
+        : base(id, name)
     {
         ArgumentNullException.ThrowIfNull(providerType, nameof(providerType));
         ArgumentNullException.ThrowIfNull(version, nameof(version));
@@ -260,7 +267,7 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase<IAuthenticati
         
         if (commands.Count == 0)
         {
-            return FdwResult<IAuthenticationBatchResult>.Failure("Command list cannot be empty.");
+            return Logger.FailureWithLog<IAuthenticationBatchResult>("Command list cannot be empty.");
         }
         
         // Default implementation executes commands sequentially
@@ -328,7 +335,7 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase<IAuthenticati
         catch (Exception ex)
         {
             var endTime = DateTimeOffset.UtcNow;
-            return FdwResult<IAuthenticationBatchResult>.Failure($"Batch execution failed: {ex.Message}", ex);
+            return Logger.FailureWithLog<IAuthenticationBatchResult>($"Batch execution failed: {ex.Message}");
         }
     }
     
@@ -350,7 +357,7 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase<IAuthenticati
         
         if (!supportsCommandType)
         {
-            return FdwResult.Failure($"Provider '{Name}' does not support command type '{command.CommandType}'.");
+            return Logger.FailureWithLog($"Provider '{Name}' does not support command type '{command.CommandType}'.");
         }
         
         // Check if this provider supports the authentication flow
@@ -366,7 +373,7 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase<IAuthenticati
         
         if (!supportsFlow)
         {
-            return FdwResult.Failure($"Provider '{Name}' does not support authentication flow '{command.AuthenticationFlow}'.");
+            return Logger.FailureWithLog($"Provider '{Name}' does not support authentication flow '{command.AuthenticationFlow}'.");
         }
         
         // Validate the command itself
@@ -408,9 +415,7 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase<IAuthenticati
         {
             return FdwResult.Success();
         }
-        return healthResult.Exception != null 
-            ? FdwResult.Failure(healthResult.ErrorMessage ?? "Health check failed", healthResult.Exception)
-            : FdwResult.Failure(healthResult.ErrorMessage ?? "Health check failed");
+        return Logger.FailureWithLog(healthResult.ErrorMessage ?? "Health check failed");
     }
     
     /// <inheritdoc />
@@ -431,12 +436,6 @@ public abstract class AuthenticationProviderBase : ServiceTypeBase<IAuthenticati
     /// <inheritdoc />
     public abstract Task<IFdwResult> RevokeUserSessionsAsync(string userId, CancellationToken cancellationToken = default);
     
-    /// <inheritdoc />
-    public override IAuthenticationProvider CreateService(IServiceProvider serviceProvider)
-    {
-        // Return this instance as it's already an authentication provider
-        return this;
-    }
     
     /// <summary>
     /// Creates a command result instance.
