@@ -21,8 +21,8 @@ public abstract class ConfigurationSourceBase : IFdwConfigurationSource
     /// <param name="name">The name of this configuration source.</param>
     protected ConfigurationSourceBase(ILogger logger, string name)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        Name = name ?? throw new ArgumentNullException(nameof(name));
+        _logger = logger;
+        Name = name;
     }
 
     /// <summary>

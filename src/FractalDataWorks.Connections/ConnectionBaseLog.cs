@@ -115,4 +115,48 @@ public static partial class ConnectionBaseLog
         Level = LogLevel.Error,
         Message = "Connection test failed")]
     public static partial void ConnectionTestFailed(ILogger logger, Exception exception);
+
+    /// <summary>
+    /// Logs when invalid connection credentials are provided.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    [LoggerMessage(
+        EventId = 11,
+        Level = LogLevel.Error,
+        Message = "Invalid connection credentials provided")]
+    public static partial void InvalidCredentials(ILogger logger);
+
+    /// <summary>
+    /// Logs when a connection timeout occurs.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="connectionString">The connection string that timed out.</param>
+    /// <param name="timeoutSeconds">The timeout duration in seconds.</param>
+    [LoggerMessage(
+        EventId = 12,
+        Level = LogLevel.Error,
+        Message = "Connection timeout to {ConnectionString} after {TimeoutSeconds} seconds")]
+    public static partial void ConnectionTimeout(ILogger logger, string connectionString, int timeoutSeconds);
+
+    /// <summary>
+    /// Logs when a connection attempt fails with a generic message.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="message">The failure message.</param>
+    [LoggerMessage(
+        EventId = 13,
+        Level = LogLevel.Error,
+        Message = "Connection failed: {Message}")]
+    public static partial void ConnectionFailed(ILogger logger, string message);
+
+    /// <summary>
+    /// Logs when a connection attempt fails with an exception.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="exception">The exception that caused the failure.</param>
+    [LoggerMessage(
+        EventId = 14,
+        Level = LogLevel.Error,
+        Message = "Connection attempt failed")]
+    public static partial void ConnectionAttemptFailed(ILogger logger, Exception exception);
 }

@@ -1,38 +1,26 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FractalDataWorks;
+using FractalDataWorks.EnhancedEnums.Attributes;
 using FractalDataWorks.Services;
-
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-
 
 namespace FractalDataWorks.Services.SecretManagement.Abstractions;
 
 /// <summary>
-/// Base class for secret providers that executes secret management commands.
+/// Base class for secret provider types that generates the SecretProviders collection.
+/// Integrates with the EnhancedEnums system for automatic service discovery and registration.
 /// </summary>
 /// <remarks>
-/// This base class provides the foundation for all secret providers in the framework.
-/// It handles command execution, validation, and logging for secret management operations.
+/// This base class provides the Enhanced Enum pattern for secret providers in the framework.
+/// It handles provider type registration, factory creation, and integration with the EnhancedEnums
+/// system for automatic collection generation and lookup capabilities.
 /// </remarks>
-public abstract class SecretProviderBase : ServiceBase<ISecretCommand, SecretConfiguration, SecretProviderBase>, ISecretProvider
+[EnumCollection(
+    CollectionName = "SecretProviders", 
+    IncludeReferencedAssemblies = true,
+    ReturnType = typeof(ISecretProvider))]
+public abstract class SecretProviderType : ServiceTypeBase<ISecretProvider, SecretConfiguration>
 {
-    /// <summary>
-    /// Gets the unique identifier for this secret provider.
-    /// </summary>
-    /// <value>A unique identifier for the provider.</value>
-    public string ProviderId { get; }
-    
-    /// <summary>
-    /// Gets the display name of this secret provider.
-    /// </summary>
-    /// <value>A human-readable name for the provider.</value>
-    public string ProviderName => Name;
-    
     /// <summary>
     /// Gets the provider type identifier.
     /// </summary>
@@ -47,51 +35,57 @@ public abstract class SecretProviderBase : ServiceBase<ISecretCommand, SecretCon
     public string Version { get; }
     
     /// <summary>
-    /// Gets the supported secret command types for this provider.
+    /// Gets the supported secret command types for this provider type.
     /// </summary>
-    /// <value>A collection of command type names supported by this provider.</value>
+    /// <value>A collection of command type names supported by this provider type.</value>
+    [EnumLookup("GetByCommandType", allowMultiple: true)]
     public IReadOnlyCollection<string> SupportedCommandTypes { get; }
     
     /// <summary>
-    /// Gets the supported container types for this provider.
+    /// Gets the supported container types for this provider type.
     /// </summary>
-    /// <value>A collection of container type names supported by this provider.</value>
+    /// <value>A collection of container type names supported by this provider type.</value>
+    [EnumLookup("GetByContainerType", allowMultiple: true)]
     public IReadOnlyCollection<string> SupportedContainerTypes { get; }
     
     /// <summary>
-    /// Gets a value indicating whether this provider supports secret versioning.
+    /// Gets a value indicating whether this provider type supports secret versioning.
     /// </summary>
     /// <value><c>true</c> if versioning is supported; otherwise, <c>false</c>.</value>
+    [EnumLookup("GetVersioningSupported")]
     public bool SupportsVersioning { get; }
     
     /// <summary>
-    /// Gets a value indicating whether this provider supports secret expiration.
+    /// Gets a value indicating whether this provider type supports secret expiration.
     /// </summary>
     /// <value><c>true</c> if expiration is supported; otherwise, <c>false</c>.</value>
+    [EnumLookup("GetExpirationSupported")]
     public bool SupportsExpiration { get; }
     
     /// <summary>
-    /// Gets a value indicating whether this provider supports batch operations.
+    /// Gets a value indicating whether this provider type supports batch operations.
     /// </summary>
     /// <value><c>true</c> if batch operations are supported; otherwise, <c>false</c>.</value>
+    [EnumLookup("GetBatchSupported")]
     public bool SupportsBatchOperations { get; }
     
     /// <summary>
-    /// Gets a value indicating whether this provider supports binary secret data.
+    /// Gets a value indicating whether this provider type supports binary secret data.
     /// </summary>
     /// <value><c>true</c> if binary data is supported; otherwise, <c>false</c>.</value>
+    [EnumLookup("GetBinarySupported")]
     public bool SupportsBinarySecrets { get; }
     
-    
     /// <summary>
-    /// Initializes a new instance of the <see cref="SecretProviderBase"/> class.
+    /// Initializes a new instance of the <see cref="SecretProviderType"/> class.
     /// </summary>
-    /// <param name="logger">The logger instance for this secret provider.</param>
-    /// <param name="configuration">The provider configuration.</param>
+    /// <param name="id">The unique identifier for this secret provider type.</param>
+    /// <param name="name">The display name of this secret provider type.</param>
+    /// <param name="description">The description of this secret provider type.</param>
     /// <param name="providerType">The provider type identifier.</param>
     /// <param name="version">The provider version.</param>
-    /// <param name="supportedCommandTypes">The command types this provider can execute.</param>
-    /// <param name="supportedContainerTypes">The container types this provider can work with.</param>
+    /// <param name="supportedCommandTypes">The command types this provider type can execute.</param>
+    /// <param name="supportedContainerTypes">The container types this provider type can work with.</param>
     /// <param name="supportsVersioning">Whether versioning is supported.</param>
     /// <param name="supportsExpiration">Whether expiration is supported.</param>
     /// <param name="supportsBatchOperations">Whether batch operations are supported.</param>
@@ -102,9 +96,10 @@ public abstract class SecretProviderBase : ServiceBase<ISecretCommand, SecretCon
     /// <exception cref="ArgumentException">
     /// Thrown when any string parameter is empty or whitespace, or when collections are empty.
     /// </exception>
-    protected SecretProviderBase(
-        ILogger<SecretProviderBase> logger,
-        SecretConfiguration configuration,
+    protected SecretProviderType(
+        int id, 
+        string name, 
+        string description,
         string providerType,
         string version,
         IReadOnlyCollection<string> supportedCommandTypes,
@@ -113,7 +108,7 @@ public abstract class SecretProviderBase : ServiceBase<ISecretCommand, SecretCon
         bool supportsExpiration = false,
         bool supportsBatchOperations = false,
         bool supportsBinarySecrets = true) 
-        : base(logger, configuration)
+        : base(id, name, description)
     {
         if (string.IsNullOrWhiteSpace(providerType))
         {
@@ -153,7 +148,6 @@ public abstract class SecretProviderBase : ServiceBase<ISecretCommand, SecretCon
             }
         }
         
-        ProviderId = configuration.ProviderId;
         ProviderType = providerType;
         Version = version;
         SupportedCommandTypes = supportedCommandTypes;
@@ -164,70 +158,9 @@ public abstract class SecretProviderBase : ServiceBase<ISecretCommand, SecretCon
         SupportsBinarySecrets = supportsBinarySecrets;
     }
     
-    /// <inheritdoc />
-    public abstract Task<IFdwResult<TOut>> Execute<TOut>(ISecretCommand command, CancellationToken cancellationToken);
-    
-    /// <inheritdoc />
-    public abstract Task<IFdwResult> Execute(ISecretCommand command, CancellationToken cancellationToken);
-    
-    /// <inheritdoc />
-    protected abstract Task<IFdwResult<T>> ExecuteCore<T>(ISecretCommand command);
-    
-    
-    /// <inheritdoc />
-    public virtual IFdwResult ValidateCommand(ISecretCommand command)
-    {
-        
-        // Check if this provider supports the command type
-        bool supportsCommandType = false;
-        foreach (var supportedType in SupportedCommandTypes)
-        {
-            if (string.Equals(supportedType, command.CommandType, StringComparison.OrdinalIgnoreCase))
-            {
-                supportsCommandType = true;
-                break;
-            }
-        }
-        
-        if (!supportsCommandType)
-        {
-            SecretProviderBaseLog.UnsupportedCommandType(Logger, Name, command.CommandType);
-            return FdwResult.Failure($"Provider '{Name}' does not support command type '{command.CommandType}'.");
-        }
-        
-        // Validate the command itself
-        var commandValidation = command.Validate();
-        if (!commandValidation.IsSuccess)
-        {
-            return commandValidation;
-        }
-        
-        // Perform provider-specific validation
-        return ValidateProviderSpecificCommand(command);
-    }
-    
     /// <summary>
-    /// Performs provider-specific command validation.
+    /// Creates a typed factory for this secret provider type.
     /// </summary>
-    /// <param name="command">The command to validate.</param>
-    /// <returns>A result indicating whether the command is valid for this provider.</returns>
-    /// <remarks>
-    /// Override this method in derived classes to implement provider-specific
-    /// validation logic beyond basic command type checking.
-    /// </remarks>
-    protected virtual IFdwResult ValidateProviderSpecificCommand(ISecretCommand command)
-    {
-        return FdwResult.Success();
-    }
-    
-    /// <inheritdoc />
-    public abstract Task<IFdwResult<ISecretProviderHealth>> HealthCheckAsync(CancellationToken cancellationToken = default);
-    
-    
-    /// <inheritdoc />
-    public abstract Task<IFdwResult<IReadOnlyCollection<ISecretContainer>>> GetContainersAsync(CancellationToken cancellationToken = default);
-    
-    /// <inheritdoc />
-    public abstract Task<IFdwResult<ISecretProviderMetrics>> GetMetricsAsync(CancellationToken cancellationToken = default);
-    
+    /// <returns>The typed service factory.</returns>
+    public abstract override IServiceFactory<ISecretProvider, SecretConfiguration> CreateTypedFactory();
 }

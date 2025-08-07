@@ -64,7 +64,8 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            return Logger.FailureWithLog("Invalid connection credentials provided");
+            ConnectionBaseLog.InvalidCredentials(Logger);
+            return FdwResult.Failure("Invalid connection credentials provided");
         }
 
         await _connectionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -96,12 +97,15 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
                 }
                 else
                 {
-                    return Logger.FailureWithLog(result.Message ?? "Connection attempt failed");
+                    var message = result.Message ?? "Connection attempt failed";
+                    ConnectionBaseLog.ConnectionFailed(Logger, message);
+                    return FdwResult.Failure(message);
                 }
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                return Logger.FailureWithLog($"Connection timeout to {connectionString} after {ConnectionTimeoutSeconds} seconds");
+                ConnectionBaseLog.ConnectionTimeout(Logger, connectionString, ConnectionTimeoutSeconds);
+                return FdwResult.Failure($"Connection timeout to {connectionString} after {ConnectionTimeoutSeconds} seconds");
             }
         }
         finally
@@ -136,7 +140,9 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
             }
             else
             {
-                return Logger.FailureWithLog(result.Message ?? "Disconnect failed");
+                var message = result.Message ?? "Disconnect failed";
+                ConnectionBaseLog.ConnectionFailed(Logger, message);
+                return FdwResult.Failure(message);
             }
         }
         finally
@@ -150,7 +156,8 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     {
         if (!IsConnected)
         {
-            return Logger.FailureWithLog("Connection attempt failed");
+            ConnectionBaseLog.ConnectionFailed(Logger, "Connection attempt failed");
+            return FdwResult.Failure("Connection attempt failed");
         }
 
         try
@@ -159,7 +166,8 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
         }
         catch (Exception ex)
         {
-            return Logger.FailureWithLog(ex, "Connection attempt failed");
+            ConnectionBaseLog.ConnectionAttemptFailed(Logger, ex);
+            return FdwResult.Failure("Connection attempt failed");
         }
     }
 
@@ -195,7 +203,8 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     {
         if (!IsConnected)
         {
-            return Logger.FailureWithLog<T>("Connection attempt failed");
+            ConnectionBaseLog.ConnectionFailed(Logger, "Connection attempt failed");
+            return FdwResult<T>.Failure("Connection attempt failed");
         }
 
         // Derived classes implement specific command execution

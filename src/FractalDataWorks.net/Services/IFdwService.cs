@@ -44,20 +44,7 @@ public interface IFdwService
     /// whether to route requests to this service instance.
     /// </remarks>
     bool IsAvailable { get; }
-    
-    /// <summary>
-    /// Performs health check on the service.
-    /// </summary>
-    /// <returns>
-    /// A task representing the asynchronous health check operation.
-    /// The result indicates whether the service is healthy and operational.
-    /// </returns>
-    /// <remarks>
-    /// This method enables the framework to monitor service health and take
-    /// appropriate action if services become unhealthy. Implementations should
-    /// perform lightweight checks that complete quickly.
-    /// </remarks>
-    Task<IFdwResult> HealthCheckAsync();
+
 }
 
 /// <summary>

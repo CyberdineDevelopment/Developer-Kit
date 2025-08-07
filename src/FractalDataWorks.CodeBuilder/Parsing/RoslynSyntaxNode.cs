@@ -2,27 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FractalDataWorks.CodeBuilder.Abstractions;
-using static TreeSitter.Bindings.Native;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
-namespace FractalDataWorks.CodeBuilder.TreeSitter;
+namespace FractalDataWorks.CodeBuilder.Parsing;
 
 /// <summary>
-/// TreeSitter implementation of ISyntaxNode.
+/// Roslyn implementation of ISyntaxNode.
 /// </summary>
-public sealed class TreeSitterSyntaxNode : ISyntaxNode
+public sealed class RoslynSyntaxNode : ISyntaxNode
 {
-    private readonly TsNode _node;
+    private readonly SyntaxNode _node;
     private readonly string _sourceText;
-    private readonly TreeSitterSyntaxNode? _parent;
+    private readonly RoslynSyntaxNode? _parent;
     private List<ISyntaxNode>? _children;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TreeSitterSyntaxNode"/> class.
+    /// Initializes a new instance of the <see cref="RoslynSyntaxNode"/> class.
     /// </summary>
-    /// <param name="node">The TreeSitter node.</param>
+    /// <param name="node">The Roslyn syntax node.</param>
     /// <param name="sourceText">The source text.</param>
     /// <param name="parent">The parent node.</param>
-    public TreeSitterSyntaxNode(TsNode node, string sourceText, TreeSitterSyntaxNode? parent = null)
+    public RoslynSyntaxNode(SyntaxNode node, string sourceText, RoslynSyntaxNode? parent = null)
     {
         _node = node;
         _sourceText = sourceText;
@@ -30,22 +31,36 @@ public sealed class TreeSitterSyntaxNode : ISyntaxNode
     }
 
     /// <inheritdoc/>
-    public string NodeType => TsNodeType(_node);
+    public string NodeType => _node.Kind().ToString();
 
     /// <inheritdoc/>
-    public string Text => _sourceText.Substring((int)TsNodeStartByte(_node), (int)(TsNodeEndByte(_node) - TsNodeStartByte(_node)));
+    public string Text => _node.ToString();
 
     /// <inheritdoc/>
-    public int StartPosition => (int)TsNodeStartByte(_node);
+    public int StartPosition => _node.SpanStart;
 
     /// <inheritdoc/>
-    public int EndPosition => (int)TsNodeEndByte(_node);
+    public int EndPosition => _node.Span.End;
 
     /// <inheritdoc/>
-    public int StartLine => (int)TsNodeStartPoint(_node).Row;
+    public int StartLine
+    {
+        get
+        {
+            var lineSpan = _node.GetLocation().GetLineSpan();
+            return lineSpan.StartLinePosition.Line;
+        }
+    }
 
     /// <inheritdoc/>
-    public int StartColumn => (int)TsNodeStartPoint(_node).Column;
+    public int StartColumn
+    {
+        get
+        {
+            var lineSpan = _node.GetLocation().GetLineSpan();
+            return lineSpan.StartLinePosition.Character;
+        }
+    }
 
     /// <inheritdoc/>
     public IReadOnlyList<ISyntaxNode> Children
@@ -55,11 +70,9 @@ public sealed class TreeSitterSyntaxNode : ISyntaxNode
             if (_children == null)
             {
                 _children = new List<ISyntaxNode>();
-                var childCount = TsNodeChildCount(_node);
-                for (uint i = 0; i < childCount; i++)
+                foreach (var child in _node.ChildNodes())
                 {
-                    var child = TsNodeChild(_node, i);
-                    _children.Add(new TreeSitterSyntaxNode(child, _sourceText, this));
+                    _children.Add(new RoslynSyntaxNode(child, _sourceText, this));
                 }
             }
             return _children;
@@ -70,10 +83,10 @@ public sealed class TreeSitterSyntaxNode : ISyntaxNode
     public ISyntaxNode? Parent => _parent;
 
     /// <inheritdoc/>
-    public bool IsTerminal => TsNodeChildCount(_node) == 0;
+    public bool IsTerminal => !_node.ChildNodes().Any();
 
     /// <inheritdoc/>
-    public bool IsError => TsNodeIsError(_node) || TsNodeIsMissing(_node);
+    public bool IsError => _node.IsMissing || _node.ContainsDiagnostics;
 
     /// <inheritdoc/>
     public ISyntaxNode? FindChild(string nodeType)

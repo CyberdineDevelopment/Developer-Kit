@@ -143,4 +143,25 @@ public static partial class ServiceBaseLog
         double duration, 
         object? result, 
         object? context = null);
+
+    /// <summary>
+    /// Logs when an invalid command type is provided to the service.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    [LoggerMessage(
+        EventId = 12,
+        Level = LogLevel.Error,
+        Message = "Invalid command type")]
+    public static partial void InvalidCommandType(ILogger logger);
+
+    /// <summary>
+    /// Logs when command validation fails.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="validationMessage">The validation failure message.</param>
+    [LoggerMessage(
+        EventId = 13,
+        Level = LogLevel.Error,
+        Message = "Command validation failed: {ValidationMessage}")]
+    public static partial void CommandValidationFailed(ILogger logger, string validationMessage);
 }

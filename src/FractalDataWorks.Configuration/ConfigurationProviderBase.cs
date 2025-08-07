@@ -31,8 +31,8 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         ILogger logger,
         IFdwConfigurationSource source)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _source = source ?? throw new ArgumentNullException(nameof(source));
+        _logger = logger;
+        _source = source;
 
         // Subscribe to source changes
         _source.Changed += OnSourceChanged;

@@ -82,8 +82,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FractalDataWorks.CodeBuilde
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FractalDataWorks.CodeBuilder", "src\FractalDataWorks.CodeBuilder\FractalDataWorks.CodeBuilder.csproj", "{82A6805E-2686-4593-AF2A-67D568005F4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FractalDataWorks.CodeBuilder.TreeSitter", "src\FractalDataWorks.CodeBuilder.TreeSitter\FractalDataWorks.CodeBuilder.TreeSitter.csproj", "{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Alpha|Any CPU = Alpha|Any CPU
@@ -1078,42 +1076,6 @@ Global
 		{82A6805E-2686-4593-AF2A-67D568005F4B}.Release|x64.Build.0 = Release|Any CPU
 		{82A6805E-2686-4593-AF2A-67D568005F4B}.Release|x86.ActiveCfg = Release|Any CPU
 		{82A6805E-2686-4593-AF2A-67D568005F4B}.Release|x86.Build.0 = Release|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Alpha|Any CPU.ActiveCfg = Alpha|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Alpha|Any CPU.Build.0 = Alpha|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Alpha|x64.ActiveCfg = Alpha|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Alpha|x64.Build.0 = Alpha|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Alpha|x86.ActiveCfg = Alpha|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Alpha|x86.Build.0 = Alpha|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Beta|Any CPU.ActiveCfg = Beta|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Beta|Any CPU.Build.0 = Beta|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Beta|x64.ActiveCfg = Beta|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Beta|x64.Build.0 = Beta|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Beta|x86.ActiveCfg = Beta|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Beta|x86.Build.0 = Beta|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Debug|x64.Build.0 = Debug|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Debug|x86.Build.0 = Debug|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Experimental|Any CPU.ActiveCfg = Experimental|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Experimental|Any CPU.Build.0 = Experimental|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Experimental|x64.ActiveCfg = Experimental|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Experimental|x64.Build.0 = Experimental|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Experimental|x86.ActiveCfg = Experimental|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Experimental|x86.Build.0 = Experimental|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Preview|Any CPU.ActiveCfg = Preview|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Preview|Any CPU.Build.0 = Preview|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Preview|x64.ActiveCfg = Preview|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Preview|x64.Build.0 = Preview|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Preview|x86.ActiveCfg = Preview|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Preview|x86.Build.0 = Preview|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Release|x64.ActiveCfg = Release|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Release|x64.Build.0 = Release|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Release|x86.ActiveCfg = Release|Any CPU
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1149,7 +1111,6 @@ Global
 		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{3AA644C9-F9E4-4CBE-A309-2F93A1F6EDC6} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{82A6805E-2686-4593-AF2A-67D568005F4B} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{232D8B72-9B7A-4B9B-8D3A-ACEA5CE6E10B} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CAE45157-2C07-4FE0-B693-6448888211D8}

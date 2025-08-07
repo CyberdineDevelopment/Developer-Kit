@@ -1,32 +1,18 @@
 using System;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FractalDataWorks.CodeBuilder.Abstractions;
 using FractalDataWorks;
-using static TreeSitter.Bindings.Native;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
-namespace FractalDataWorks.CodeBuilder.TreeSitter;
+namespace FractalDataWorks.CodeBuilder.Parsing;
 
 /// <summary>
-/// TreeSitter-based parser for C# code.
+/// Roslyn-based parser for C# code.
 /// </summary>
-public sealed class TreeSitterCSharpParser : ICodeParser, IDisposable
+public sealed class RoslynCSharpParser : ICodeParser
 {
-    private readonly IntPtr _parser;
-    private bool _disposed;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TreeSitterCSharpParser"/> class.
-    /// </summary>
-    public TreeSitterCSharpParser()
-    {
-        _parser = TsParserNew();
-        // Note: In a real implementation, you would load the C# language library here
-        // For now, this is a placeholder that demonstrates the structure
-        // TsParserSetLanguage(_parser, csharpLanguage);
-    }
-
     /// <inheritdoc/>
     public string Language => "csharp";
 
@@ -45,20 +31,24 @@ public sealed class TreeSitterCSharpParser : ICodeParser, IDisposable
         {
             return await Task.Run(() =>
             {
-                // Convert string to UTF-8 bytes
-                var sourceBytes = Encoding.UTF8.GetBytes(sourceCode);
-                
-                // Parse the source code
-                var tree = TsParserParseString(_parser, IntPtr.Zero, sourceCode, (uint)sourceBytes.Length);
-                
-                if (tree == IntPtr.Zero)
-                {
-                    return FdwResult<ISyntaxTree>.Failure("Failed to parse source code");
-                }
+                // Parse the source code using Roslyn
+                var options = CSharpParseOptions.Default
+                    .WithLanguageVersion(LanguageVersion.Latest)
+                    .WithDocumentationMode(DocumentationMode.Parse);
 
-                var syntaxTree = new TreeSitterSyntaxTree(tree, sourceCode, Language, filePath);
-                return FdwResult<ISyntaxTree>.Success(syntaxTree);
+                var syntaxTree = CSharpSyntaxTree.ParseText(
+                    sourceCode,
+                    options,
+                    filePath ?? string.Empty,
+                    cancellationToken: cancellationToken);
+
+                var roslynTree = new RoslynSyntaxTree(syntaxTree, sourceCode, Language, filePath);
+                return FdwResult<ISyntaxTree>.Success(roslynTree);
             }, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return FdwResult<ISyntaxTree>.Failure("Parse operation was cancelled");
         }
         catch (Exception ex)
         {
@@ -89,20 +79,5 @@ public sealed class TreeSitterCSharpParser : ICodeParser, IDisposable
         }
 
         return FdwResult.Success();
-    }
-
-    /// <summary>
-    /// Disposes the parser.
-    /// </summary>
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            if (_parser != IntPtr.Zero)
-            {
-                TsParserDelete(_parser);
-            }
-            _disposed = true;
-        }
     }
 }
