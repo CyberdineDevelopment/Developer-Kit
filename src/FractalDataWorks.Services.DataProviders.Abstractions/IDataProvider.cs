@@ -1,5 +1,7 @@
 using System;
-using FractalDataWorks.Framework.Abstractions;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using FractalDataWorks.Services.ExternalConnections.Abstractions;
 
 namespace FractalDataWorks.Services.DataProviders.Abstractions;
@@ -64,7 +66,7 @@ public interface IDataProvider : IFdwService
     /// command validation, execution, and result processing. The provider is responsible
     /// for managing connections, transactions, and error handling during execution.
     /// </remarks>
-    Task<IFdwResult<object?>> Execute(IDataCommand command);
+    Task<IFdwResult<object?>> Execute(IDataCommand command) where IDataCommand : notnull;
     
     /// <summary>
     /// Executes a typed data command and returns the strongly-typed result.
@@ -84,7 +86,7 @@ public interface IDataProvider : IFdwService
     /// result type is known at compile time. It eliminates the need for runtime
     /// type checking and casting.
     /// </remarks>
-    Task<IFdwResult<TResult>> Execute<TResult>(IDataCommand<TResult> command);
+    Task<IFdwResult<TResult>> Execute<TResult>(IDataCommand<TResult> command) where IDataCommand<TResult> : notnull;
     
     /// <summary>
     /// Validates whether this provider can execute the specified command.
@@ -96,7 +98,7 @@ public interface IDataProvider : IFdwService
     /// This method enables command routing and provider selection based on command
     /// requirements. It performs lightweight validation without executing the command.
     /// </remarks>
-    IFdwResult ValidateCommand(IDataCommand command);
+    IFdwResult ValidateCommand(IDataCommand command) where IDataCommand : notnull;
     
     /// <summary>
     /// Gets performance metrics for this provider.

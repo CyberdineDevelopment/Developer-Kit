@@ -7,12 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FractalDataWorks.Framework.Abstractions\FractalDataWorks.Framework.Abstractions.csproj" />
-    <ProjectReference Include="..\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <ProjectReference Include="..\FractalDataWorks.Net\FractalDataWorks.Net.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
   </ItemGroup>
 
 </Project>

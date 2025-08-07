@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using FractalDataWorks.EnhancedEnums.Attributes;
 using FractalDataWorks.Services;
 using Shouldly;
 using Xunit;

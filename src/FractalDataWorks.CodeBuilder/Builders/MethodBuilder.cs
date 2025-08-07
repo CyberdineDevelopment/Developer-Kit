@@ -1,299 +1,268 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using FractalDataWorks.CodeBuilder.Abstractions;
-using FractalDataWorks.CodeBuilder.Definitions;
-using FractalDataWorks.CodeBuilder.Types;
 
 namespace FractalDataWorks.CodeBuilder.Builders;
 
 /// <summary>
-/// True builder pattern implementation for method definitions.
-/// Builds immutable MethodDefinition products following the TRUE builder pattern.
-/// Each method returns a new builder instance, keeping builders immutable.
+/// Builder for generating C# method definitions.
 /// </summary>
-public sealed class MethodBuilder : IAstBuilder<MethodDefinition>, IValidatableBuilder
+public sealed class MethodBuilder : CodeBuilderBase, IMethodBuilder
 {
-    private readonly MethodBuilderState _state;
+    private string _name = "Method";
+    private string _returnType = "void";
+    private string _accessModifier = "public";
+    private bool _isStatic;
+    private bool _isVirtual;
+    private bool _isOverride;
+    private bool _isAbstract;
+    private bool _isAsync;
+    private readonly List<(string Type, string Name, string? Default)> _parameters = new();
+    private readonly List<string> _genericParameters = new();
+    private readonly Dictionary<string, List<string>> _genericConstraints = new();
+    private readonly List<string> _attributes = new();
+    private readonly List<string> _bodyLines = new();
+    private string? _expressionBody;
+    private string? _xmlDocSummary;
+    private readonly Dictionary<string, string> _paramDocs = new();
+    private string? _returnDoc;
 
-    /// <summary>
-    /// Initializes a new instance of MethodBuilder.
-    /// </summary>
-    public MethodBuilder()
+    /// <inheritdoc/>
+    public IMethodBuilder WithName(string name)
     {
-        _state = new MethodBuilderState();
-    }
-
-    /// <summary>
-    /// Initializes a new instance of MethodBuilder with the given state.
-    /// </summary>
-    /// <param name="state">The builder state.</param>
-    private MethodBuilder(MethodBuilderState state)
-    {
-        _state = state;
-    }
-
-    /// <summary>
-    /// Sets the name of the method.
-    /// </summary>
-    /// <param name="name">The method name.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder WithName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Method name cannot be null or empty.", nameof(name));
-
-        var newState = _state.Clone();
-        newState.Name = name;
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets the access modifier of the method.
-    /// </summary>
-    /// <param name="access">The access modifier.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder WithAccess(AccessModifier access)
-    {
-        var newState = _state.Clone();
-        newState.Access = access ?? throw new ArgumentNullException(nameof(access));
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets the return type of the method.
-    /// </summary>
-    /// <param name="returnType">The return type.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder WithReturnType(string returnType)
-    {
-        if (string.IsNullOrWhiteSpace(returnType))
-            throw new ArgumentException("Return type cannot be null or empty.", nameof(returnType));
-
-        var newState = _state.Clone();
-        newState.ReturnType = returnType;
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds a modifier to the method.
-    /// </summary>
-    /// <param name="modifier">The modifier to add.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder WithModifier(Modifiers modifier)
-    {
-        var newState = _state.Clone();
-        newState.Modifiers = newState.Modifiers.AddModifier(modifier);
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets multiple modifiers for the method.
-    /// </summary>
-    /// <param name="modifiers">The modifiers to set.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder WithModifiers(Modifiers modifiers)
-    {
-        var newState = _state.Clone();
-        newState.Modifiers = modifiers;
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Makes the method static.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AsStatic()
-    {
-        return WithModifier(Modifiers.Static);
-    }
-
-    /// <summary>
-    /// Makes the method virtual.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AsVirtual()
-    {
-        return WithModifier(Modifiers.Virtual);
-    }
-
-    /// <summary>
-    /// Makes the method abstract.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AsAbstract()
-    {
-        return WithModifier(Modifiers.Abstract);
-    }
-
-    /// <summary>
-    /// Makes the method override.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AsOverride()
-    {
-        return WithModifier(Modifiers.Override);
-    }
-
-    /// <summary>
-    /// Makes the method async.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AsAsync()
-    {
-        return WithModifier(Modifiers.Async);
-    }
-
-    /// <summary>
-    /// Adds a parameter to the method.
-    /// </summary>
-    /// <param name="type">The parameter type.</param>
-    /// <param name="name">The parameter name.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AddParameter(string type, string name)
-    {
-        if (string.IsNullOrWhiteSpace(type))
-            throw new ArgumentException("Parameter type cannot be null or empty.", nameof(type));
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Parameter name cannot be null or empty.", nameof(name));
-
-        var paramBuilder = new ParameterBuilder()
-            .WithName(name)
-            .WithType(type);
-        
-        var parameter = paramBuilder.Build();
-        var newState = _state.Clone();
-        newState.Parameters.Add(parameter);
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds a parameter to the method using a parameter builder configuration.
-    /// </summary>
-    /// <param name="configure">Configuration action for the parameter.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AddParameter(Action<ParameterBuilder> configure)
-    {
-        if (configure == null)
-            throw new ArgumentNullException(nameof(configure));
-
-        var paramBuilder = new ParameterBuilder();
-        configure(paramBuilder);
-        var parameter = paramBuilder.Build();
-        
-        var newState = _state.Clone();
-        newState.Parameters.Add(parameter);
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets the method body.
-    /// </summary>
-    /// <param name="body">The method body code.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder WithBody(string body)
-    {
-        var newState = _state.Clone();
-        newState.Body = body;
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds a generic type parameter to the method.
-    /// </summary>
-    /// <param name="name">The name of the type parameter.</param>
-    /// <param name="constraints">Optional constraints for the type parameter.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AddGenericParameter(string name, params string[] constraints)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Generic parameter name cannot be null or empty.", nameof(name));
-
-        var newState = _state.Clone();
-        var genericParam = new GenericParameterDefinition(name, constraints);
-        newState.GenericParameters.Add(genericParam);
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds an attribute to the method.
-    /// </summary>
-    /// <param name="name">The attribute name.</param>
-    /// <param name="arguments">Optional attribute arguments.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder AddAttribute(string name, params object[] arguments)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Attribute name cannot be null or empty.", nameof(name));
-
-        var newState = _state.Clone();
-        var attribute = new AttributeDefinition(name, arguments);
-        newState.Attributes.Add(attribute);
-        return new MethodBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets the XML documentation for the method.
-    /// </summary>
-    /// <param name="documentation">The documentation text.</param>
-    /// <returns>A new builder instance.</returns>
-    public MethodBuilder WithDocumentation(string documentation)
-    {
-        var newState = _state.Clone();
-        newState.XmlDocumentation = documentation;
-        return new MethodBuilder(newState);
+        _name = name;
+        return this;
     }
 
     /// <inheritdoc/>
-    public bool IsValid
+    public IMethodBuilder WithReturnType(string returnType)
     {
-        get
-        {
-            var errors = GetValidationErrors();
-            return errors.Length == 0;
-        }
+        _returnType = returnType;
+        return this;
     }
 
     /// <inheritdoc/>
-    public string[] GetValidationErrors()
+    public IMethodBuilder WithAccessModifier(string accessModifier)
     {
-        var errors = new List<string>();
+        _accessModifier = accessModifier;
+        return this;
+    }
 
-        if (string.IsNullOrWhiteSpace(_state.Name))
-        {
-            errors.Add("Method name is required");
-        }
+    /// <inheritdoc/>
+    public IMethodBuilder AsStatic()
+    {
+        _isStatic = true;
+        return this;
+    }
 
-        if (!_state.Modifiers.IsValid())
-        {
-            errors.Add("Invalid modifier combination");
-        }
+    /// <inheritdoc/>
+    public IMethodBuilder AsVirtual()
+    {
+        _isVirtual = true;
+        _isOverride = false;
+        return this;
+    }
 
-        if (_state.Modifiers.HasModifier(Modifiers.Abstract) && !string.IsNullOrEmpty(_state.Body))
-        {
-            errors.Add("Abstract method cannot have a body");
-        }
+    /// <inheritdoc/>
+    public IMethodBuilder AsOverride()
+    {
+        _isOverride = true;
+        _isVirtual = false;
+        return this;
+    }
 
-        if (!_state.Modifiers.HasModifier(Modifiers.Abstract) && string.IsNullOrEmpty(_state.Body))
+    /// <inheritdoc/>
+    public IMethodBuilder AsAbstract()
+    {
+        _isAbstract = true;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder AsAsync()
+    {
+        _isAsync = true;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithParameter(string type, string name, string? defaultValue = null)
+    {
+        _parameters.Add((type, name, defaultValue));
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithGenericParameters(params string[] typeParameters)
+    {
+        _genericParameters.AddRange(typeParameters);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithGenericConstraint(string typeParameter, params string[] constraints)
+    {
+        if (!_genericConstraints.ContainsKey(typeParameter))
+            _genericConstraints[typeParameter] = new List<string>();
+        _genericConstraints[typeParameter].AddRange(constraints);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithAttribute(string attribute)
+    {
+        _attributes.Add(attribute);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithBody(string body)
+    {
+        _bodyLines.Clear();
+        _bodyLines.AddRange(body.Split('\n'));
+        _expressionBody = null;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder AddBodyLine(string line)
+    {
+        _bodyLines.Add(line);
+        _expressionBody = null;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithExpressionBody(string expression)
+    {
+        _expressionBody = expression;
+        _bodyLines.Clear();
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithXmlDoc(string summary)
+    {
+        _xmlDocSummary = summary;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithParamDoc(string parameterName, string description)
+    {
+        _paramDocs[parameterName] = description;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IMethodBuilder WithReturnDoc(string description)
+    {
+        _returnDoc = description;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public override string Build()
+    {
+        Clear();
+
+        // XML documentation
+        if (!string.IsNullOrEmpty(_xmlDocSummary) || _paramDocs.Count > 0 || !string.IsNullOrEmpty(_returnDoc))
         {
-            // Allow empty body for interface methods or extern methods
-            if (!_state.Modifiers.HasModifier(Modifiers.Extern))
+            if (!string.IsNullOrEmpty(_xmlDocSummary))
             {
-                errors.Add("Non-abstract method must have a body");
+                AppendLine("/// <summary>");
+                foreach (var line in _xmlDocSummary.Split('\n'))
+                {
+                    AppendLine($"/// {line.Trim()}");
+                }
+                AppendLine("/// </summary>");
+            }
+
+            foreach (var param in _parameters)
+            {
+                if (_paramDocs.ContainsKey(param.Name))
+                {
+                    AppendLine($"/// <param name=\"{param.Name}\">{_paramDocs[param.Name]}</param>");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(_returnDoc))
+            {
+                AppendLine($"/// <returns>{_returnDoc}</returns>");
             }
         }
 
-        return errors.ToArray();
-    }
-
-    /// <inheritdoc/>
-    public MethodDefinition Build()
-    {
-        if (!IsValid)
+        // Attributes
+        foreach (var attribute in _attributes)
         {
-            var errors = GetValidationErrors();
-            throw new InvalidOperationException($"Cannot build invalid method: {string.Join(", ", errors)}");
+            AppendLine($"[{attribute}]");
         }
 
-        return new MethodDefinition(_state);
+        // Method signature
+        var signature = new StringBuilder();
+        signature.Append(_accessModifier);
+
+        if (_isStatic) signature.Append(" static");
+        if (_isAbstract) signature.Append(" abstract");
+        if (_isVirtual) signature.Append(" virtual");
+        if (_isOverride) signature.Append(" override");
+        if (_isAsync) signature.Append(" async");
+
+        signature.Append($" {_returnType} {_name}");
+
+        if (_genericParameters.Count > 0)
+        {
+            signature.Append($"<{string.Join(", ", _genericParameters)}>");
+        }
+
+        signature.Append("(");
+        
+        var paramStrings = _parameters.Select(p =>
+        {
+            var paramStr = $"{p.Type} {p.Name}";
+            if (p.Default != null)
+                paramStr += $" = {p.Default}";
+            return paramStr;
+        });
+        
+        signature.Append(string.Join(", ", paramStrings));
+        signature.Append(")");
+
+        if (_expressionBody != null)
+        {
+            AppendLine($"{signature} => {_expressionBody};");
+        }
+        else if (_isAbstract)
+        {
+            AppendLine($"{signature};");
+        }
+        else
+        {
+            AppendLine(signature.ToString());
+
+            // Generic constraints
+            foreach (var constraint in _genericConstraints)
+            {
+                Indent();
+                AppendLine($"where {constraint.Key} : {string.Join(", ", constraint.Value)}");
+                Outdent();
+            }
+
+            AppendLine("{");
+            Indent();
+
+            foreach (var line in _bodyLines)
+            {
+                AppendLine(line.TrimEnd());
+            }
+
+            Outdent();
+            AppendLine("}");
+        }
+
+        return Builder.ToString().TrimEnd();
     }
 }

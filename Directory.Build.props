@@ -131,12 +131,21 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <!-- IsExternalInit package for netstandard2.0 projects (required for init-only properties) -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="IsExternalInit" PrivateAssets="all">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <!-- Test projects -->
   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
     <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <ExcludeFromBuild>true</ExcludeFromBuild>
   </PropertyGroup>
 
   <!-- Nerdbank.GitVersioning -->

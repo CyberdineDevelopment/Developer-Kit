@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FractalDataWorks.Results;
-using FractalDataWorks.Configuration.Messages;
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Configuration;
@@ -66,7 +65,7 @@ public abstract class ConfigurationSourceBase : IFdwConfigurationSource
         if (!IsWritable)
         {
             return Task.FromResult<IFdwResult<TConfiguration>>(
-                FdwResult<TConfiguration>.Failure<TConfiguration>(new FormattedMessage(new GenericError(), $"Configuration source '{Name}' is read-only")));
+                FdwResult<TConfiguration>.Failure<TConfiguration>($"Configuration source '{Name}' is read-only"));
         }
 
         return SaveCore(configuration);
@@ -84,7 +83,7 @@ public abstract class ConfigurationSourceBase : IFdwConfigurationSource
         if (!IsWritable)
         {
             return Task.FromResult<IFdwResult<NonResult>>(
-                FdwResult<NonResult>.Failure<NonResult>(new FormattedMessage(new GenericError(), $"Configuration source '{Name}' is read-only")));
+                FdwResult<NonResult>.Failure<NonResult>($"Configuration source '{Name}' is read-only"));
         }
 
         return DeleteCore<TConfiguration>(id);

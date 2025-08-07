@@ -1,6 +1,8 @@
 using System;
-using FractalDataWorks.EnhancedEnums.Attributes;
-using FractalDataWorks.Framework.Abstractions;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using FractalDataWorks;
+
 using FractalDataWorks.Services.ExternalConnections.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +21,7 @@ namespace FractalDataWorks.Services.DataProviders.Abstractions;
     CollectionName = "DataProviders", 
     IncludeReferencedAssemblies = true,
     ReturnType = typeof(IDataProvider))]
-public abstract class DataProviderBase : ServiceTypeBase<IDataProvider>, IDataProvider
+public abstract class DataProviderBase : ServiceTypeBase<IDataProvider, DataConfiguration>, IDataProvider
 {
     /// <summary>
     /// Gets the types of data commands this provider can execute.
@@ -79,7 +81,7 @@ public abstract class DataProviderBase : ServiceTypeBase<IDataProvider>, IDataPr
         IReadOnlyList<string> supportedCommandTypes,
         IReadOnlyList<string> supportedDataSources,
         IExternalConnection? connection = null) 
-        : base(id, name, typeof(IDataProvider), "DataProvider")
+        : base(id, name, typeof(IDataProvider), typeof(DataConfiguration), "DataProvider")
     {
         ArgumentNullException.ThrowIfNull(supportedCommandTypes, nameof(supportedCommandTypes));
         ArgumentNullException.ThrowIfNull(supportedDataSources, nameof(supportedDataSources));
@@ -142,7 +144,7 @@ public abstract class DataProviderBase : ServiceTypeBase<IDataProvider>, IDataPr
         
         if (!supportsCommandType)
         {
-            return FdwResult.Failure($"Provider '{Name}' does not support command type '{command.CommandType}'.");
+            return Logger.FailureWithLog($"Provider '{Name}' does not support command type '{command.CommandType}'.");
         }
         
         // Validate the command itself
@@ -183,7 +185,7 @@ public abstract class DataProviderBase : ServiceTypeBase<IDataProvider>, IDataPr
         
         if (commands.Count == 0)
         {
-            return FdwResult<IBatchResult>.Failure("Command list cannot be empty.");
+            return Logger.FailureWithLog<IBatchResult>("Command list cannot be empty.");
         }
         
         // Default implementation executes commands sequentially
@@ -240,7 +242,7 @@ public abstract class DataProviderBase : ServiceTypeBase<IDataProvider>, IDataPr
         catch (Exception ex)
         {
             var endTime = DateTimeOffset.UtcNow;
-            return FdwResult<IBatchResult>.Failure($"Batch execution failed: {ex.Message}", ex);
+            return Logger.FailureWithLog<IBatchResult>($"Batch execution failed: {ex.Message}");
         }
     }
     
@@ -287,18 +289,20 @@ public abstract class DataProviderBase : ServiceTypeBase<IDataProvider>, IDataPr
     {
         if (Connection != null)
         {
-            return await Connection.TestConnectionAsync();
+            var connectionResult = await Connection.TestConnectionAsync();
+            return connectionResult.IsSuccess 
+                ? FdwResult.Success() 
+                : FdwResult.Failure(connectionResult.ErrorMessage ?? "Connection test failed");
         }
         
         return FdwResult.Success();
     }
     
     /// <inheritdoc />
-    public override async Task<IFdwResult<IDataProvider>> CreateService(IServiceProvider serviceProvider)
+    public override IDataProvider CreateService(IServiceProvider serviceProvider)
     {
         // Return this instance as it's already a data provider
-        await Task.CompletedTask; // Satisfy async requirement
-        return FdwResult<IDataProvider>.Success(this);
+        return this;
     }
     
     /// <summary>

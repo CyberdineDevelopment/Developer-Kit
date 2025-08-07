@@ -1,6 +1,5 @@
 using System;
 using FractalDataWorks;
-using FractalDataWorks.Messages;
 using Moq;
 using Shouldly;
 using Xunit;

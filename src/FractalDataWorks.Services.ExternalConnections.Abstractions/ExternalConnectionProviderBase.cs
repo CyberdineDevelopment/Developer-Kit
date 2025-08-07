@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FractalDataWorks;
+
 using FractalDataWorks.EnhancedEnums.Attributes;
-using FractalDataWorks.Framework.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FractalDataWorks.Services.ExternalConnections.Abstractions;
@@ -20,8 +21,30 @@ namespace FractalDataWorks.Services.ExternalConnections.Abstractions;
     CollectionName = "ExternalConnectionProviders", 
     IncludeReferencedAssemblies = true,
     ReturnType = typeof(IExternalConnectionProvider))]
-public abstract class ExternalConnectionProviderBase : ServiceTypeBase<IExternalConnectionFactory>, IExternalConnectionProvider
+public abstract class ExternalConnectionProviderBase : ServiceTypeBase, IExternalConnectionProvider, IServiceType
 {
+    /// <summary>
+    /// Gets the service interface type that this service type provides.
+    /// </summary>
+    public virtual Type ServiceType => typeof(IExternalConnectionProvider);
+
+    /// <summary>
+    /// Gets the category of this service type.
+    /// </summary>
+    public virtual string Category => "ExternalConnection";
+
+    /// <summary>
+    /// Creates an instance of the service using the provided service provider.
+    /// </summary>
+    public virtual object CreateService(IServiceProvider serviceProvider) => this;
+
+    /// <summary>
+    /// Registers the service and its dependencies with the service collection.
+    /// </summary>
+    public virtual void RegisterService(IServiceCollection services)
+    {
+        services.AddSingleton<IExternalConnectionProvider>(this);
+    }
     /// <summary>
     /// Gets the data store names that this connection provider supports.
     /// </summary>
@@ -88,7 +111,7 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase<IExternal
         Type configurationType,
         IReadOnlyList<string> supportedConnectionModes,
         int priority = 0) 
-        : base(id, name, typeof(IExternalConnectionFactory), "ExternalConnection")
+        : base(id, name)
     {
         ArgumentNullException.ThrowIfNull(supportedDataStores, nameof(supportedDataStores));
         ArgumentNullException.ThrowIfNull(providerName, nameof(providerName));
@@ -140,11 +163,6 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase<IExternal
     /// <inheritdoc />
     public abstract Task<IFdwResult<IExternalConnectionFactory>> CreateConnectionFactoryAsync(IServiceProvider serviceProvider);
     
-    /// <inheritdoc />
-    public override async Task<IFdwResult<IExternalConnectionFactory>> CreateService(IServiceProvider serviceProvider)
-    {
-        return await CreateConnectionFactoryAsync(serviceProvider);
-    }
     
     /// <inheritdoc />
     public virtual IFdwResult ValidateCapability(string dataStore, string? connectionMode = null)
@@ -153,7 +171,7 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase<IExternal
         
         if (string.IsNullOrWhiteSpace(dataStore))
         {
-            return FdwResult.Failure("Data store name cannot be empty or whitespace.");
+            return Logger.FailureWithLog("Data store name cannot be empty or whitespace.");
         }
         
         // Check if this provider supports the specified data store
@@ -169,7 +187,7 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase<IExternal
         
         if (!supportsDataStore)
         {
-            return FdwResult.Failure($"Provider '{ProviderName}' does not support data store '{dataStore}'.");
+            return Logger.FailureWithLog($"Provider '{ProviderName}' does not support data store '{dataStore}'.");
         }
         
         // Check connection mode if specified
@@ -187,7 +205,7 @@ public abstract class ExternalConnectionProviderBase : ServiceTypeBase<IExternal
             
             if (!supportsConnectionMode)
             {
-                return FdwResult.Failure($"Provider '{ProviderName}' does not support connection mode '{connectionMode}'.");
+                return Logger.FailureWithLog($"Provider '{ProviderName}' does not support connection mode '{connectionMode}'.");
             }
         }
         

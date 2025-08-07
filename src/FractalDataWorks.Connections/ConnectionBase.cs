@@ -1,10 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using FractalDataWorks;
 using FractalDataWorks.Configuration;
 using FractalDataWorks.Results;
 using FractalDataWorks.Services;
-using FractalDataWorks.Connections.Messages;
+// Removed old messages namespace
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Connections;
@@ -63,7 +64,7 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            return FdwResult.Failure(ConnectionMessages.InvalidCredentials);
+            return Logger.FailureWithLog("Invalid connection credentials provided");
         }
 
         await _connectionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -91,18 +92,16 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
                     ConnectedAt = DateTimeOffset.UtcNow;
                     DisconnectedAt = null;
                     ConnectionBaseLog.Connected(Logger, connectionString);
+                    return FdwResult.Success();
                 }
                 else
                 {
-                    ConnectionBaseLog.ConnectionError(Logger, result.Message?.Message ?? "Unknown error");
+                    return Logger.FailureWithLog(result.Message ?? "Connection attempt failed");
                 }
-                return result;
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                var message = ConnectionMessages.ConnectionTimeout.Format(connectionString, ConnectionTimeoutSeconds);
-                ConnectionBaseLog.ConnectionTimeoutError(Logger, message);
-                return FdwResult.Failure(ConnectionMessages.ConnectionTimeout);
+                return Logger.FailureWithLog($"Connection timeout to {connectionString} after {ConnectionTimeoutSeconds} seconds");
             }
         }
         finally
@@ -133,13 +132,12 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
             if (result.IsSuccess)
             {
                 ConnectionBaseLog.Disconnected(Logger);
+                return FdwResult.Success();
             }
             else
             {
-                ConnectionBaseLog.DisconnectError(Logger, result.Message?.Message ?? "Unknown error");
+                return Logger.FailureWithLog(result.Message ?? "Disconnect failed");
             }
-            
-            return result;
         }
         finally
         {
@@ -152,7 +150,7 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     {
         if (!IsConnected)
         {
-            return FdwResult.Failure(ConnectionMessages.ConnectionFailed);
+            return Logger.FailureWithLog("Connection attempt failed");
         }
 
         try
@@ -161,8 +159,7 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
         }
         catch (Exception ex)
         {
-            ConnectionBaseLog.ConnectionTestFailed(Logger, ex);
-            return FdwResult.Failure(ConnectionMessages.ConnectionFailed);
+            return Logger.FailureWithLog(ex, "Connection attempt failed");
         }
     }
 
@@ -198,7 +195,7 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     {
         if (!IsConnected)
         {
-            return FdwResult<T>.Failure(ConnectionMessages.ConnectionFailed);
+            return Logger.FailureWithLog<T>("Connection attempt failed");
         }
 
         // Derived classes implement specific command execution

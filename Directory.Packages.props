@@ -5,7 +5,11 @@
   <ItemGroup>
     <!-- Microsoft packages -->
     <PackageVersion Include="FractalDataWorks" Version="0.1.3-alpha-g1695442435" />
-    <PackageVersion Include="FractalDataWorks.EnhancedEnums" Version="0.1.12-alpha-g1a370c5f32">
+    <PackageVersion Include="FractalDataWorks.EnhancedEnums" Version="0.1.46-alpha-g4eea8a7f8d">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageVersion>
+    <PackageVersion Include="FractalDataWorks.EnhancedEnums.SourceGenerator" Version="0.1.46-alpha-g4eea8a7f8d">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
@@ -29,6 +33,8 @@
     <PackageVersion Include="Microsoft.Extensions.Telemetry.Testing" Version="8.0.0-rc.2.23510.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="System.Collections.Immutable" Version="10.0.0-preview.6.25358.103" />
+    <PackageVersion Include="TreeSitter.Bindings" Version="0.4.0" />
+    <PackageVersion Include="TreeSitterSharp" Version="0.5.0" />
     <!-- Testing packages -->
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.v3" Version="3.0.0" />
@@ -65,6 +71,7 @@
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
     <!-- Configuration -->
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.0-preview.6.25358.103" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.0-preview.6.25358.103" />
     <!-- Dependency Injection -->
     <!-- Hosting -->
     <!-- Logging Extensions -->

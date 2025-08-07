@@ -1,335 +1,313 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using FractalDataWorks.CodeBuilder.Abstractions;
-using FractalDataWorks.CodeBuilder.Definitions;
-using FractalDataWorks.CodeBuilder.Types;
 
 namespace FractalDataWorks.CodeBuilder.Builders;
 
 /// <summary>
-/// True builder pattern implementation for class definitions.
-/// Builds immutable ClassDefinition products following the TRUE builder pattern.
-/// Each method returns a new builder instance, keeping builders immutable.
+/// Builder for generating C# class definitions.
 /// </summary>
-public sealed class ClassBuilder : IAstBuilder<ClassDefinition>, IValidatableBuilder
+public sealed class ClassBuilder : CodeBuilderBase, IClassBuilder
 {
-    private readonly ClassBuilderState _state;
+    private string? _namespace;
+    private readonly List<string> _usings = new();
+    private string _className = "MyClass";
+    private string _accessModifier = "public";
+    private bool _isStatic;
+    private bool _isAbstract;
+    private bool _isSealed;
+    private bool _isPartial;
+    private string? _baseClass;
+    private readonly List<string> _interfaces = new();
+    private readonly List<string> _genericParameters = new();
+    private readonly Dictionary<string, List<string>> _genericConstraints = new();
+    private readonly List<string> _attributes = new();
+    private readonly List<IFieldBuilder> _fields = new();
+    private readonly List<IPropertyBuilder> _properties = new();
+    private readonly List<IMethodBuilder> _methods = new();
+    private readonly List<IConstructorBuilder> _constructors = new();
+    private readonly List<IClassBuilder> _nestedClasses = new();
+    private string? _xmlDocSummary;
 
-    /// <summary>
-    /// Initializes a new instance of ClassBuilder.
-    /// </summary>
-    public ClassBuilder()
+    /// <inheritdoc/>
+    public IClassBuilder WithNamespace(string namespaceName)
     {
-        _state = new ClassBuilderState();
-    }
-
-    /// <summary>
-    /// Initializes a new instance of ClassBuilder with the given state.
-    /// </summary>
-    /// <param name="state">The builder state.</param>
-    private ClassBuilder(ClassBuilderState state)
-    {
-        _state = state;
-    }
-
-    /// <summary>
-    /// Sets the name of the class.
-    /// </summary>
-    /// <param name="name">The class name.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder WithName(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Class name cannot be null or empty.", nameof(name));
-
-        var newState = _state.Clone();
-        newState.Name = name;
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets the access modifier of the class.
-    /// </summary>
-    /// <param name="access">The access modifier.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder WithAccess(AccessModifier access)
-    {
-        var newState = _state.Clone();
-        newState.Access = access ?? throw new ArgumentNullException(nameof(access));
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds a modifier to the class.
-    /// </summary>
-    /// <param name="modifier">The modifier to add.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder WithModifier(Modifiers modifier)
-    {
-        var newState = _state.Clone();
-        newState.Modifiers = newState.Modifiers.AddModifier(modifier);
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets multiple modifiers for the class.
-    /// </summary>
-    /// <param name="modifiers">The modifiers to set.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder WithModifiers(Modifiers modifiers)
-    {
-        var newState = _state.Clone();
-        newState.Modifiers = modifiers;
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets the base class.
-    /// </summary>
-    /// <param name="baseClass">The base class name.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder WithBaseClass(string baseClass)
-    {
-        if (string.IsNullOrWhiteSpace(baseClass))
-            throw new ArgumentException("Base class name cannot be null or empty.", nameof(baseClass));
-
-        var newState = _state.Clone();
-        newState.BaseClass = baseClass;
-        // Also add to base types if not already present
-        if (!newState.BaseTypes.Contains(baseClass))
-        {
-            newState.BaseTypes.Insert(0, baseClass); // Base class should be first
-        }
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds a base type (interface or base class).
-    /// </summary>
-    /// <param name="baseType">The base type name.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AddBaseType(string baseType)
-    {
-        if (string.IsNullOrWhiteSpace(baseType))
-            throw new ArgumentException("Base type name cannot be null or empty.", nameof(baseType));
-
-        var newState = _state.Clone();
-        if (!newState.BaseTypes.Contains(baseType))
-        {
-            newState.BaseTypes.Add(baseType);
-        }
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds an interface implementation.
-    /// </summary>
-    /// <param name="interfaceName">The interface name.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder ImplementsInterface(string interfaceName)
-    {
-        return AddBaseType(interfaceName);
-    }
-
-    /// <summary>
-    /// Makes the class abstract.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AsAbstract()
-    {
-        return WithModifier(Modifiers.Abstract);
-    }
-
-    /// <summary>
-    /// Makes the class sealed.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AsSealed()
-    {
-        return WithModifier(Modifiers.Sealed);
-    }
-
-    /// <summary>
-    /// Makes the class static.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AsStatic()
-    {
-        return WithModifier(Modifiers.Static);
-    }
-
-    /// <summary>
-    /// Makes the class partial.
-    /// </summary>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AsPartial()
-    {
-        return WithModifier(Modifiers.Partial);
-    }
-
-    /// <summary>
-    /// Adds a member to the class.
-    /// </summary>
-    /// <param name="member">The member definition.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AddMember(IMemberDefinition member)
-    {
-        if (member == null)
-            throw new ArgumentNullException(nameof(member));
-
-        var newState = _state.Clone();
-        newState.Members.Add(member);
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds a method to the class using a method builder configuration.
-    /// </summary>
-    /// <param name="configure">Configuration action for the method.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AddMethod(Action<MethodBuilder> configure)
-    {
-        if (configure == null)
-            throw new ArgumentNullException(nameof(configure));
-
-        var methodBuilder = new MethodBuilder();
-        configure(methodBuilder);
-        var method = methodBuilder.Build();
-        return AddMember(method);
-    }
-
-    /// <summary>
-    /// Adds a property to the class using a property builder configuration.
-    /// </summary>
-    /// <param name="configure">Configuration action for the property.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AddProperty(Action<PropertyBuilder> configure)
-    {
-        if (configure == null)
-            throw new ArgumentNullException(nameof(configure));
-
-        var propertyBuilder = new PropertyBuilder();
-        configure(propertyBuilder);
-        var property = propertyBuilder.Build();
-        return AddMember(property);
-    }
-
-    /// <summary>
-    /// Adds a constructor to the class using a constructor builder configuration.
-    /// </summary>
-    /// <param name="configure">Configuration action for the constructor.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AddConstructor(Action<ConstructorBuilder> configure)
-    {
-        if (configure == null)
-            throw new ArgumentNullException(nameof(configure));
-
-        var constructorBuilder = new ConstructorBuilder();
-        configure(constructorBuilder);
-        var constructor = constructorBuilder.Build();
-        return AddMember(constructor);
-    }
-
-    /// <summary>
-    /// Adds an attribute to the class.
-    /// </summary>
-    /// <param name="name">The attribute name.</param>
-    /// <param name="arguments">Optional attribute arguments.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AddAttribute(string name, params object[] arguments)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Attribute name cannot be null or empty.", nameof(name));
-
-        var newState = _state.Clone();
-        var attribute = new AttributeDefinition(name, arguments);
-        newState.Attributes.Add(attribute);
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Sets the XML documentation for the class.
-    /// </summary>
-    /// <param name="documentation">The documentation text.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder WithDocumentation(string documentation)
-    {
-        var newState = _state.Clone();
-        newState.XmlDocumentation = documentation;
-        return new ClassBuilder(newState);
-    }
-
-    /// <summary>
-    /// Adds a generic type parameter to the class.
-    /// </summary>
-    /// <param name="name">The name of the type parameter.</param>
-    /// <param name="constraints">Optional constraints for the type parameter.</param>
-    /// <returns>A new builder instance.</returns>
-    public ClassBuilder AddGenericParameter(string name, params string[] constraints)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Generic parameter name cannot be null or empty.", nameof(name));
-
-        var newState = _state.Clone();
-        var genericParam = new GenericParameterDefinition(name, constraints);
-        newState.GenericParameters.Add(genericParam);
-        return new ClassBuilder(newState);
+        _namespace = namespaceName;
+        return this;
     }
 
     /// <inheritdoc/>
-    public bool IsValid
+    public IClassBuilder WithUsings(params string[] usings)
     {
-        get
-        {
-            var errors = GetValidationErrors();
-            return errors.Length == 0;
-        }
+        _usings.AddRange(usings);
+        return this;
     }
 
     /// <inheritdoc/>
-    public string[] GetValidationErrors()
+    public IClassBuilder WithName(string className)
     {
-        var errors = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(_state.Name))
-        {
-            errors.Add("Class name is required");
-        }
-
-        if (!_state.Modifiers.IsValid())
-        {
-            errors.Add("Invalid modifier combination");
-        }
-
-        if (_state.Modifiers.HasModifier(Modifiers.Abstract) && _state.Modifiers.HasModifier(Modifiers.Sealed))
-        {
-            errors.Add("Class cannot be both abstract and sealed");
-        }
-
-        if (_state.Modifiers.HasModifier(Modifiers.Static) && 
-            (_state.Modifiers.HasModifier(Modifiers.Abstract) || _state.Modifiers.HasModifier(Modifiers.Sealed)))
-        {
-            errors.Add("Static class cannot be abstract or sealed");
-        }
-
-        if (_state.Modifiers.HasModifier(Modifiers.Static) && !string.IsNullOrEmpty(_state.BaseClass))
-        {
-            errors.Add("Static class cannot have a base class");
-        }
-
-        return errors.ToArray();
+        _className = className;
+        return this;
     }
 
     /// <inheritdoc/>
-    public ClassDefinition Build()
+    public IClassBuilder WithAccessModifier(string accessModifier)
     {
-        if (!IsValid)
+        _accessModifier = accessModifier;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder AsStatic()
+    {
+        _isStatic = true;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder AsAbstract()
+    {
+        _isAbstract = true;
+        _isSealed = false;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder AsSealed()
+    {
+        _isSealed = true;
+        _isAbstract = false;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder AsPartial()
+    {
+        _isPartial = true;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithBaseClass(string baseClass)
+    {
+        _baseClass = baseClass;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithInterfaces(params string[] interfaces)
+    {
+        _interfaces.AddRange(interfaces);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithGenericParameters(params string[] typeParameters)
+    {
+        _genericParameters.AddRange(typeParameters);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithGenericConstraint(string typeParameter, params string[] constraints)
+    {
+        if (!_genericConstraints.ContainsKey(typeParameter))
+            _genericConstraints[typeParameter] = new List<string>();
+        _genericConstraints[typeParameter].AddRange(constraints);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithAttribute(string attribute)
+    {
+        _attributes.Add(attribute);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithField(IFieldBuilder fieldBuilder)
+    {
+        _fields.Add(fieldBuilder);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithProperty(IPropertyBuilder propertyBuilder)
+    {
+        _properties.Add(propertyBuilder);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithMethod(IMethodBuilder methodBuilder)
+    {
+        _methods.Add(methodBuilder);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithConstructor(IConstructorBuilder constructorBuilder)
+    {
+        _constructors.Add(constructorBuilder);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithNestedClass(IClassBuilder nestedClassBuilder)
+    {
+        _nestedClasses.Add(nestedClassBuilder);
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClassBuilder WithXmlDoc(string summary)
+    {
+        _xmlDocSummary = summary;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public override string Build()
+    {
+        Clear();
+
+        // Using directives
+        if (_usings.Count > 0)
         {
-            var errors = GetValidationErrors();
-            throw new InvalidOperationException($"Cannot build invalid class: {string.Join(", ", errors)}");
+            foreach (var usingDirective in _usings.Distinct().OrderBy(u => u))
+            {
+                AppendLine($"using {usingDirective};");
+            }
+            AppendLine("");
         }
 
-        return new ClassDefinition(_state);
+        // Namespace
+        if (!string.IsNullOrEmpty(_namespace))
+        {
+            AppendLine($"namespace {_namespace};");
+            AppendLine("");
+        }
+
+        // XML documentation
+        if (!string.IsNullOrEmpty(_xmlDocSummary))
+        {
+            AppendLine("/// <summary>");
+            foreach (var line in _xmlDocSummary.Split('\n'))
+            {
+                AppendLine($"/// {line.Trim()}");
+            }
+            AppendLine("/// </summary>");
+        }
+
+        // Attributes
+        foreach (var attribute in _attributes)
+        {
+            AppendLine($"[{attribute}]");
+        }
+
+        // Class declaration
+        var declaration = new StringBuilder();
+        declaration.Append(_accessModifier);
+        
+        if (_isStatic) declaration.Append(" static");
+        if (_isAbstract) declaration.Append(" abstract");
+        if (_isSealed) declaration.Append(" sealed");
+        if (_isPartial) declaration.Append(" partial");
+        
+        declaration.Append(" class ");
+        declaration.Append(_className);
+
+        if (_genericParameters.Count > 0)
+        {
+            declaration.Append($"<{string.Join(", ", _genericParameters)}>");
+        }
+
+        // Base class and interfaces
+        var inheritance = new List<string>();
+        if (!string.IsNullOrEmpty(_baseClass))
+            inheritance.Add(_baseClass);
+        inheritance.AddRange(_interfaces);
+
+        if (inheritance.Count > 0)
+        {
+            declaration.Append($" : {string.Join(", ", inheritance)}");
+        }
+
+        AppendLine(declaration.ToString());
+
+        // Generic constraints
+        foreach (var constraint in _genericConstraints)
+        {
+            Indent();
+            AppendLine($"where {constraint.Key} : {string.Join(", ", constraint.Value)}");
+            Outdent();
+        }
+
+        AppendLine("{");
+        Indent();
+
+        // Fields
+        foreach (var field in _fields)
+        {
+            var fieldCode = field.Build();
+            foreach (var line in fieldCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                AppendLine(line);
+            }
+        }
+
+        if (_fields.Count > 0 && (_constructors.Count > 0 || _properties.Count > 0 || _methods.Count > 0))
+            AppendLine("");
+
+        // Constructors
+        foreach (var constructor in _constructors)
+        {
+            var constructorCode = constructor.Build();
+            foreach (var line in constructorCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                AppendLine(line);
+            }
+            AppendLine("");
+        }
+
+        // Properties
+        foreach (var property in _properties)
+        {
+            var propertyCode = property.Build();
+            foreach (var line in propertyCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                AppendLine(line);
+            }
+            AppendLine("");
+        }
+
+        // Methods
+        foreach (var method in _methods)
+        {
+            var methodCode = method.Build();
+            foreach (var line in methodCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                AppendLine(line);
+            }
+            AppendLine("");
+        }
+
+        // Nested classes
+        foreach (var nestedClass in _nestedClasses)
+        {
+            var nestedCode = nestedClass.Build();
+            foreach (var line in nestedCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                AppendLine(line);
+            }
+            AppendLine("");
+        }
+
+        Outdent();
+        AppendLine("}");
+
+        return Builder.ToString();
     }
 }

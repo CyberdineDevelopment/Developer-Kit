@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using FractalDataWorks;
 using FractalDataWorks.EnhancedEnums.Attributes;
-using FractalDataWorks.Framework.Abstractions;
+
 using Microsoft.Extensions.DependencyInjection;
+
 
 namespace FractalDataWorks.Services.SecretManagement.Abstractions;
 
@@ -21,7 +23,7 @@ namespace FractalDataWorks.Services.SecretManagement.Abstractions;
     CollectionName = "SecretProviders", 
     IncludeReferencedAssemblies = true,
     ReturnType = typeof(ISecretProvider))]
-public abstract class SecretProviderBase : ServiceTypeBase<ISecretProvider>, ISecretProvider
+public abstract class SecretProviderBase : ServiceTypeBase, ISecretProvider
 {
     /// <summary>
     /// Gets the unique identifier for this secret provider.
@@ -146,7 +148,7 @@ public abstract class SecretProviderBase : ServiceTypeBase<ISecretProvider>, ISe
         bool supportsExpiration = false,
         bool supportsBatchOperations = false,
         bool supportsBinarySecrets = true) 
-        : base(id, name, typeof(ISecretProvider), "SecretProvider")
+        : base(id, name, typeof(ISecretProvider), typeof(SecretConfiguration), "SecretProvider")
     {
         ArgumentNullException.ThrowIfNull(providerType, nameof(providerType));
         ArgumentNullException.ThrowIfNull(version, nameof(version));
@@ -225,7 +227,7 @@ public abstract class SecretProviderBase : ServiceTypeBase<ISecretProvider>, ISe
         
         if (commands.Count == 0)
         {
-            return FdwResult<ISecretBatchResult>.Failure("Command list cannot be empty.");
+            return Logger.FailureWithLog<ISecretBatchResult>("Command list cannot be empty.");
         }
         
         if (!SupportsBatchOperations)
@@ -299,7 +301,7 @@ public abstract class SecretProviderBase : ServiceTypeBase<ISecretProvider>, ISe
         catch (Exception ex)
         {
             var endTime = DateTimeOffset.UtcNow;
-            return FdwResult<ISecretBatchResult>.Failure($"Batch execution failed: {ex.Message}", ex);
+            return Logger.FailureWithLog<ISecretBatchResult>($"Batch execution failed: {ex.Message}");
         }
     }
     
@@ -321,7 +323,7 @@ public abstract class SecretProviderBase : ServiceTypeBase<ISecretProvider>, ISe
         
         if (!supportsCommandType)
         {
-            return FdwResult.Failure($"Provider '{Name}' does not support command type '{command.CommandType}'.");
+            return Logger.FailureWithLog($"Provider '{Name}' does not support command type '{command.CommandType}'.");
         }
         
         // Validate the command itself
@@ -363,9 +365,7 @@ public abstract class SecretProviderBase : ServiceTypeBase<ISecretProvider>, ISe
         {
             return FdwResult.Success();
         }
-        return healthResult.Exception != null 
-            ? FdwResult.Failure(healthResult.ErrorMessage ?? "Health check failed", healthResult.Exception)
-            : FdwResult.Failure(healthResult.ErrorMessage ?? "Health check failed");
+        return Logger.FailureWithLog(healthResult.ErrorMessage ?? "Health check failed");
     }
     
     /// <inheritdoc />
@@ -374,12 +374,6 @@ public abstract class SecretProviderBase : ServiceTypeBase<ISecretProvider>, ISe
     /// <inheritdoc />
     public abstract Task<IFdwResult<ISecretProviderMetrics>> GetMetricsAsync(CancellationToken cancellationToken = default);
     
-    /// <inheritdoc />
-    public override ISecretProvider CreateService(IServiceProvider serviceProvider)
-    {
-        // Return this instance as it's already a secret provider
-        return this;
-    }
     
     /// <summary>
     /// Creates a command result instance.

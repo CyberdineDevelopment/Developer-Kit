@@ -2,16 +2,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FractalDataWorks.Net\FractalDataWorks.Net.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" />
   </ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="FractalDataWorks.EnhancedEnums">
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="FractalDataWorks.Messages" />
-		<PackageReference Include="FractalDataWorks.SmartGenerators">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 	</ItemGroup>
 </Project>

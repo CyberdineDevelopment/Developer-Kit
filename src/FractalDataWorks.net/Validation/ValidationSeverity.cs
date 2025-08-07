@@ -1,22 +1,22 @@
 namespace FractalDataWorks.Validation;
 
 /// <summary>
-/// Defines the severity levels for validation errors.
+/// Represents the severity of a validation error.
 /// </summary>
 public enum ValidationSeverity
 {
     /// <summary>
-    /// Information level - not an error.
+    /// Information-level message.
     /// </summary>
-    Info,
+    Information,
 
     /// <summary>
-    /// Warning level - should be addressed but not blocking.
+    /// Warning-level message.
     /// </summary>
     Warning,
 
     /// <summary>
-    /// Error level - must be addressed.
+    /// Error-level message.
     /// </summary>
     Error
 }

@@ -1,17 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-	  <PackageReference Include="FractalDataWorks.EnhancedEnums">
-		  <PrivateAssets>all</PrivateAssets>
-	  </PackageReference>
-	  <PackageReference Include="FractalDataWorks.Messages" />
-	  <PackageReference Include="FractalDataWorks.SmartGenerators" />
-	  <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 
     <!-- Temporarily keep .net reference until refactoring is complete -->
     <ProjectReference Include="..\FractalDataWorks.Net\FractalDataWorks.Net.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" />
   </ItemGroup>
 
 </Project>

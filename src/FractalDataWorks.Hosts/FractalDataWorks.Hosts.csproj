@@ -5,15 +5,4 @@
     <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
   </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="FractalDataWorks.EnhancedEnums">
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="FractalDataWorks.Messages" />
-		<PackageReference Include="FractalDataWorks.SmartGenerators">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-	</ItemGroup>
-
 </Project>
