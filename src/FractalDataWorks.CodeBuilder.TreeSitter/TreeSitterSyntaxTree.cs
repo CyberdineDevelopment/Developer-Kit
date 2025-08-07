@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FractalDataWorks.CodeBuilder.Abstractions;
-using TreeSitter;
+using static TreeSitter.Bindings.Native;
 
 namespace FractalDataWorks.CodeBuilder.TreeSitter;
 
@@ -11,23 +11,24 @@ namespace FractalDataWorks.CodeBuilder.TreeSitter;
 /// </summary>
 public sealed class TreeSitterSyntaxTree : ISyntaxTree
 {
-    private readonly Tree _tree;
+    private readonly IntPtr _tree;
     private readonly TreeSitterSyntaxNode _root;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TreeSitterSyntaxTree"/> class.
     /// </summary>
-    /// <param name="tree">The TreeSitter tree.</param>
+    /// <param name="tree">The TreeSitter tree pointer.</param>
     /// <param name="sourceText">The source text.</param>
     /// <param name="language">The language.</param>
     /// <param name="filePath">The file path.</param>
-    public TreeSitterSyntaxTree(Tree tree, string sourceText, string language, string? filePath = null)
+    public TreeSitterSyntaxTree(IntPtr tree, string sourceText, string language, string? filePath = null)
     {
         _tree = tree;
         SourceText = sourceText;
         Language = language;
         FilePath = filePath;
-        _root = new TreeSitterSyntaxNode(_tree.RootNode, sourceText);
+        var rootNode = TsTreeRootNode(_tree);
+        _root = new TreeSitterSyntaxNode(rootNode, sourceText);
     }
 
     /// <inheritdoc/>

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FractalDataWorks.CodeBuilder.Abstractions;
-using TreeSitter;
+using static TreeSitter.Bindings.Native;
 
 namespace FractalDataWorks.CodeBuilder.TreeSitter;
 
@@ -11,7 +11,7 @@ namespace FractalDataWorks.CodeBuilder.TreeSitter;
 /// </summary>
 public sealed class TreeSitterSyntaxNode : ISyntaxNode
 {
-    private readonly Node _node;
+    private readonly TsNode _node;
     private readonly string _sourceText;
     private readonly TreeSitterSyntaxNode? _parent;
     private List<ISyntaxNode>? _children;
@@ -22,7 +22,7 @@ public sealed class TreeSitterSyntaxNode : ISyntaxNode
     /// <param name="node">The TreeSitter node.</param>
     /// <param name="sourceText">The source text.</param>
     /// <param name="parent">The parent node.</param>
-    public TreeSitterSyntaxNode(Node node, string sourceText, TreeSitterSyntaxNode? parent = null)
+    public TreeSitterSyntaxNode(TsNode node, string sourceText, TreeSitterSyntaxNode? parent = null)
     {
         _node = node;
         _sourceText = sourceText;
@@ -30,22 +30,22 @@ public sealed class TreeSitterSyntaxNode : ISyntaxNode
     }
 
     /// <inheritdoc/>
-    public string NodeType => _node.Type;
+    public string NodeType => TsNodeType(_node);
 
     /// <inheritdoc/>
-    public string Text => _sourceText.Substring((int)_node.StartByte, (int)(_node.EndByte - _node.StartByte));
+    public string Text => _sourceText.Substring((int)TsNodeStartByte(_node), (int)(TsNodeEndByte(_node) - TsNodeStartByte(_node)));
 
     /// <inheritdoc/>
-    public int StartPosition => (int)_node.StartByte;
+    public int StartPosition => (int)TsNodeStartByte(_node);
 
     /// <inheritdoc/>
-    public int EndPosition => (int)_node.EndByte;
+    public int EndPosition => (int)TsNodeEndByte(_node);
 
     /// <inheritdoc/>
-    public int StartLine => (int)_node.StartPoint.Row;
+    public int StartLine => (int)TsNodeStartPoint(_node).Row;
 
     /// <inheritdoc/>
-    public int StartColumn => (int)_node.StartPoint.Column;
+    public int StartColumn => (int)TsNodeStartPoint(_node).Column;
 
     /// <inheritdoc/>
     public IReadOnlyList<ISyntaxNode> Children
@@ -55,13 +55,11 @@ public sealed class TreeSitterSyntaxNode : ISyntaxNode
             if (_children == null)
             {
                 _children = new List<ISyntaxNode>();
-                for (uint i = 0; i < _node.ChildCount; i++)
+                var childCount = TsNodeChildCount(_node);
+                for (uint i = 0; i < childCount; i++)
                 {
-                    var child = _node.Child(i);
-                    if (child != null)
-                    {
-                        _children.Add(new TreeSitterSyntaxNode(child, _sourceText, this));
-                    }
+                    var child = TsNodeChild(_node, i);
+                    _children.Add(new TreeSitterSyntaxNode(child, _sourceText, this));
                 }
             }
             return _children;
@@ -72,10 +70,10 @@ public sealed class TreeSitterSyntaxNode : ISyntaxNode
     public ISyntaxNode? Parent => _parent;
 
     /// <inheritdoc/>
-    public bool IsTerminal => _node.ChildCount == 0;
+    public bool IsTerminal => TsNodeChildCount(_node) == 0;
 
     /// <inheritdoc/>
-    public bool IsError => _node.IsError || _node.IsMissing;
+    public bool IsError => TsNodeIsError(_node) || TsNodeIsMissing(_node);
 
     /// <inheritdoc/>
     public ISyntaxNode? FindChild(string nodeType)

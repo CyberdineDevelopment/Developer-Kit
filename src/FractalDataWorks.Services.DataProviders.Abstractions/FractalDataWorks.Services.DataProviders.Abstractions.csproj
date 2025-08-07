@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FractalDataWorks.Data\FractalDataWorks.Data.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Net\FractalDataWorks.Net.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Services.ExternalConnections.Abstractions\FractalDataWorks.Services.ExternalConnections.Abstractions.csproj" />
