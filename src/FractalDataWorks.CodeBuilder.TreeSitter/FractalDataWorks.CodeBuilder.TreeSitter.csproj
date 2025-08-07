@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <PackageReference Include="TreeSitter.Bindings" />
-    <PackageReference Include="TreeSitterSharp" />
   </ItemGroup>
 
 </Project>

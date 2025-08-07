@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FractalDataWorks;
-
+using FractalDataWorks.EnhancedEnums.Attributes;
 using FractalDataWorks.Services.ExternalConnections.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,7 +21,7 @@ namespace FractalDataWorks.Services.DataProviders.Abstractions;
     CollectionName = "DataProviders", 
     IncludeReferencedAssemblies = true,
     ReturnType = typeof(IDataProvider))]
-public abstract class DataProviderBase : ServiceTypeBase<IDataProvider, DataConfiguration>, IDataProvider
+public abstract class DataProviderBase : ServiceTypeBase<IDataProvider, IDataConfiguration>, IDataProvider
 {
     /// <summary>
     /// Gets the types of data commands this provider can execute.
