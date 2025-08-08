@@ -47,12 +47,12 @@ public class StreamConnectionConfiguration : ConfigurationBase<StreamConnectionC
     /// <summary>
     /// Gets or sets whether to automatically flush after write operations.
     /// </summary>
-    public bool AutoFlush { get; set; } = false;
+    public bool AutoFlush { get; set; }
 
     /// <summary>
     /// Gets or sets the initial capacity for memory streams.
     /// </summary>
-    public int InitialCapacity { get; set; } = 0;
+    public int InitialCapacity { get; set; }
 
     /// <inheritdoc/>
     public override string SectionName => "StreamConnection";

@@ -153,7 +153,7 @@ public class ConnectionTypeBaseTests
     }
 
     // Test implementation to verify instantiation
-    private class TestConnectionType : ConnectionTypeBase<IExternalConnection, IFdwConfiguration>
+    private sealed class TestConnectionType : ConnectionTypeBase<IExternalConnection, IFdwConfiguration>
     {
         public TestConnectionType(int id, string name, string description) 
             : base(id, name, description)
