@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace FractalDataWorks.Services;
@@ -7,6 +8,8 @@ namespace FractalDataWorks.Services;
 /// Base class for service type factory definitions that create service instances.
 /// This is a generic base with basic constraints but no Enhanced Enum attributes.
 /// </summary>
+/// <ExcludeFromTest>Abstract base class for service factories with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage(Justification = "Abstract base class for service factories with no business logic")]
 public abstract class ServiceTypeFactoryBase<TService, TConfiguration>
     where TService : class, IFdwService
     where TConfiguration : class, IFdwConfiguration

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using FractalDataWorks.Results;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,8 @@ namespace FractalDataWorks.Configuration;
 /// <summary>
 /// Base implementation of a configuration source.
 /// </summary>
+/// <ExcludeFromTest>Abstract base class for configuration sources with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage(Justification = "Abstract base class for configuration sources with no business logic")]
 public abstract class ConfigurationSourceBase : IFdwConfigurationSource
 {
 

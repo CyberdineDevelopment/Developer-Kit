@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FractalDataWorks;
 
@@ -13,6 +14,8 @@ namespace FractalDataWorks;
 /// overridden to implement custom validation and initialization logic.
 /// The "Fdw" prefix avoids namespace collisions with common configuration types.
 /// </remarks>
+/// <ExcludeFromTest>Abstract base configuration class with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage]
 public abstract class FdwConfigurationBase
 {
     /// <summary>

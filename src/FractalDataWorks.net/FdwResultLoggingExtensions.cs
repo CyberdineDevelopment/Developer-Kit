@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks;
@@ -6,6 +7,8 @@ namespace FractalDataWorks;
 /// <summary>
 /// Extension methods for FdwResult that combine logging and result creation.
 /// </summary>
+/// <ExcludeFromTest>Extension methods for logging with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage]
 public static class FdwResultLoggingExtensions
 {
     /// <summary>

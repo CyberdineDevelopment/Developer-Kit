@@ -1,10 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FractalDataWorks.EnhancedEnums;
 
 /// <summary>
 /// Marks a class as an option in an enhanced enum.
 /// </summary>
+/// <ExcludeFromTest>Simple attribute with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class EnumOptionAttribute : Attribute
 {

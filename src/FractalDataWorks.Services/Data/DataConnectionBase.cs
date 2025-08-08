@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using FractalDataWorks.Configuration;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,8 @@ namespace FractalDataWorks.Services.Data;
 /// <summary>
 /// Base class for data connection implementations.
 /// </summary>
+/// <ExcludeFromTest>Abstract base class for data connections with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage(Justification = "Abstract base class for data connections with no business logic")]
 public abstract class DataConnectionBase<TCommand, TConnection, TConfiguration> : ServiceBase<TCommand, TConfiguration, DataConnectionBase<TCommand, TConnection, TConfiguration>>
 where TCommand : IDataCommand
 where TConfiguration : ConfigurationBase<TConfiguration>, new()

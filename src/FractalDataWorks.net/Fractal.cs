@@ -1,10 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FractalDataWorks;
 
 /// <summary>
 /// Represents a unit type for operations that don't return a value.
 /// </summary>
+/// <ExcludeFromTest>Simple unit type with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage]
 public struct Fractal : IEquatable<Fractal>
 {
     /// <summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Connections;
@@ -6,6 +7,8 @@ namespace FractalDataWorks.Connections;
 /// <summary>
 /// High-performance logging methods for ConnectionBase using source generators.
 /// </summary>
+/// <ExcludeFromTest>Source-generated logging class with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage(Justification = "Source-generated logging class with no business logic")]
 internal static partial class ConnectionLog
 {
     [LoggerMessage(
