@@ -373,10 +373,11 @@ public class ConfigurationProviderBaseTests : IDisposable
     public void Dispose()
     {
         _provider?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // Test classes
-    private class TestConfigurationProvider : ConfigurationProviderBase<TestConfiguration>
+    private sealed class TestConfigurationProvider : ConfigurationProviderBase<TestConfiguration>
     {
         public bool IsDisposed { get; private set; }
 
@@ -392,7 +393,7 @@ public class ConfigurationProviderBaseTests : IDisposable
         }
     }
 
-    private class TestConfiguration : ConfigurationBase<TestConfiguration>
+    private sealed class TestConfiguration : ConfigurationBase<TestConfiguration>
     {
         public string? RequiredProperty { get; set; }
 
@@ -404,7 +405,7 @@ public class ConfigurationProviderBaseTests : IDisposable
         }
     }
 
-    private class TestConfigurationValidator : AbstractValidator<TestConfiguration>
+    private sealed class TestConfigurationValidator : AbstractValidator<TestConfiguration>
     {
         public TestConfigurationValidator()
         {
