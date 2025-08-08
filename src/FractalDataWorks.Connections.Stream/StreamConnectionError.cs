@@ -20,6 +20,35 @@ public class StreamConnectionError : Exception
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
     /// </summary>
+    public StreamConnectionError()
+    {
+        ErrorCode = StreamErrorCode.Unknown;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    public StreamConnectionError(string message)
+        : base(message)
+    {
+        ErrorCode = StreamErrorCode.Unknown;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="innerException">The inner exception.</param>
+    public StreamConnectionError(string message, Exception innerException)
+        : base(message, innerException)
+    {
+        ErrorCode = StreamErrorCode.Unknown;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// </summary>
     /// <param name="message">The error message.</param>
     /// <param name="errorCode">The error code.</param>
     public StreamConnectionError(string message, StreamErrorCode errorCode)
