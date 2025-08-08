@@ -9,8 +9,7 @@
     "buildNumber": {
       "enabled": true,
       "includeCommitId": {
-        "when": "always",
-        "where": "buildMetadata"
+        "when": "never"
       }
     },
     "setAllVariables": true

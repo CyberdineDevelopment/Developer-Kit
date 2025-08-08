@@ -113,22 +113,22 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
 
             if (stream == null)
             {
-                return FdwResult.Failure("Stream is not connected");
+                return Task.FromResult<IFdwResult>(FdwResult.Failure("Stream is not connected"));
             }
 
             // Test if we can still use the stream
             if (stream.CanRead || stream.CanWrite)
             {
-                return FdwResult.Success();
+                return Task.FromResult<IFdwResult>(FdwResult.Success());
             }
 
             StreamConnectionLog.StreamOperationFailed(Logger);
-            return FdwResult.Failure("Stream operation failed");
+            return Task.FromResult<IFdwResult>(FdwResult.Failure("Stream operation failed"));
         }
         catch (Exception)
         {
             StreamConnectionLog.StreamOperationFailed(Logger);
-            return FdwResult.Failure("Stream operation failed");
+            return Task.FromResult<IFdwResult>(FdwResult.Failure("Stream operation failed"));
         }
     }
 
