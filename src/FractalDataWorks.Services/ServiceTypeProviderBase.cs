@@ -37,10 +37,9 @@ public abstract class ServiceTypeProviderBase<TService, TServiceType, TConfigura
         IConfigurationRegistry<TConfiguration> configurationRegistry,
         IEnumerable<TServiceType> serviceTypes)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _configurationRegistry = configurationRegistry ?? throw new ArgumentNullException(nameof(configurationRegistry));
-        _serviceTypes = serviceTypes?.ToDictionary(st => st.Name, StringComparer.OrdinalIgnoreCase) 
-            ?? throw new ArgumentNullException(nameof(serviceTypes));
+        _logger = logger;
+        _configurationRegistry = configurationRegistry;
+        _serviceTypes = serviceTypes.ToDictionary(st => st.Name, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -53,9 +52,8 @@ public abstract class ServiceTypeProviderBase<TService, TServiceType, TConfigura
         IEnumerable<TServiceType> serviceTypes)
     {
         _logger = NullLogger<ServiceTypeProviderBase<TService, TServiceType, TConfiguration>>.Instance;
-        _configurationRegistry = configurationRegistry ?? throw new ArgumentNullException(nameof(configurationRegistry));
-        _serviceTypes = serviceTypes?.ToDictionary(st => st.Name, StringComparer.OrdinalIgnoreCase) 
-            ?? throw new ArgumentNullException(nameof(serviceTypes));
+        _configurationRegistry = configurationRegistry;
+        _serviceTypes = serviceTypes.ToDictionary(st => st.Name, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
