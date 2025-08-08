@@ -14,15 +14,6 @@ namespace FractalDataWorks.Services.DataProviders.Abstractions;
 /// </remarks>
 public interface IDataCommand : ICommand
 {
-    /// <summary>
-    /// Gets the unique identifier for this command.
-    /// </summary>
-    /// <value>A unique identifier for the command instance.</value>
-    /// <remarks>
-    /// This identifier is used for command tracking, logging, and debugging purposes.
-    /// It should remain constant for the lifetime of the command instance.
-    /// </remarks>
-    string CommandId { get; }
     
     /// <summary>
     /// Gets the type of operation this command represents.
@@ -105,7 +96,7 @@ public interface IDataCommand : ICommand
     /// to data providers. It can check parameter completeness, value ranges,
     /// and other command-specific validation rules.
     /// </remarks>
-    IFdwResult Validate();
+    new IFdwResult Validate();
     
     /// <summary>
     /// Creates a copy of this command with modified parameters.

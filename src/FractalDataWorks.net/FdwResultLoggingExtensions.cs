@@ -9,6 +9,7 @@ namespace FractalDataWorks;
 /// </summary>
 /// <ExcludeFromTest>Extension methods for logging with no business logic to test</ExcludeFromTest>
 [ExcludeFromCodeCoverage]
+[SuppressMessage("Performance", "CA1848:Use the LoggerMessage delegates", Justification = "These are utility methods that accept dynamic messages from callers")]
 public static class FdwResultLoggingExtensions
 {
     /// <summary>
@@ -20,7 +21,27 @@ public static class FdwResultLoggingExtensions
     /// <returns>A failed result.</returns>
     public static IFdwResult FailureWithLog(this ILogger logger, string message, LogLevel logLevel = LogLevel.Error)
     {
-        logger.Log(logLevel, message);
+        switch (logLevel)
+        {
+            case LogLevel.Critical:
+                logger.LogCritical("{Message}", message);
+                break;
+            case LogLevel.Error:
+                logger.LogError("{Message}", message);
+                break;
+            case LogLevel.Warning:
+                logger.LogWarning("{Message}", message);
+                break;
+            case LogLevel.Information:
+                logger.LogInformation("{Message}", message);
+                break;
+            case LogLevel.Debug:
+                logger.LogDebug("{Message}", message);
+                break;
+            case LogLevel.Trace:
+                logger.LogTrace("{Message}", message);
+                break;
+        }
         return FdwResult.Failure(message);
     }
 
@@ -34,7 +55,27 @@ public static class FdwResultLoggingExtensions
     /// <returns>A failed result.</returns>
     public static IFdwResult FailureWithLog(this ILogger logger, Exception exception, string message, LogLevel logLevel = LogLevel.Error)
     {
-        logger.Log(logLevel, exception, message);
+        switch (logLevel)
+        {
+            case LogLevel.Critical:
+                logger.LogCritical(exception, "{Message}", message);
+                break;
+            case LogLevel.Error:
+                logger.LogError(exception, "{Message}", message);
+                break;
+            case LogLevel.Warning:
+                logger.LogWarning(exception, "{Message}", message);
+                break;
+            case LogLevel.Information:
+                logger.LogInformation(exception, "{Message}", message);
+                break;
+            case LogLevel.Debug:
+                logger.LogDebug(exception, "{Message}", message);
+                break;
+            case LogLevel.Trace:
+                logger.LogTrace(exception, "{Message}", message);
+                break;
+        }
         return FdwResult.Failure(message);
     }
 
@@ -48,7 +89,27 @@ public static class FdwResultLoggingExtensions
     /// <returns>A failed result.</returns>
     public static IFdwResult<T> FailureWithLog<T>(this ILogger logger, string message, LogLevel logLevel = LogLevel.Error)
     {
-        logger.Log(logLevel, message);
+        switch (logLevel)
+        {
+            case LogLevel.Critical:
+                logger.LogCritical("{Message}", message);
+                break;
+            case LogLevel.Error:
+                logger.LogError("{Message}", message);
+                break;
+            case LogLevel.Warning:
+                logger.LogWarning("{Message}", message);
+                break;
+            case LogLevel.Information:
+                logger.LogInformation("{Message}", message);
+                break;
+            case LogLevel.Debug:
+                logger.LogDebug("{Message}", message);
+                break;
+            case LogLevel.Trace:
+                logger.LogTrace("{Message}", message);
+                break;
+        }
         return FdwResult<T>.Failure(message);
     }
 
@@ -63,7 +124,27 @@ public static class FdwResultLoggingExtensions
     /// <returns>A failed result.</returns>
     public static IFdwResult<T> FailureWithLog<T>(this ILogger logger, Exception exception, string message, LogLevel logLevel = LogLevel.Error)
     {
-        logger.Log(logLevel, exception, message);
+        switch (logLevel)
+        {
+            case LogLevel.Critical:
+                logger.LogCritical(exception, "{Message}", message);
+                break;
+            case LogLevel.Error:
+                logger.LogError(exception, "{Message}", message);
+                break;
+            case LogLevel.Warning:
+                logger.LogWarning(exception, "{Message}", message);
+                break;
+            case LogLevel.Information:
+                logger.LogInformation(exception, "{Message}", message);
+                break;
+            case LogLevel.Debug:
+                logger.LogDebug(exception, "{Message}", message);
+                break;
+            case LogLevel.Trace:
+                logger.LogTrace(exception, "{Message}", message);
+                break;
+        }
         return FdwResult<T>.Failure(message);
     }
 
@@ -80,7 +161,27 @@ public static class FdwResultLoggingExtensions
     {
         if (message is not null)
         {
-            logger.Log(logLevel, message);
+            switch (logLevel)
+            {
+                case LogLevel.Critical:
+                    logger.LogCritical("{Message}", message);
+                    break;
+                case LogLevel.Error:
+                    logger.LogError("{Message}", message);
+                    break;
+                case LogLevel.Warning:
+                    logger.LogWarning("{Message}", message);
+                    break;
+                case LogLevel.Information:
+                    logger.LogInformation("{Message}", message);
+                    break;
+                case LogLevel.Debug:
+                    logger.LogDebug("{Message}", message);
+                    break;
+                case LogLevel.Trace:
+                    logger.LogTrace("{Message}", message);
+                    break;
+            }
         }
         
         return FdwResult<T>.Success(value);

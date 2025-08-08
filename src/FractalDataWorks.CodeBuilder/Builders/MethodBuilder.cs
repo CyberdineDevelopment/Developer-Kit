@@ -11,6 +11,7 @@ namespace FractalDataWorks.CodeBuilder.Builders;
 /// </summary>
 public sealed class MethodBuilder : CodeBuilderBase, IMethodBuilder
 {
+    private static readonly char[] NewLineSeparator = { '\n' };
     private string _name = "Method";
     private string _returnType = "void";
     private string _accessModifier = "public";
@@ -21,12 +22,12 @@ public sealed class MethodBuilder : CodeBuilderBase, IMethodBuilder
     private bool _isAsync;
     private readonly List<(string Type, string Name, string? Default)> _parameters = new();
     private readonly List<string> _genericParameters = new();
-    private readonly Dictionary<string, List<string>> _genericConstraints = new();
+    private readonly Dictionary<string, List<string>> _genericConstraints = new(StringComparer.Ordinal);
     private readonly List<string> _attributes = new();
     private readonly List<string> _bodyLines = new();
     private string? _expressionBody;
     private string? _xmlDocSummary;
-    private readonly Dictionary<string, string> _paramDocs = new();
+    private readonly Dictionary<string, string> _paramDocs = new(StringComparer.Ordinal);
     private string? _returnDoc;
 
     /// <inheritdoc/>
@@ -168,13 +169,21 @@ public sealed class MethodBuilder : CodeBuilderBase, IMethodBuilder
     {
         Clear();
 
-        // XML documentation
+        BuildXmlDocumentation();
+        BuildAttributes();
+        BuildMethodSignature();
+
+        return Builder.ToString().TrimEnd();
+    }
+
+    private void BuildXmlDocumentation()
+    {
         if (!string.IsNullOrEmpty(_xmlDocSummary) || _paramDocs.Count > 0 || !string.IsNullOrEmpty(_returnDoc))
         {
             if (!string.IsNullOrEmpty(_xmlDocSummary))
             {
                 AppendLine("/// <summary>");
-                foreach (var line in _xmlDocSummary.Split('\n'))
+                foreach (var line in _xmlDocSummary!.Split(NewLineSeparator, StringSplitOptions.None))
                 {
                     AppendLine($"/// {line.Trim()}");
                 }
@@ -194,14 +203,38 @@ public sealed class MethodBuilder : CodeBuilderBase, IMethodBuilder
                 AppendLine($"/// <returns>{_returnDoc}</returns>");
             }
         }
+    }
 
-        // Attributes
+    private void BuildAttributes()
+    {
         foreach (var attribute in _attributes)
         {
             AppendLine($"[{attribute}]");
         }
+    }
 
-        // Method signature
+    private void BuildMethodSignature()
+    {
+        var signature = BuildSignatureString();
+
+        if (_expressionBody != null)
+        {
+            AppendLine($"{signature} => {_expressionBody};");
+        }
+        else if (_isAbstract)
+        {
+            AppendLine($"{signature};");
+        }
+        else
+        {
+            AppendLine(signature.ToString());
+            BuildGenericConstraints();
+            BuildMethodBody();
+        }
+    }
+
+    private StringBuilder BuildSignatureString()
+    {
         var signature = new StringBuilder();
         signature.Append(_accessModifier);
 
@@ -218,7 +251,13 @@ public sealed class MethodBuilder : CodeBuilderBase, IMethodBuilder
             signature.Append($"<{string.Join(", ", _genericParameters)}>");
         }
 
-        signature.Append("(");
+        BuildParameterList(signature);
+        return signature;
+    }
+
+    private void BuildParameterList(StringBuilder signature)
+    {
+        signature.Append('(');
         
         var paramStrings = _parameters.Select(p =>
         {
@@ -229,40 +268,30 @@ public sealed class MethodBuilder : CodeBuilderBase, IMethodBuilder
         });
         
         signature.Append(string.Join(", ", paramStrings));
-        signature.Append(")");
+        signature.Append(')');
+    }
 
-        if (_expressionBody != null)
+    private void BuildGenericConstraints()
+    {
+        foreach (var constraint in _genericConstraints)
         {
-            AppendLine($"{signature} => {_expressionBody};");
-        }
-        else if (_isAbstract)
-        {
-            AppendLine($"{signature};");
-        }
-        else
-        {
-            AppendLine(signature.ToString());
-
-            // Generic constraints
-            foreach (var constraint in _genericConstraints)
-            {
-                Indent();
-                AppendLine($"where {constraint.Key} : {string.Join(", ", constraint.Value)}");
-                Outdent();
-            }
-
-            AppendLine("{");
             Indent();
-
-            foreach (var line in _bodyLines)
-            {
-                AppendLine(line.TrimEnd());
-            }
-
+            AppendLine($"where {constraint.Key} : {string.Join(", ", constraint.Value)}");
             Outdent();
-            AppendLine("}");
+        }
+    }
+
+    private void BuildMethodBody()
+    {
+        AppendLine("{");
+        Indent();
+
+        foreach (var line in _bodyLines)
+        {
+            AppendLine(line.TrimEnd());
         }
 
-        return Builder.ToString().TrimEnd();
+        Outdent();
+        AppendLine("}");
     }
 }

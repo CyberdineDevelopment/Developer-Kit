@@ -11,6 +11,7 @@ namespace FractalDataWorks.CodeBuilder.Tests;
 
 public class CSharpCodeGeneratorTests
 {
+    private static readonly string[] NewLineSeparators = ["\r\n", "\n"];
     [Fact]
     public void TargetLanguageIsCSharp()
     {
@@ -223,7 +224,7 @@ public class CSharpCodeGeneratorTests
         // Assert
         result.ShouldContain("public class TestClass1 { }");
         result.ShouldContain("public class TestClass3 { }");
-        var lines = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        var lines = result.Split(NewLineSeparators, StringSplitOptions.None);
         lines.ShouldContain("");
     }
 
@@ -393,7 +394,7 @@ namespace TestNamespace
         var result = generator.GenerateCompilationUnit(builders);
 
         // Assert
-        var lines = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        var lines = result.Split(NewLineSeparators, StringSplitOptions.RemoveEmptyEntries);
         
         if (builderCount == 1)
         {

@@ -76,7 +76,7 @@ public interface ITransformationRequest : ICommand
     /// mapping rules, filter criteria, aggregation functions, or formatting options.
     /// The structure and content depend on the specific transformation being performed.
     /// </remarks>
-    IReadOnlyDictionary<string, object> Configuration { get; }
+    new IReadOnlyDictionary<string, object> Configuration { get; }
     
     /// <summary>
     /// Gets additional options for transformation execution.

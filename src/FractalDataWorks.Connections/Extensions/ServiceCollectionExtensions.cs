@@ -65,7 +65,7 @@ public static class ServiceCollectionExtensions
         var assemblies = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => !a.IsDynamic)
             .Where(a => a.GetReferencedAssemblies()
-                .Any(ra => ra.Name?.StartsWith("FractalDataWorks.Connections") == true))
+                .Any(ra => ra.Name?.StartsWith("FractalDataWorks.Connections", StringComparison.Ordinal) == true))
             .ToList();
 
         foreach (var assembly in assemblies)
@@ -87,7 +87,7 @@ public static class ServiceCollectionExtensions
     {
         if (!IsConnectionType(typeof(TConnectionType)))
         {
-            throw new ArgumentException($"Type {typeof(TConnectionType).Name} is not a valid connection type", nameof(TConnectionType));
+            throw new ArgumentException($"Type {typeof(TConnectionType).Name} is not a valid connection type", nameof(services));
         }
 
         services.TryAddSingleton<TConnectionType>();
@@ -102,7 +102,7 @@ public static class ServiceCollectionExtensions
         while (baseType != null)
         {
             if (baseType.IsGenericType && 
-                baseType.GetGenericTypeDefinition().Name.StartsWith("ConnectionTypeBase"))
+                baseType.GetGenericTypeDefinition().Name.StartsWith("ConnectionTypeBase", StringComparison.Ordinal))
             {
                 return true;
             }
@@ -117,7 +117,7 @@ public static class ServiceCollectionExtensions
         while (baseType != null && baseType.IsGenericType)
         {
             var genericDef = baseType.GetGenericTypeDefinition();
-            if (genericDef.Name.StartsWith("ConnectionTypeBase"))
+            if (genericDef.Name.StartsWith("ConnectionTypeBase", StringComparison.Ordinal))
             {
                 var genericArgs = baseType.GetGenericArguments();
                 if (genericArgs.Length >= 2)

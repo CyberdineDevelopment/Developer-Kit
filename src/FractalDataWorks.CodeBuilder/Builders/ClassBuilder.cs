@@ -11,6 +11,7 @@ namespace FractalDataWorks.CodeBuilder.Builders;
 /// </summary>
 public sealed class ClassBuilder : CodeBuilderBase, IClassBuilder
 {
+    private static readonly char[] NewLineSeparator = { '\n' };
     private string? _namespace;
     private readonly List<string> _usings = new();
     private string _className = "MyClass";
@@ -22,7 +23,7 @@ public sealed class ClassBuilder : CodeBuilderBase, IClassBuilder
     private string? _baseClass;
     private readonly List<string> _interfaces = new();
     private readonly List<string> _genericParameters = new();
-    private readonly Dictionary<string, List<string>> _genericConstraints = new();
+    private readonly Dictionary<string, List<string>> _genericConstraints = new(StringComparer.Ordinal);
     private readonly List<string> _attributes = new();
     private readonly List<IFieldBuilder> _fields = new();
     private readonly List<IPropertyBuilder> _properties = new();
@@ -173,41 +174,69 @@ public sealed class ClassBuilder : CodeBuilderBase, IClassBuilder
     {
         Clear();
 
-        // Using directives
+        BuildUsingDirectives();
+        BuildNamespace();
+        BuildXmlDocumentation();
+        BuildAttributes();
+        BuildClassDeclaration();
+        BuildGenericConstraints();
+        
+        AppendLine("{");
+        Indent();
+        
+        BuildClassMembers();
+        
+        Outdent();
+        AppendLine("}");
+
+        return Builder.ToString();
+    }
+
+    private void BuildUsingDirectives()
+    {
         if (_usings.Count > 0)
         {
-            foreach (var usingDirective in _usings.Distinct().OrderBy(u => u))
+            var uniqueUsings = new HashSet<string>(_usings, StringComparer.Ordinal);
+            foreach (var usingDirective in uniqueUsings.OrderBy(u => u, StringComparer.Ordinal))
             {
                 AppendLine($"using {usingDirective};");
             }
             AppendLine("");
         }
+    }
 
-        // Namespace
+    private void BuildNamespace()
+    {
         if (!string.IsNullOrEmpty(_namespace))
         {
             AppendLine($"namespace {_namespace};");
             AppendLine("");
         }
+    }
 
-        // XML documentation
+    private void BuildXmlDocumentation()
+    {
         if (!string.IsNullOrEmpty(_xmlDocSummary))
         {
             AppendLine("/// <summary>");
-            foreach (var line in _xmlDocSummary.Split('\n'))
+            foreach (var line in _xmlDocSummary!.Split(NewLineSeparator, StringSplitOptions.None))
             {
                 AppendLine($"/// {line.Trim()}");
             }
             AppendLine("/// </summary>");
         }
+    }
 
-        // Attributes
+    private void BuildAttributes()
+    {
         foreach (var attribute in _attributes)
         {
             AppendLine($"[{attribute}]");
         }
+    }
 
-        // Class declaration
+    private void BuildClassDeclaration()
+    {
         var declaration = new StringBuilder();
         declaration.Append(_accessModifier);
         
@@ -224,35 +253,48 @@ public sealed class ClassBuilder : CodeBuilderBase, IClassBuilder
             declaration.Append($"<{string.Join(", ", _genericParameters)}>");
         }
 
-        // Base class and interfaces
+        BuildInheritanceClause(declaration);
+        AppendLine(declaration.ToString());
+    }
+
+    private void BuildInheritanceClause(StringBuilder declaration)
+    {
         var inheritance = new List<string>();
         if (!string.IsNullOrEmpty(_baseClass))
-            inheritance.Add(_baseClass);
+            inheritance.Add(_baseClass!);
         inheritance.AddRange(_interfaces);
 
         if (inheritance.Count > 0)
         {
             declaration.Append($" : {string.Join(", ", inheritance)}");
         }
+    }
 
-        AppendLine(declaration.ToString());
-
-        // Generic constraints
+    private void BuildGenericConstraints()
+    {
         foreach (var constraint in _genericConstraints)
         {
             Indent();
             AppendLine($"where {constraint.Key} : {string.Join(", ", constraint.Value)}");
             Outdent();
         }
+    }
 
-        AppendLine("{");
-        Indent();
+    private void BuildClassMembers()
+    {
+        BuildFields();
+        BuildConstructors();
+        BuildProperties();
+        BuildMethods();
+        BuildNestedClasses();
+    }
 
-        // Fields
+    private void BuildFields()
+    {
         foreach (var field in _fields)
         {
             var fieldCode = field.Build();
-            foreach (var line in fieldCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            foreach (var line in fieldCode.Split(NewLineSeparator, StringSplitOptions.RemoveEmptyEntries))
             {
                 AppendLine(line);
             }
@@ -260,54 +302,57 @@ public sealed class ClassBuilder : CodeBuilderBase, IClassBuilder
 
         if (_fields.Count > 0 && (_constructors.Count > 0 || _properties.Count > 0 || _methods.Count > 0))
             AppendLine("");
+    }
 
-        // Constructors
+    private void BuildConstructors()
+    {
         foreach (var constructor in _constructors)
         {
             var constructorCode = constructor.Build();
-            foreach (var line in constructorCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            foreach (var line in constructorCode.Split(NewLineSeparator, StringSplitOptions.RemoveEmptyEntries))
             {
                 AppendLine(line);
             }
             AppendLine("");
         }
+    }
 
-        // Properties
+    private void BuildProperties()
+    {
         foreach (var property in _properties)
         {
             var propertyCode = property.Build();
-            foreach (var line in propertyCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            foreach (var line in propertyCode.Split(NewLineSeparator, StringSplitOptions.RemoveEmptyEntries))
             {
                 AppendLine(line);
             }
             AppendLine("");
         }
+    }
 
-        // Methods
+    private void BuildMethods()
+    {
         foreach (var method in _methods)
         {
             var methodCode = method.Build();
-            foreach (var line in methodCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            foreach (var line in methodCode.Split(NewLineSeparator, StringSplitOptions.RemoveEmptyEntries))
             {
                 AppendLine(line);
             }
             AppendLine("");
         }
+    }
 
-        // Nested classes
+    private void BuildNestedClasses()
+    {
         foreach (var nestedClass in _nestedClasses)
         {
             var nestedCode = nestedClass.Build();
-            foreach (var line in nestedCode.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            foreach (var line in nestedCode.Split(NewLineSeparator, StringSplitOptions.RemoveEmptyEntries))
             {
                 AppendLine(line);
             }
             AppendLine("");
         }
-
-        Outdent();
-        AppendLine("}");
-
-        return Builder.ToString();
     }
 }

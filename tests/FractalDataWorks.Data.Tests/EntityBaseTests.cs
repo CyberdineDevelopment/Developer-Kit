@@ -432,19 +432,19 @@ public class EntityBaseTests
     }
 
     // Test classes
-    private class TestEntity : EntityBase<int>
+    private sealed class TestEntity : EntityBase<int>
     {
     }
 
-    private class AnotherTestEntity : EntityBase<int>
+    private sealed class AnotherTestEntity : EntityBase<int>
     {
     }
 
-    private class GuidEntity : EntityBase<Guid>
+    private sealed class GuidEntity : EntityBase<Guid>
     {
     }
 
-    private class StringEntity : EntityBase<string>
+    private sealed class StringEntity : EntityBase<string>
     {
         public StringEntity()
         {
@@ -452,7 +452,7 @@ public class EntityBaseTests
         }
     }
 
-    private class ConcreteEntity : EntityBase
+    private sealed class ConcreteEntity : EntityBase
     {
     }
 }

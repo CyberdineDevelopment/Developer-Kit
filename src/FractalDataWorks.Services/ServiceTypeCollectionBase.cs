@@ -23,7 +23,9 @@ public abstract class ServiceTypeCollectionBase<TServiceType, TService, TConfigu
     private static readonly Dictionary<int, TServiceType> _serviceTypesById = new();
     private static readonly List<TServiceType> _allServiceTypes = new();
     private static bool _isInitialized;
+    #pragma warning disable MA0158 // Use System.Threading.Lock
     private static readonly object _initLock = new();
+    #pragma warning restore MA0158 // Use System.Threading.Lock
 
     /// <summary>
     /// Gets all registered service types.
@@ -146,10 +148,7 @@ public abstract class ServiceTypeCollectionBase<TServiceType, TService, TConfigu
     /// <param name="serviceType">The service type to register.</param>
     protected static void Register(TServiceType serviceType)
     {
-        if (serviceType == null)
-        {
-            throw new ArgumentNullException(nameof(serviceType));
-        }
+        ArgumentNullException.ThrowIfNull(serviceType);
 
         lock (_initLock)
         {

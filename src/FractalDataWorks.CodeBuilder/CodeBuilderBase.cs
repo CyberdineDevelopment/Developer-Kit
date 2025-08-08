@@ -12,7 +12,12 @@ public abstract class CodeBuilderBase : ICodeBuilder
     /// <summary>
     /// The string builder for constructing the code.
     /// </summary>
-    protected readonly StringBuilder Builder = new();
+    private readonly StringBuilder _builder = new();
+
+    /// <summary>
+    /// Gets the string builder for constructing the code.
+    /// </summary>
+    protected StringBuilder Builder => _builder;
 
     /// <summary>
     /// Gets or sets the indentation string.
@@ -38,15 +43,15 @@ public abstract class CodeBuilderBase : ICodeBuilder
     {
         if (string.IsNullOrWhiteSpace(line))
         {
-            Builder.AppendLine();
+            _builder.AppendLine();
             return;
         }
 
         for (int i = 0; i < IndentLevel; i++)
         {
-            Builder.Append(IndentString);
+            _builder.Append(IndentString);
         }
-        Builder.AppendLine(line);
+        _builder.AppendLine(line);
     }
 
     /// <summary>
@@ -55,7 +60,7 @@ public abstract class CodeBuilderBase : ICodeBuilder
     /// <param name="text">The text to append.</param>
     protected void Append(string text)
     {
-        Builder.Append(text);
+        _builder.Append(text);
     }
 
     /// <summary>
@@ -80,7 +85,7 @@ public abstract class CodeBuilderBase : ICodeBuilder
     /// </summary>
     protected void Clear()
     {
-        Builder.Clear();
+        _builder.Clear();
         IndentLevel = 0;
     }
 }

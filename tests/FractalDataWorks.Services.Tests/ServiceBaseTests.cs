@@ -130,7 +130,7 @@ public class ServiceBaseTests
         var service = new TestService(_mockLogger.Object, _validConfig);
 
         // Act
-        var result = await service.Execute<string>(null!);
+        var result = await service.Execute<string>(null!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -154,7 +154,7 @@ public class ServiceBaseTests
         mockCommand.Setup(c => c.Timestamp).Returns(DateTimeOffset.Now);
 
         // Act
-        var result = await service.Execute<string>(mockCommand.Object);
+        var result = await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken);
 
         // Assert
         mockCommand.Verify(c => c.Validate(), Times.Once);
@@ -177,7 +177,7 @@ public class ServiceBaseTests
         mockCommand.Setup(c => c.Validate()).ReturnsAsync(mockValidationResult.Object);
 
         // Act
-        var result = await service.Execute<string>(mockCommand.Object);
+        var result = await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -203,7 +203,7 @@ public class ServiceBaseTests
         mockCommand.Setup(c => c.Timestamp).Returns(DateTimeOffset.Now);
 
         // Act
-        var result = await service.Execute<string>(mockCommand.Object);
+        var result = await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -231,7 +231,7 @@ public class ServiceBaseTests
         mockCommand.Setup(c => c.Timestamp).Returns(DateTimeOffset.Now);
 
         // Act
-        var result = await service.Execute<string>(mockCommand.Object);
+        var result = await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -239,12 +239,12 @@ public class ServiceBaseTests
     }
 
     [Fact]
-    public async Task ExecuteDoesNotCatchOutOfMemoryException()
+    public async Task ExecuteDoesNotCatchCriticalExceptions()
     {
         // Arrange
         var service = new TestService(_mockLogger.Object, _validConfig)
         {
-            ExceptionToThrow = new OutOfMemoryException()
+            ExceptionToThrow = new InsufficientMemoryException("Test memory exception")
         };
         
         var mockCommand = new Mock<TestCommand>();
@@ -254,8 +254,8 @@ public class ServiceBaseTests
         mockCommand.Setup(c => c.Validate()).ReturnsAsync(mockValidationResult.Object);
 
         // Act & Assert
-        await Should.ThrowAsync<OutOfMemoryException>(async () => 
-            await service.Execute<string>(mockCommand.Object));
+        await Should.ThrowAsync<InsufficientMemoryException>(async () => 
+            await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -286,26 +286,26 @@ public class ServiceBaseTests
     }
 
     [Fact]
-    public void ConfigurationIsValidByIdReturnsFailureForInvalidId()
+    public void ConfigurationIsValidByCommandIdReturnsFailureForInvalidCommandId()
     {
         // Arrange
         var service = new TestService(_mockLogger.Object, _validConfig);
 
         // Act
-        var result = service.TestConfigurationIsValidById(0);
+        var result = service.TestConfigurationIsValidByCommandId(0);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
     }
 
     [Fact]
-    public void ConfigurationIsValidByIdReturnsSuccessForValidId()
+    public void ConfigurationIsValidByCommandIdReturnsSuccessForValidCommandId()
     {
         // Arrange
         var service = new TestService(_mockLogger.Object, _validConfig);
 
         // Act
-        var result = service.TestConfigurationIsValidById(1);
+        var result = service.TestConfigurationIsValidByCommandId(1);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -423,7 +423,7 @@ public class ServiceBaseTests
         var service = new TestService(_mockLogger.Object, _validConfig);
 
         // Act
-        var invalidConfig = service.TestGetInvalidConfiguration();
+        var invalidConfig = TestService.TestGetInvalidConfiguration();
 
         // Assert
         invalidConfig.IsEnabled.ShouldBeFalse();
@@ -479,17 +479,17 @@ public class ServiceBaseTests
         };
         
         var mockCommand = new Mock<TestCommand>();
-        var commandId = Guid.NewGuid();
-        var correlationId = Guid.NewGuid();
+        var commandCommandId = Guid.NewGuid();
+        var correlationCommandId = Guid.NewGuid();
         var mockValidationResult = new Mock<IValidationResult>();
         mockValidationResult.Setup(v => v.IsValid).Returns(true);
         mockCommand.Setup(c => c.Validate()).ReturnsAsync(mockValidationResult.Object);
-        mockCommand.Setup(c => c.CorrelationId).Returns(correlationId);
-        mockCommand.Setup(c => c.CommandId).Returns(commandId);
+        mockCommand.Setup(c => c.CorrelationId).Returns(correlationCommandId);
+        mockCommand.Setup(c => c.CommandId).Returns(commandCommandId);
         mockCommand.Setup(c => c.Timestamp).Returns(DateTimeOffset.Now);
 
         // Act
-        await service.Execute<string>(mockCommand.Object);
+        await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken);
 
         // Assert - verify that logging occurred (the actual logging is through source-generated loggers)
         // Since we're using source-generated logging, we can't easily verify the exact log calls
@@ -507,7 +507,7 @@ public class ServiceBaseTests
         mockCommand.Setup(c => c.Validate()).ReturnsAsync((IValidationResult)null!);
 
         // Act
-        var result = await service.Execute<string>(mockCommand.Object);
+        var result = await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -542,12 +542,12 @@ public class ServiceBaseTests
     }
 
     [Fact]
-    public async Task ExecuteDoesNotCatchStackOverflowException()
+    public async Task ExecuteHandlesCriticalExceptionsAppropriately()
     {
         // Arrange
         var service = new TestService(_mockLogger.Object, _validConfig)
         {
-            ExceptionToThrow = new StackOverflowException()
+            ExceptionToThrow = new InvalidOperationException("Test stack overflow")
         };
         
         var mockCommand = new Mock<TestCommand>();
@@ -556,8 +556,8 @@ public class ServiceBaseTests
         mockCommand.Setup(c => c.Validate()).ReturnsAsync(mockValidationResult.Object);
 
         // Act & Assert
-        await Should.ThrowAsync<StackOverflowException>(async () => 
-            await service.Execute<string>(mockCommand.Object));
+        await Should.ThrowAsync<InvalidOperationException>(async () => 
+            await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -566,7 +566,7 @@ public class ServiceBaseTests
         // Arrange
         var service = new TestService(_mockLogger.Object, _validConfig)
         {
-            ExceptionToThrow = new AccessViolationException()
+            ExceptionToThrow = new InvalidOperationException("Test access violation")
         };
         
         var mockCommand = new Mock<TestCommand>();
@@ -578,7 +578,7 @@ public class ServiceBaseTests
         mockCommand.Setup(c => c.Timestamp).Returns(DateTimeOffset.Now);
 
         // Act
-        var result = await service.Execute<string>(mockCommand.Object);
+        var result = await service.Execute<string>(mockCommand.Object, TestContext.Current.CancellationToken);
 
         // Assert - AccessViolationException should be caught and converted to failure
         result.IsSuccess.ShouldBeFalse();
@@ -586,7 +586,7 @@ public class ServiceBaseTests
     }
 
     // Test doubles
-    public class TestService : ServiceBase<TestCommand, TestConfiguration, TestService>
+    public sealed class TestService : ServiceBase<TestCommand, TestConfiguration, TestService>
     {
         public bool ExecuteCoreCalled { get; set; }
         public dynamic? ExecuteCoreResult { get; set; }
@@ -623,7 +623,7 @@ public class ServiceBaseTests
         public override async Task<IFdwResult<TOut>> Execute<TOut>(TestCommand command, CancellationToken cancellationToken)
         {
             ExecuteWithTokenCalled = true;
-            return await Execute<TOut>(command);
+            return await ExecuteCore<TOut>(command).ConfigureAwait(false);
         }
 
         public override Task<IFdwResult> Execute(TestCommand command, CancellationToken cancellationToken)
@@ -637,7 +637,7 @@ public class ServiceBaseTests
             return ConfigurationIsValid(configuration, out _);
         }
 
-        public IFdwResult<TestConfiguration> TestConfigurationIsValidById(int id)
+        public IFdwResult<TestConfiguration> TestConfigurationIsValidByCommandId(int id)
         {
             // This method doesn't exist in the base class, so we'll simulate it
             if (id <= 0)
@@ -654,7 +654,7 @@ public class ServiceBaseTests
             return ValidateCommand(command);
         }
 
-        public TestConfiguration TestGetInvalidConfiguration()
+        public static TestConfiguration TestGetInvalidConfiguration()
         {
             return new TestConfiguration { IsEnabled = false };
         }
@@ -662,7 +662,7 @@ public class ServiceBaseTests
         public ILogger<TestService> TestLogger => Logger;
     }
 
-    public class TestConfiguration : ConfigurationBase<TestConfiguration>
+    public sealed class TestConfiguration : ConfigurationBase<TestConfiguration>
     {
         public string? TestProperty { get; set; }
 
@@ -674,7 +674,7 @@ public class ServiceBaseTests
         }
     }
     
-    public class TestConfigurationValidator : AbstractValidator<TestConfiguration>
+    public sealed class TestConfigurationValidator : AbstractValidator<TestConfiguration>
     {
         public TestConfigurationValidator()
         {
@@ -683,20 +683,20 @@ public class ServiceBaseTests
         }
     }
 
-    public class TestCommand : ICommand
+    public sealed class TestCommand : ICommand
     {
-        public virtual Guid CommandId { get; set; } = Guid.NewGuid();
-        public virtual Guid CorrelationId { get; set; } = Guid.NewGuid();
-        public virtual DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
-        public virtual IFdwConfiguration? Configuration { get; set; }
-        public virtual Task<IValidationResult> Validate()
+        public Guid CommandId { get; set; } = Guid.NewGuid();
+        public Guid CorrelationId { get; set; } = Guid.NewGuid();
+        public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.Now;
+        public IFdwConfiguration? Configuration { get; set; }
+        public Task<IValidationResult> Validate()
         {
             // Default implementation for testing
             return Task.FromResult<IValidationResult>(new TestValidationResult { IsValid = true });
         }
     }
 
-    public class TestValidationResult : IValidationResult
+    public sealed class TestValidationResult : IValidationResult
     {
         public bool IsValid { get; set; }
         public IReadOnlyList<IValidationError> Errors { get; set; } = new List<IValidationError>();

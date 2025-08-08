@@ -153,7 +153,7 @@ public class ToolTypeBaseTests
     }
 
     // Test implementation to verify instantiation
-    private class TestToolType : ToolTypeBase<IFdwTool, IFdwConfiguration>
+    private sealed class TestToolType : ToolTypeBase<IFdwTool, IFdwConfiguration>
     {
         public TestToolType(int id, string name, string description) 
             : base(id, name, description)

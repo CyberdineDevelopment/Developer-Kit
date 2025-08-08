@@ -218,22 +218,16 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     #region IExternalConnection Implementation
 
     /// <inheritdoc/>
-    public async Task<IFdwResult> Connect(string connectionString, CancellationToken cancellationToken = default)
-    {
-        return await ConnectAsync(connectionString, cancellationToken).ConfigureAwait(false);
-    }
+    public Task<IFdwResult> Connect(string connectionString, CancellationToken cancellationToken = default)
+        => ConnectAsync(connectionString, cancellationToken);
 
     /// <inheritdoc/>
-    public async Task<IFdwResult> Disconnect(CancellationToken cancellationToken = default)
-    {
-        return await DisconnectAsync(cancellationToken).ConfigureAwait(false);
-    }
+    public Task<IFdwResult> Disconnect(CancellationToken cancellationToken = default)
+        => DisconnectAsync(cancellationToken);
 
     /// <inheritdoc/>
-    public async Task<IFdwResult> Test(CancellationToken cancellationToken = default)
-    {
-        return await TestConnectionAsync(cancellationToken).ConfigureAwait(false);
-    }
+    public Task<IFdwResult> Test(CancellationToken cancellationToken = default)
+        => TestConnectionAsync(cancellationToken);
 
     #endregion
 

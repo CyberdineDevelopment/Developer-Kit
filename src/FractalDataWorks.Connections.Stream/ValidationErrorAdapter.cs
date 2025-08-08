@@ -6,7 +6,7 @@ namespace FractalDataWorks.Connections.Stream;
 /// <summary>
 /// Adapter to convert FluentValidation errors to IValidationError.
 /// </summary>
-internal class ValidationErrorAdapter : IValidationError
+internal sealed class ValidationErrorAdapter : IValidationError
 {
     private readonly ValidationFailure _failure;
 

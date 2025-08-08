@@ -30,7 +30,7 @@ public class RoslynCSharpParserTests
         var sourceCode = "public class TestClass { }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -65,7 +65,7 @@ namespace TestNamespace
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -83,7 +83,7 @@ namespace TestNamespace
         var filePath = "TestClass.cs";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode, filePath);
+        var result = await parser.ParseAsync(sourceCode, filePath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -100,7 +100,7 @@ namespace TestNamespace
         var parser = new RoslynCSharpParser();
 
         // Act
-        var result = await parser.ParseAsync(sourceCode!);
+        var result = await parser.ParseAsync(sourceCode!, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -115,7 +115,7 @@ namespace TestNamespace
         var sourceCode = "public class TestClass { invalid syntax }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         // Parser should still succeed even with syntax errors
@@ -150,7 +150,7 @@ namespace TestNamespace
         var sourceCode = "public class TestClass { }";
 
         // Act
-        var result = await parser.ValidateAsync(sourceCode);
+        var result = await parser.ValidateAsync(sourceCode, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -164,7 +164,7 @@ namespace TestNamespace
         var sourceCode = "public class TestClass { invalid syntax }";
 
         // Act
-        var result = await parser.ValidateAsync(sourceCode);
+        var result = await parser.ValidateAsync(sourceCode, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -180,7 +180,7 @@ namespace TestNamespace
         var parser = new RoslynCSharpParser();
 
         // Act
-        var result = await parser.ValidateAsync(sourceCode!);
+        var result = await parser.ValidateAsync(sourceCode!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -224,8 +224,8 @@ public class TestClass
 ";
 
         // Act
-        var parseResult = await parser.ParseAsync(sourceCode);
-        var validateResult = await parser.ValidateAsync(sourceCode);
+        var parseResult = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
+        var validateResult = await parser.ValidateAsync(sourceCode, TestContext.Current.CancellationToken);
 
         // Assert
         parseResult.IsSuccess.ShouldBeTrue();
@@ -253,8 +253,8 @@ public class TestClass
 }";
 
         // Act
-        var parseResult = await parser.ParseAsync(sourceCode);
-        var validateResult = await parser.ValidateAsync(sourceCode);
+        var parseResult = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
+        var validateResult = await parser.ValidateAsync(sourceCode, TestContext.Current.CancellationToken);
 
         // Assert
         parseResult.IsSuccess.ShouldBeTrue();
@@ -271,7 +271,7 @@ public class TestClass
         var sourceCode = "class C{}";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -292,7 +292,7 @@ public interface ITestInterface
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -315,7 +315,7 @@ public enum TestEnum
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -342,7 +342,7 @@ public struct TestStruct
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -370,7 +370,7 @@ public class TestClass
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -402,7 +402,7 @@ public class TestClass
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -430,7 +430,7 @@ public class Repository<T> where T : class, new()
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -461,7 +461,7 @@ public class TestClass
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -498,7 +498,7 @@ public class TestClass
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -535,7 +535,7 @@ public class TestClass
 }";
 
         // Act
-        var result = await parser.ParseAsync(sourceCode);
+        var result = await parser.ParseAsync(sourceCode, null, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();

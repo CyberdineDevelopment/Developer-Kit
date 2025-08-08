@@ -10,6 +10,7 @@ namespace FractalDataWorks.CodeBuilder.Builders;
 /// </summary>
 public sealed class FieldBuilder : CodeBuilderBase, IFieldBuilder
 {
+    private static readonly char[] NewLineSeparator = { '\n' };
     private string _name = "field";
     private string _type = "object";
     private string _accessModifier = "private";
@@ -105,7 +106,7 @@ public sealed class FieldBuilder : CodeBuilderBase, IFieldBuilder
         if (!string.IsNullOrEmpty(_xmlDocSummary))
         {
             AppendLine("/// <summary>");
-            foreach (var line in _xmlDocSummary.Split('\n'))
+            foreach (var line in _xmlDocSummary!.Split(NewLineSeparator, StringSplitOptions.None))
             {
                 AppendLine($"/// {line.Trim()}");
             }
@@ -144,7 +145,7 @@ public sealed class FieldBuilder : CodeBuilderBase, IFieldBuilder
             throw new InvalidOperationException("Const fields must have an initializer");
         }
 
-        declaration.Append(";");
+        declaration.Append(';');
         AppendLine(declaration.ToString());
 
         return Builder.ToString().TrimEnd();

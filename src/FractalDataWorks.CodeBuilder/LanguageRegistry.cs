@@ -77,7 +77,7 @@ public sealed class LanguageRegistry : ILanguageRegistry
             extension = "." + extension;
         }
 
-        return _extensionToLanguage.GetValueOrDefault(extension);
+        return _extensionToLanguage.TryGetValue(extension, out var language) ? language : null;
     }
 
     /// <inheritdoc/>
@@ -90,7 +90,7 @@ public sealed class LanguageRegistry : ILanguageRegistry
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        return Task.FromResult(_parsers.GetValueOrDefault(language));
+        return Task.FromResult(_parsers.TryGetValue(language, out var parser) ? parser : null);
     }
 
     /// <inheritdoc/>

@@ -168,7 +168,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
         }
     }
 
-    private string GetFileName<TConfiguration>(TConfiguration configuration) 
+    private static string GetFileName<TConfiguration>(TConfiguration configuration) 
         where TConfiguration : IFdwConfiguration
     {
         // Try to get ID if configuration has it
@@ -180,7 +180,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
         return GetFileName<TConfiguration>(configId);
     }
 
-    private string GetFileName<TConfiguration>(int id) 
+    private static string GetFileName<TConfiguration>(int id) 
         where TConfiguration : IFdwConfiguration
     {
         var typeName = typeof(TConfiguration).Name;

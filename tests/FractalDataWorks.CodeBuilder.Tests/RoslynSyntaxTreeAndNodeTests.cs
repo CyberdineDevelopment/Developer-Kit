@@ -11,7 +11,7 @@ namespace FractalDataWorks.CodeBuilder.Tests;
 
 public class RoslynSyntaxTreeAndNodeTests
 {
-    private async Task<RoslynSyntaxTree> CreateSyntaxTreeAsync(string sourceCode, string? filePath = null)
+    private static async Task<RoslynSyntaxTree> CreateSyntaxTreeAsync(string sourceCode, string? filePath = null)
     {
         var parser = new RoslynCSharpParser();
         var result = await parser.ParseAsync(sourceCode, filePath);

@@ -11,6 +11,7 @@ namespace FractalDataWorks.CodeBuilder.Builders;
 /// </summary>
 public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
 {
+    private static readonly char[] NewLineSeparator = { '\n' };
     private string _className = "MyClass";
     private string _accessModifier = "public";
     private bool _isStatic;
@@ -20,7 +21,7 @@ public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
     private readonly List<string> _attributes = new();
     private readonly List<string> _bodyLines = new();
     private string? _xmlDocSummary;
-    private readonly Dictionary<string, string> _paramDocs = new();
+    private readonly Dictionary<string, string> _paramDocs = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Sets the class name for the constructor.
@@ -113,13 +114,22 @@ public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
     {
         Clear();
 
-        // XML documentation
+        BuildXmlDocumentation();
+        BuildAttributes();
+        BuildConstructorSignature();
+        BuildConstructorBody();
+
+        return Builder.ToString().TrimEnd();
+    }
+
+    private void BuildXmlDocumentation()
+    {
         if (!string.IsNullOrEmpty(_xmlDocSummary) || _paramDocs.Count > 0)
         {
             if (!string.IsNullOrEmpty(_xmlDocSummary))
             {
                 AppendLine("/// <summary>");
-                foreach (var line in _xmlDocSummary.Split('\n'))
+                foreach (var line in _xmlDocSummary!.Split(NewLineSeparator, StringSplitOptions.None))
                 {
                     AppendLine($"/// {line.Trim()}");
                 }
@@ -134,14 +144,18 @@ public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
                 }
             }
         }
+    }
 
-        // Attributes
+    private void BuildAttributes()
+    {
         foreach (var attribute in _attributes)
         {
             AppendLine($"[{attribute}]");
         }
+    }
 
-        // Constructor signature
+    private void BuildConstructorSignature()
+    {
         var signature = new StringBuilder();
         
         if (_isStatic)
@@ -155,7 +169,15 @@ public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
             signature.Append($" {_className}");
         }
 
-        signature.Append("(");
+        BuildParameterList(signature);
+        BuildConstructorChain(signature);
+
+        AppendLine(signature.ToString());
+    }
+
+    private void BuildParameterList(StringBuilder signature)
+    {
+        signature.Append('(');
 
         var paramStrings = _parameters.Select(p =>
         {
@@ -166,9 +188,11 @@ public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
         });
 
         signature.Append(string.Join(", ", paramStrings));
-        signature.Append(")");
+        signature.Append(')');
+    }
 
-        // Base or this call
+    private void BuildConstructorChain(StringBuilder signature)
+    {
         if (_baseCallArguments.Count > 0)
         {
             signature.Append($" : base({string.Join(", ", _baseCallArguments)})");
@@ -177,8 +201,10 @@ public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
         {
             signature.Append($" : this({string.Join(", ", _thisCallArguments)})");
         }
+    }
 
-        AppendLine(signature.ToString());
+    private void BuildConstructorBody()
+    {
         AppendLine("{");
         Indent();
 
@@ -189,7 +215,5 @@ public sealed class ConstructorBuilder : CodeBuilderBase, IConstructorBuilder
 
         Outdent();
         AppendLine("}");
-
-        return Builder.ToString().TrimEnd();
     }
 }

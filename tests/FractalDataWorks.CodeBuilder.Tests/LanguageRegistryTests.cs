@@ -163,7 +163,7 @@ public class LanguageRegistryTests
 
         // Act
         registry.RegisterParser("javascript", mockParser.Object);
-        var result = await registry.GetParserAsync("javascript");
+        var result = await registry.GetParserAsync("javascript", TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBe(mockParser.Object);
@@ -179,7 +179,7 @@ public class LanguageRegistryTests
         var registry = new LanguageRegistry();
 
         // Act
-        var result = await registry.GetParserAsync(language!);
+        var result = await registry.GetParserAsync(language!, TestContext.Current.CancellationToken);
 
         // Assert
         result.ShouldBeNull();
@@ -192,9 +192,9 @@ public class LanguageRegistryTests
         var registry = new LanguageRegistry();
 
         // Act
-        var result1 = await registry.GetParserAsync("csharp");
-        var result2 = await registry.GetParserAsync("CSHARP");
-        var result3 = await registry.GetParserAsync("CSharp");
+        var result1 = await registry.GetParserAsync("csharp", TestContext.Current.CancellationToken);
+        var result2 = await registry.GetParserAsync("CSHARP", TestContext.Current.CancellationToken);
+        var result3 = await registry.GetParserAsync("CSharp", TestContext.Current.CancellationToken);
 
         // Assert
         result1.ShouldNotBeNull();
@@ -280,7 +280,7 @@ public class LanguageRegistryTests
         var mockParser = new Mock<ICodeParser>();
 
         // Act
-        registry.RegisterParser("test", mockParser.Object, new string[0]);
+        registry.RegisterParser("test", mockParser.Object, Array.Empty<string>());
 
         // Assert
         registry.IsSupported("test").ShouldBeTrue();
@@ -305,7 +305,7 @@ public class LanguageRegistryTests
     }
 
     [Fact]
-    public void RegisterParserOverwritesExistingLanguage()
+    public async Task RegisterParserOverwritesExistingLanguage()
     {
         // Arrange
         var registry = new LanguageRegistry();
@@ -317,7 +317,7 @@ public class LanguageRegistryTests
         registry.RegisterParser("test", mockParser2.Object, ".ext2");
 
         // Assert
-        var parser = registry.GetParserAsync("test").Result;
+        var parser = await registry.GetParserAsync("test", TestContext.Current.CancellationToken);
         parser.ShouldBe(mockParser2.Object);
         
         var extensions = registry.GetExtensions("test");
@@ -427,9 +427,9 @@ public class LanguageRegistryTests
         registry.GetLanguageByExtension(".cs").ShouldBe("csharp");
 
         // Test parser retrieval
-        (await registry.GetParserAsync("javascript")).ShouldBe(mockJavaScriptParser.Object);
-        (await registry.GetParserAsync("typescript")).ShouldBe(mockTypeScriptParser.Object);
-        (await registry.GetParserAsync("python")).ShouldBe(mockPythonParser.Object);
+        (await registry.GetParserAsync("javascript", TestContext.Current.CancellationToken)).ShouldBe(mockJavaScriptParser.Object);
+        (await registry.GetParserAsync("typescript", TestContext.Current.CancellationToken)).ShouldBe(mockTypeScriptParser.Object);
+        (await registry.GetParserAsync("python", TestContext.Current.CancellationToken)).ShouldBe(mockPythonParser.Object);
     }
 
     [Fact]

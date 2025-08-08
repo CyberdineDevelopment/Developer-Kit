@@ -285,9 +285,6 @@ public sealed class SecretValue : IDisposable
     /// </summary>
     private void ThrowIfDisposed()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(SecretValue));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 }
