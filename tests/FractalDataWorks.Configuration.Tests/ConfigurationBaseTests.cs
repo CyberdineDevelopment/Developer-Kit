@@ -301,7 +301,7 @@ public class ConfigurationBaseTests
     }
 
     // Test classes
-    private class TestConfiguration : ConfigurationBase<TestConfiguration>
+    private sealed class TestConfiguration : ConfigurationBase<TestConfiguration>
     {
         public string? RequiredProperty { get; set; }
         public int ValidatorCallCount { get; private set; }
@@ -315,7 +315,7 @@ public class ConfigurationBaseTests
         }
     }
 
-    private class TestConfigurationValidator : AbstractValidator<TestConfiguration>
+    private sealed class TestConfigurationValidator : AbstractValidator<TestConfiguration>
     {
         public TestConfigurationValidator()
         {
@@ -326,7 +326,7 @@ public class ConfigurationBaseTests
         }
     }
 
-    private class NoValidatorConfiguration : ConfigurationBase<NoValidatorConfiguration>
+    private sealed class NoValidatorConfiguration : ConfigurationBase<NoValidatorConfiguration>
     {
         public override string SectionName => "NoValidator";
 

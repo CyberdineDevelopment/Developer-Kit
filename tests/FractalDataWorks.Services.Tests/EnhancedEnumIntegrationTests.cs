@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -115,15 +116,18 @@ public class EnhancedEnumIntegrationTests
         public string Id => Guid.NewGuid().ToString();
         public string ServiceType => "TestService";
         public bool IsAvailable => true;
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface implementation")]
         public string Name => "TestService";
 
         public string TestMethod() => "Test";
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface implementation")]
         public Task<IFdwResult> Execute(ICommand command, CancellationToken cancellationToken)
         {
             return Task.FromResult<IFdwResult>(FdwResult.Success());
         }
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface implementation")]
         public Task<IFdwResult<TOut>> Execute<TOut>(ICommand command, CancellationToken cancellationToken)
         {
             return Task.FromResult<IFdwResult<TOut>>(FdwResult<TOut>.Success(default(TOut)!));
@@ -142,6 +146,7 @@ public class EnhancedEnumIntegrationTests
         public bool Validate() => IsValid;
         
         public IFdwConfiguration Clone() => new TestConfiguration { IsValid = IsValid };
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface implementation")]
         public void CopyTo(IFdwConfiguration target) { }
     }
 

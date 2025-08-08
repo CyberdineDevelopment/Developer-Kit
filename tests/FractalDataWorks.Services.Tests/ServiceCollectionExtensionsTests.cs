@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -336,13 +337,16 @@ public class ServiceCollectionExtensionsTests
         public string Id => Guid.NewGuid().ToString();
         public string ServiceType => "TestService";
         public bool IsAvailable => true;
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface implementation")]
         public string Name => "TestService";
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface implementation")]
         public Task<IFdwResult<TOut>> Execute<TOut>(ICommand command, CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IFdwResult<TOut>>(FdwResult<TOut>.Success(default(TOut)!));
         }
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Interface implementation")]
         public Task<IFdwResult> Execute(ICommand command, CancellationToken cancellationToken = default)
         {
             return Task.FromResult<IFdwResult>(FdwResult.Success());

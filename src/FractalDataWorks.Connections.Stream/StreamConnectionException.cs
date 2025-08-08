@@ -5,7 +5,7 @@ namespace FractalDataWorks.Connections.Stream;
 /// <summary>
 /// Represents errors that occur during stream operations.
 /// </summary>
-public class StreamConnectionError : Exception
+public class StreamConnectionException : Exception
 {
     /// <summary>
     /// Gets the operation that failed.
@@ -18,52 +18,52 @@ public class StreamConnectionError : Exception
     public StreamErrorCode ErrorCode { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// Initializes a new instance of the <see cref="StreamConnectionException"/> class.
     /// </summary>
-    public StreamConnectionError()
+    public StreamConnectionException()
     {
         ErrorCode = StreamErrorCode.Unknown;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// Initializes a new instance of the <see cref="StreamConnectionException"/> class.
     /// </summary>
     /// <param name="message">The error message.</param>
-    public StreamConnectionError(string message)
+    public StreamConnectionException(string message)
         : base(message)
     {
         ErrorCode = StreamErrorCode.Unknown;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// Initializes a new instance of the <see cref="StreamConnectionException"/> class.
     /// </summary>
     /// <param name="message">The error message.</param>
     /// <param name="innerException">The inner exception.</param>
-    public StreamConnectionError(string message, Exception innerException)
+    public StreamConnectionException(string message, Exception innerException)
         : base(message, innerException)
     {
         ErrorCode = StreamErrorCode.Unknown;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// Initializes a new instance of the <see cref="StreamConnectionException"/> class.
     /// </summary>
     /// <param name="message">The error message.</param>
     /// <param name="errorCode">The error code.</param>
-    public StreamConnectionError(string message, StreamErrorCode errorCode)
+    public StreamConnectionException(string message, StreamErrorCode errorCode)
         : base(message)
     {
         ErrorCode = errorCode;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// Initializes a new instance of the <see cref="StreamConnectionException"/> class.
     /// </summary>
     /// <param name="message">The error message.</param>
     /// <param name="errorCode">The error code.</param>
     /// <param name="operation">The operation that failed.</param>
-    public StreamConnectionError(string message, StreamErrorCode errorCode, StreamOperation operation)
+    public StreamConnectionException(string message, StreamErrorCode errorCode, StreamOperation operation)
         : base(message)
     {
         ErrorCode = errorCode;
@@ -71,12 +71,12 @@ public class StreamConnectionError : Exception
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StreamConnectionError"/> class.
+    /// Initializes a new instance of the <see cref="StreamConnectionException"/> class.
     /// </summary>
     /// <param name="message">The error message.</param>
     /// <param name="errorCode">The error code.</param>
     /// <param name="innerException">The inner exception.</param>
-    public StreamConnectionError(string message, StreamErrorCode errorCode, Exception innerException)
+    public StreamConnectionException(string message, StreamErrorCode errorCode, Exception innerException)
         : base(message, innerException)
     {
         ErrorCode = errorCode;
