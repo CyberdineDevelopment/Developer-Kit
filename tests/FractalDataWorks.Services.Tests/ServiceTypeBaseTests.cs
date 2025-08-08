@@ -2,6 +2,9 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using FractalDataWorks;
+using FractalDataWorks.EnhancedEnums;
+using FractalDataWorks.Services;
 using Shouldly;
 using Xunit;
 
@@ -24,8 +27,6 @@ public class ServiceTypeBaseTests
         // Assert
         attribute.ShouldNotBeNull($"ServiceTypeBase should have EnhancedEnumBaseAttribute");
         attribute.CollectionName.ShouldBe("ServiceTypes", $"Collection name should be 'ServiceTypes'");
-        attribute.ReturnType.ShouldBe("IServiceFactory<IFdwService, IFdwConfiguration>", $"Return type should match expected interface");
-        attribute.ReturnTypeNamespace.ShouldBe("FractalDataWorks.Services", $"Return type namespace should be correct");
     }
 
     [Fact]

@@ -15,7 +15,7 @@ public static class FdwResultLoggingExtensions
     /// <param name="message">The failure message.</param>
     /// <param name="logLevel">The log level (defaults to Error).</param>
     /// <returns>A failed result.</returns>
-    public static FdwResult FailureWithLog(this ILogger logger, string message, LogLevel logLevel = LogLevel.Error)
+    public static IFdwResult FailureWithLog(this ILogger logger, string message, LogLevel logLevel = LogLevel.Error)
     {
         logger.Log(logLevel, message);
         return FdwResult.Failure(message);
@@ -29,7 +29,7 @@ public static class FdwResultLoggingExtensions
     /// <param name="message">The failure message.</param>
     /// <param name="logLevel">The log level (defaults to Error).</param>
     /// <returns>A failed result.</returns>
-    public static FdwResult FailureWithLog(this ILogger logger, Exception exception, string message, LogLevel logLevel = LogLevel.Error)
+    public static IFdwResult FailureWithLog(this ILogger logger, Exception exception, string message, LogLevel logLevel = LogLevel.Error)
     {
         logger.Log(logLevel, exception, message);
         return FdwResult.Failure(message);
@@ -43,7 +43,7 @@ public static class FdwResultLoggingExtensions
     /// <param name="message">The failure message.</param>
     /// <param name="logLevel">The log level (defaults to Error).</param>
     /// <returns>A failed result.</returns>
-    public static FdwResult<T> FailureWithLog<T>(this ILogger logger, string message, LogLevel logLevel = LogLevel.Error)
+    public static IFdwResult<T> FailureWithLog<T>(this ILogger logger, string message, LogLevel logLevel = LogLevel.Error)
     {
         logger.Log(logLevel, message);
         return FdwResult<T>.Failure(message);
@@ -58,7 +58,7 @@ public static class FdwResultLoggingExtensions
     /// <param name="message">The failure message.</param>
     /// <param name="logLevel">The log level (defaults to Error).</param>
     /// <returns>A failed result.</returns>
-    public static FdwResult<T> FailureWithLog<T>(this ILogger logger, Exception exception, string message, LogLevel logLevel = LogLevel.Error)
+    public static IFdwResult<T> FailureWithLog<T>(this ILogger logger, Exception exception, string message, LogLevel logLevel = LogLevel.Error)
     {
         logger.Log(logLevel, exception, message);
         return FdwResult<T>.Failure(message);
@@ -73,7 +73,7 @@ public static class FdwResultLoggingExtensions
     /// <param name="message">Optional success message.</param>
     /// <param name="logLevel">The log level (defaults to Information).</param>
     /// <returns>A successful result.</returns>
-    public static FdwResult<T> SuccessWithLog<T>(this ILogger logger, T value, string? message = null, LogLevel logLevel = LogLevel.Information)
+    public static IFdwResult<T> SuccessWithLog<T>(this ILogger logger, T value, string? message = null, LogLevel logLevel = LogLevel.Information)
     {
         if (message is not null)
         {

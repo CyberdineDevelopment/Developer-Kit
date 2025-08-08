@@ -24,13 +24,13 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     /// Initializes a new instance of the <see cref="StreamConnection"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    /// <param name="configurations">The configuration registry.</param>
+    /// <param name="configuration">The configuration instance.</param>
     public StreamConnection(
         ILogger<StreamConnection>? logger,
-        IConfigurationRegistry<StreamConnectionConfiguration> configurations)
-        : base(logger, configurations)
+        StreamConnectionConfiguration configuration)
+        : base(logger, configuration)
     {
-        _configuration = Configuration;
+        _configuration = configuration;
     }
 
     /// <inheritdoc/>
@@ -204,7 +204,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         if (!stream.CanRead)
         {
             StreamConnectionLog.StreamOperationFailed(Logger);
-            return FdwResult.Failure<TResult>("Stream operation failed");
+            return FdwResult<TResult>.Failure("Stream operation failed");
         }
 
         var buffer = new byte[command.BufferSize ?? _configuration.BufferSize];
@@ -224,7 +224,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         }
         
         StreamConnectionLog.StreamOperationFailed(Logger);
-        return FdwResult.Failure<TResult>("Stream operation failed");
+        return FdwResult<TResult>.Failure("Stream operation failed");
     }
 
     private async Task<IFdwResult<TResult>> ExecuteWriteAsync<TResult>(
@@ -235,13 +235,13 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         if (!stream.CanWrite)
         {
             StreamConnectionLog.StreamOperationFailed(Logger);
-            return FdwResult.Failure<TResult>("Stream operation failed");
+            return FdwResult<TResult>.Failure("Stream operation failed");
         }
 
         if (command.Data == null)
         {
             StreamConnectionLog.StreamOperationFailed(Logger);
-            return FdwResult.Failure<TResult>("Stream operation failed");
+            return FdwResult<TResult>.Failure("Stream operation failed");
         }
 
         await stream.WriteAsync(command.Data, 0, command.Data.Length, cancellationToken).ConfigureAwait(false);
@@ -267,7 +267,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         if (!stream.CanSeek)
         {
             StreamConnectionLog.StreamOperationFailed(Logger);
-            return FdwResult.Failure<TResult>("Stream operation failed");
+            return FdwResult<TResult>.Failure("Stream operation failed");
         }
 
         var newPosition = stream.Seek(command.Position ?? 0, command.SeekOrigin ?? SeekOrigin.Begin);

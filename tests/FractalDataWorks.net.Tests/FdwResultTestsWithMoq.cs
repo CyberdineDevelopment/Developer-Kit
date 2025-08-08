@@ -60,20 +60,25 @@ public class FdwResultTestsWithMoq
     {
         // Arrange
         var mockMessage = new Mock<IFdwMessage>();
+        const string expectedMessage = "Test error message";
+        mockMessage.Setup(m => m.Message).Returns(expectedMessage);
 
         // Act
         var result = FdwResult.Failure(mockMessage.Object);
 
         // Assert
-        result.Message.ShouldBe(mockMessage.Object, $"Expected Message to be the provided message");
+        result.Message.ShouldBe(expectedMessage, $"Expected Message to be the provided message");
     }
 
     [Fact]
-    public void FailureThrowsArgumentNullExceptionForNullMessage()
+    public void FailureHandlesNullMessageGracefully()
     {
-        // Act & Assert
-        var exception = Should.Throw<ArgumentNullException>(() => FdwResult.Failure(null!));
-        exception.ParamName.ShouldBe("message", $"Expected parameter name to be 'message'");
+        // Act
+        var result = FdwResult.Failure((string)null!);
+        
+        // Assert
+        result.IsFailure.ShouldBeTrue("Expected result to be failure");
+        result.Message.ShouldBe(string.Empty, "Expected null message to be converted to empty string");
     }
 
     [Fact]

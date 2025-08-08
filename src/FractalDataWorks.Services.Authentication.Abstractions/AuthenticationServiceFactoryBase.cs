@@ -9,7 +9,7 @@ namespace FractalDataWorks.Services.Authentication.Abstractions;
 /// <typeparam name="TAuthenticationConfiguration">The authentication configuration type.</typeparam>
 public abstract class AuthenticationServiceFactoryBase<TAuthenticationService, TAuthenticationConfiguration>
     : ServiceFactoryBase, IServiceFactory<TAuthenticationService, TAuthenticationConfiguration>
-    where TAuthenticationService : IAuthenticationService
+    where TAuthenticationService : IAuthenticationService<IAuthenticationCommand>, IAuthenticationService
     where TAuthenticationConfiguration : IAuthenticationConfiguration
 {
     /// <summary>
@@ -42,7 +42,22 @@ public abstract class AuthenticationServiceFactoryBase<TAuthenticationService, T
     public abstract Task<TAuthenticationService> GetService(int configurationId);
 
     /// <inheritdoc/>
-    public new IFdwResult<TAuthenticationService> Create(IFdwConfiguration configuration)
+    public override IFdwResult<IFdwService> Create(IFdwConfiguration configuration)
+    {
+        if (configuration is TAuthenticationConfiguration authConfig)
+        {
+            var result = Create(authConfig);
+            if (result.IsSuccess)
+            {
+                return FdwResult<IFdwService>.Success(result.Value!);
+            }
+            return FdwResult<IFdwService>.Failure(result.Message!);
+        }
+        return FdwResult<IFdwService>.Failure("Invalid configuration type.");
+    }
+
+    /// <inheritdoc/>
+    IFdwResult<TAuthenticationService> IServiceFactory<TAuthenticationService>.Create(IFdwConfiguration configuration)
     {
         if (configuration is TAuthenticationConfiguration authConfig)
         {

@@ -17,4 +17,8 @@
     <PackageReference Include="FractalDataWorks.EnhancedEnums.SourceGenerator" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Logging\" />
+  </ItemGroup>
+
 </Project>

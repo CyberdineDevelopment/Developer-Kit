@@ -41,14 +41,21 @@ public class FdwResult : IFdwResult
     /// Creates a successful result.
     /// </summary>
     /// <returns>A successful result.</returns>
-    public static FdwResult Success() => new(true);
+    public static IFdwResult Success() => new FdwResult(true);
 
     /// <summary>
     /// Creates a failed result with a message.
     /// </summary>
     /// <param name="message">The failure message.</param>
     /// <returns>A failed result.</returns>
-    public static FdwResult Failure(string message) => new(false, message);
+    public static IFdwResult Failure(string message) => new FdwResult(false, message);
+
+    /// <summary>
+    /// Creates a failed result with an IFdwMessage.
+    /// </summary>
+    /// <param name="message">The failure message object.</param>
+    /// <returns>A failed result.</returns>
+    public static IFdwResult Failure(IFdwMessage message) => new FdwResult(false, message?.Message);
 
 }
 
@@ -88,7 +95,7 @@ public class FdwResult<TResult> : FdwResult, IFdwResult<TResult>
     /// </summary>
     /// <param name="value">The value.</param>
     /// <returns>A successful result.</returns>
-    public static FdwResult<TResult> Success(TResult value) => new(true, value);
+    public static IFdwResult<TResult> Success(TResult value) => new FdwResult<TResult>(true, value);
 
     /// <summary>
     /// Creates a failed result with a message.
@@ -96,14 +103,21 @@ public class FdwResult<TResult> : FdwResult, IFdwResult<TResult>
     /// <param name="message">The failure message.</param>
     /// <typeparam name="T">The type of the result</typeparam>
     /// <returns>A failed result.</returns>
-    public static FdwResult<T> Failure<T>(string message) => new(false, default!, message);
+    public static IFdwResult<T> Failure<T>(string message) => new FdwResult<T>(false, default!, message);
 
     /// <summary>
     /// Creates a failed result with a message.
     /// </summary>
     /// <param name="message">The failure message.</param>
     /// <returns>A failed result.</returns>
-    public new static FdwResult<TResult> Failure(string message) => new(false, default!, message);
+    public new static IFdwResult<TResult> Failure(string message) => new FdwResult<TResult>(false, default!, message);
+
+    /// <summary>
+    /// Creates a failed result with an IFdwMessage.
+    /// </summary>
+    /// <param name="message">The failure message object.</param>
+    /// <returns>A failed result.</returns>
+    public new static IFdwResult<TResult> Failure(IFdwMessage message) => new FdwResult<TResult>(false, default!, message?.Message);
 
 
     /// <inheritdoc/>

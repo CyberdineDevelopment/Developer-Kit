@@ -68,8 +68,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FractalDataWorks.Services.D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FractalDataWorks.Services.SecretManagement.Abstractions", "src\FractalDataWorks.Services.SecretManagement.Abstractions\FractalDataWorks.Services.SecretManagement.Abstractions.csproj", "{1E39798F-1CF5-4D0F-8904-63ED6ECFDAB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FractalDataWorks.Services.Authentication.Abstractions", "src\FractalDataWorks.Services.Authentication.Abstractions\FractalDataWorks.Services.Authentication.Abstractions.csproj", "{383A13B8-75CE-4C4B-BE35-78E7B868443C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FractalDataWorks.Services.Transformations.Abstractions", "src\FractalDataWorks.Services.Transformations.Abstractions\FractalDataWorks.Services.Transformations.Abstractions.csproj", "{18B3D76C-A257-4F10-8D88-34E06856C715}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FractalDataWorks.Services.Scheduling.Abstractions", "src\FractalDataWorks.Services.Scheduling.Abstractions\FractalDataWorks.Services.Scheduling.Abstractions.csproj", "{0FD111E4-3A9D-4EC0-9A28-318FEC253E28}"
@@ -860,42 +858,6 @@ Global
 		{1E39798F-1CF5-4D0F-8904-63ED6ECFDAB9}.Release|x64.Build.0 = Release|Any CPU
 		{1E39798F-1CF5-4D0F-8904-63ED6ECFDAB9}.Release|x86.ActiveCfg = Release|Any CPU
 		{1E39798F-1CF5-4D0F-8904-63ED6ECFDAB9}.Release|x86.Build.0 = Release|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Alpha|Any CPU.ActiveCfg = Alpha|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Alpha|Any CPU.Build.0 = Alpha|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Alpha|x64.ActiveCfg = Alpha|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Alpha|x64.Build.0 = Alpha|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Alpha|x86.ActiveCfg = Alpha|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Alpha|x86.Build.0 = Alpha|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Beta|Any CPU.ActiveCfg = Beta|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Beta|Any CPU.Build.0 = Beta|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Beta|x64.ActiveCfg = Beta|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Beta|x64.Build.0 = Beta|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Beta|x86.ActiveCfg = Beta|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Beta|x86.Build.0 = Beta|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Debug|x64.Build.0 = Debug|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Debug|x86.Build.0 = Debug|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Experimental|Any CPU.ActiveCfg = Experimental|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Experimental|Any CPU.Build.0 = Experimental|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Experimental|x64.ActiveCfg = Experimental|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Experimental|x64.Build.0 = Experimental|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Experimental|x86.ActiveCfg = Experimental|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Experimental|x86.Build.0 = Experimental|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Preview|Any CPU.ActiveCfg = Preview|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Preview|Any CPU.Build.0 = Preview|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Preview|x64.ActiveCfg = Preview|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Preview|x64.Build.0 = Preview|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Preview|x86.ActiveCfg = Preview|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Preview|x86.Build.0 = Preview|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Release|x64.ActiveCfg = Release|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Release|x64.Build.0 = Release|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Release|x86.ActiveCfg = Release|Any CPU
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C}.Release|x86.Build.0 = Release|Any CPU
 		{18B3D76C-A257-4F10-8D88-34E06856C715}.Alpha|Any CPU.ActiveCfg = Alpha|Any CPU
 		{18B3D76C-A257-4F10-8D88-34E06856C715}.Alpha|Any CPU.Build.0 = Alpha|Any CPU
 		{18B3D76C-A257-4F10-8D88-34E06856C715}.Alpha|x64.ActiveCfg = Alpha|Any CPU
@@ -1104,7 +1066,6 @@ Global
 		{586F1E83-5F8D-411E-89EA-62F8EB80497D} = {178555D8-32F9-C996-44E5-7167B75726FB}
 		{9F736A00-4A4C-4A66-B987-0D8413DC892C} = {178555D8-32F9-C996-44E5-7167B75726FB}
 		{1E39798F-1CF5-4D0F-8904-63ED6ECFDAB9} = {178555D8-32F9-C996-44E5-7167B75726FB}
-		{383A13B8-75CE-4C4B-BE35-78E7B868443C} = {178555D8-32F9-C996-44E5-7167B75726FB}
 		{18B3D76C-A257-4F10-8D88-34E06856C715} = {178555D8-32F9-C996-44E5-7167B75726FB}
 		{0FD111E4-3A9D-4EC0-9A28-318FEC253E28} = {178555D8-32F9-C996-44E5-7167B75726FB}
 		{639E4DE2-91BA-4B59-9A4B-F140C5D96F97} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}

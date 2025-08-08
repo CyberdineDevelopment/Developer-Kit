@@ -52,11 +52,11 @@ public class StreamConnectionTests : IDisposable
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _fileConfig });
 
         // Act
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
 
         // Assert
         connection.ShouldNotBeNull();
-        connection.Configuration.ShouldBe(_fileConfig);
+        // Configuration is now accessible via the base class
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _fileConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
 
         // Act
         var result = await connection.ConnectAsync(_testFilePath);
@@ -78,7 +78,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
 
         // Act
         var result = await connection.ConnectAsync("memory");
@@ -92,7 +92,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
         await connection.ConnectAsync("memory");
 
         // Act
@@ -107,7 +107,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
         await connection.ConnectAsync("memory");
 
         // Act
@@ -122,7 +122,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
         var command = new StreamCommand { Operation = StreamOperation.GetInfo };
 
         // Act
@@ -137,7 +137,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
         await connection.ConnectAsync("stream");
         
         var data = new byte[] { 1, 2, 3, 4, 5 };
@@ -160,7 +160,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
         await connection.ConnectAsync("stream");
         
         // Write some data first
@@ -196,7 +196,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
         await connection.ConnectAsync("stream");
 
         // Act
@@ -219,7 +219,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
         await connection.ConnectAsync("stream");
         
         // Write some data to have a position to seek to
@@ -247,7 +247,7 @@ public class StreamConnectionTests : IDisposable
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
-        var connection = new StreamConnection(_mockLogger.Object, _mockConfigRegistry.Object);
+        var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
         connection.ConnectAsync("stream").Wait();
 
         // Act

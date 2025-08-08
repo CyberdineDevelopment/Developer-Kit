@@ -6,15 +6,24 @@ using System.Threading.Tasks;
 namespace FractalDataWorks.Services.Scheduling.Abstractions;
 
 /// <summary>
+/// Non-generic marker interface for schedulers.
+/// </summary>
+public interface IScheduler : IFdwService
+{
+}
+
+/// <summary>
 /// Interface for schedulers in the FractalDataWorks framework.
 /// Provides task scheduling, execution management, and monitoring capabilities.
 /// </summary>
+/// <typeparam name="TScheduleCommand">The schedule command type.</typeparam>
 /// <remarks>
 /// Schedulers manage the execution of tasks, jobs, and workflows within the framework.
 /// They handle timing, dependencies, resource allocation, and execution coordination
 /// to ensure reliable and efficient processing of scheduled operations.
 /// </remarks>
-public interface IScheduler : IFdwService
+public interface IScheduler<TScheduleCommand> : IScheduler, IFdwService<TScheduleCommand>
+    where TScheduleCommand : IScheduleCommand
 {
     /// <summary>
     /// Gets the scheduling strategies supported by this scheduler.

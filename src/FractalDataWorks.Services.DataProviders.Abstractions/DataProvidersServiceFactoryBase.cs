@@ -10,7 +10,7 @@ namespace FractalDataWorks.Services.DataProviders.Abstractions;
 /// <typeparam name="TDataProvidersConfiguration">The data providers configuration type.</typeparam>
 public abstract class DataProvidersServiceFactoryBase<TDataService, TDataProvidersConfiguration>
     : ServiceFactoryBase, IServiceFactory<TDataService, TDataProvidersConfiguration>
-    where TDataService : IDataService
+    where TDataService : IDataService<IDataCommand>, IDataService
     where TDataProvidersConfiguration : IDataProvidersConfiguration
 {
     /// <summary>
@@ -43,7 +43,22 @@ public abstract class DataProvidersServiceFactoryBase<TDataService, TDataProvide
     public abstract Task<TDataService> GetService(int configurationId);
 
     /// <inheritdoc/>
-    public new IFdwResult<TDataService> Create(IFdwConfiguration configuration)
+    public override IFdwResult<IFdwService> Create(IFdwConfiguration configuration)
+    {
+        if (configuration is TDataProvidersConfiguration dataConfig)
+        {
+            var result = Create(dataConfig);
+            if (result.IsSuccess)
+            {
+                return FdwResult<IFdwService>.Success(result.Value!);
+            }
+            return FdwResult<IFdwService>.Failure(result.Message!);
+        }
+        return FdwResult<IFdwService>.Failure("Invalid configuration type.");
+    }
+
+    /// <inheritdoc/>
+    IFdwResult<TDataService> IServiceFactory<TDataService>.Create(IFdwConfiguration configuration)
     {
         if (configuration is TDataProvidersConfiguration dataConfig)
         {

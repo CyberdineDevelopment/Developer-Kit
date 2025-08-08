@@ -9,8 +9,8 @@ namespace FractalDataWorks.Services.DataProviders.Abstractions;
 /// <typeparam name="TDataProvidersConfiguration">The data providers configuration type.</typeparam>
 public abstract class DataProvidersServiceTypeBase<TDataService, TDataProvidersConfiguration>
     : ServiceTypeBase<TDataService, TDataProvidersConfiguration>
-    where TDataService : IDataService
-    where TDataProvidersConfiguration : IDataProvidersConfiguration
+    where TDataService : class, IDataService
+    where TDataProvidersConfiguration : class, IDataProvidersConfiguration
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="DataProvidersServiceTypeBase{TDataService, TDataProvidersConfiguration}"/> class.

@@ -89,13 +89,13 @@ public class ConfigurationBaseTests
     }
 
     [Fact]
-    public async Task ValidateAsyncReturnsSuccessForDisabledConfiguration()
+    public async Task ValidateReturnsSuccessForDisabledConfiguration()
     {
         // Arrange
         var config = new TestConfiguration { IsEnabled = false };
 
         // Act
-        var result = await config.ValidateAsync();
+        var result = await config.Validate();
 
         // Assert
         result.IsValid.ShouldBeTrue();
@@ -103,7 +103,7 @@ public class ConfigurationBaseTests
     }
 
     [Fact]
-    public async Task ValidateAsyncReturnsSuccessForValidConfiguration()
+    public async Task ValidateReturnsSuccessForValidConfiguration()
     {
         // Arrange
         var config = new TestConfiguration 
@@ -113,7 +113,7 @@ public class ConfigurationBaseTests
         };
 
         // Act
-        var result = await config.ValidateAsync();
+        var result = await config.Validate();
 
         // Assert
         result.IsValid.ShouldBeTrue();
@@ -121,7 +121,7 @@ public class ConfigurationBaseTests
     }
 
     [Fact]
-    public async Task ValidateAsyncReturnsFailureForInvalidConfiguration()
+    public async Task ValidateReturnsFailureForInvalidConfiguration()
     {
         // Arrange
         var config = new TestConfiguration 
@@ -131,7 +131,7 @@ public class ConfigurationBaseTests
         };
 
         // Act
-        var result = await config.ValidateAsync();
+        var result = await config.Validate();
 
         // Assert
         result.IsValid.ShouldBeFalse();
@@ -242,13 +242,13 @@ public class ConfigurationBaseTests
     }
 
     [Fact]
-    public async Task ValidateAsyncWithNoValidatorReturnsSuccess()
+    public async Task ValidateWithNoValidatorReturnsSuccess()
     {
         // Arrange
         var config = new NoValidatorConfiguration { IsEnabled = true };
 
         // Act
-        var result = await config.ValidateAsync();
+        var result = await config.Validate();
 
         // Assert
         result.IsValid.ShouldBeTrue();

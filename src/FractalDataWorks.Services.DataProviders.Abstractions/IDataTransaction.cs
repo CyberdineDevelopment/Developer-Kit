@@ -75,7 +75,7 @@ public interface IDataTransaction : IDisposable
     /// The owning provider handles transaction execution and ensures proper
     /// coordination with the underlying data store technology.
     /// </remarks>
-    IDataProvider Provider { get; }
+    IDataService Provider { get; }
     
     /// <summary>
     /// Executes a data command within this transaction scope.
