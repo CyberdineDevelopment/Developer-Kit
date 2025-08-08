@@ -22,7 +22,7 @@ public interface ISecretCommand : ICommand
     /// This identifier is used for command tracking, logging, and debugging purposes.
     /// It should remain constant for the lifetime of the command instance.
     /// </remarks>
-    string CommandId { get; }
+    new string CommandId { get; }
     
     /// <summary>
     /// Gets the type of operation this command represents.
@@ -115,7 +115,7 @@ public interface ISecretCommand : ICommand
     /// to secret providers. It can check parameter completeness, value formats,
     /// security requirements, and other command-specific validation rules.
     /// </remarks>
-    IFdwResult Validate();
+    new IFdwResult Validate();
     
     /// <summary>
     /// Creates a copy of this command with modified parameters.

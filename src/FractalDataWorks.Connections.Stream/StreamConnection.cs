@@ -18,7 +18,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
 {
     private readonly StreamConnectionConfiguration _configuration;
     private System.IO.Stream? _stream;
-    private readonly object _streamLock = new();
+    private readonly System.Threading.Lock _streamLock = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamConnection"/> class.
@@ -38,7 +38,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     {
         try
         {
-            lock (_streamLock)
+            using (_streamLock.EnterScope())
             {
                 if (_stream != null && _stream.CanRead)
                 {
@@ -54,10 +54,16 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
 
             var stream = await CreateStreamAsync(cancellationToken).ConfigureAwait(false);
             
-            lock (_streamLock)
+            System.IO.Stream? oldStream;
+            using (_streamLock.EnterScope())
             {
-                _stream?.Dispose();
+                oldStream = _stream;
                 _stream = stream;
+            }
+            
+            if (oldStream != null)
+            {
+                await oldStream.DisposeAsync().ConfigureAwait(false);
             }
 
             return FdwResult.Success();
@@ -74,13 +80,19 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     {
         try
         {
-            lock (_streamLock)
+            System.IO.Stream? streamToDispose;
+            using (_streamLock.EnterScope())
             {
-                _stream?.Dispose();
+                streamToDispose = _stream;
                 _stream = null;
             }
+            
+            if (streamToDispose != null)
+            {
+                await streamToDispose.DisposeAsync().ConfigureAwait(false);
+            }
 
-            return await Task.FromResult(FdwResult.Success());
+            return FdwResult.Success();
         }
         catch (Exception)
         {
@@ -89,12 +101,12 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     }
 
     /// <inheritdoc/>
-    protected override async Task<IFdwResult> OnTestConnectionAsync(CancellationToken cancellationToken)
+    protected override Task<IFdwResult> OnTestConnectionAsync(CancellationToken cancellationToken)
     {
         try
         {
             System.IO.Stream? stream;
-            lock (_streamLock)
+            using (_streamLock.EnterScope())
             {
                 stream = _stream;
             }
@@ -107,7 +119,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
             // Test if we can still use the stream
             if (stream.CanRead || stream.CanWrite)
             {
-                return await Task.FromResult(FdwResult.Success());
+                return FdwResult.Success();
             }
 
             StreamConnectionLog.StreamOperationFailed(Logger);
@@ -126,7 +138,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         try
         {
             System.IO.Stream? stream;
-            lock (_streamLock)
+            using (_streamLock.EnterScope())
             {
                 stream = _stream;
             }
@@ -138,10 +150,10 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
 
             return command.Operation switch
             {
-                StreamOperation.Read => await ExecuteReadAsync<T>(stream, command, CancellationToken.None),
-                StreamOperation.Write => await ExecuteWriteAsync<T>(stream, command, CancellationToken.None),
-                StreamOperation.Seek => await ExecuteSeekAsync<T>(stream, command, CancellationToken.None),
-                StreamOperation.GetInfo => await ExecuteGetInfoAsync<T>(stream, command, CancellationToken.None),
+                StreamOperation.Read => await ExecuteReadAsync<T>(stream, command, CancellationToken.None).ConfigureAwait(false),
+                StreamOperation.Write => await ExecuteWriteAsync<T>(stream, command, CancellationToken.None).ConfigureAwait(false),
+                StreamOperation.Seek => await ExecuteSeekAsync<T>(stream, command, CancellationToken.None).ConfigureAwait(false),
+                StreamOperation.GetInfo => await ExecuteGetInfoAsync<T>(stream, command, CancellationToken.None).ConfigureAwait(false),
                 _ => FdwResult<T>.Failure("Stream operation failed")
             };
         }
@@ -152,29 +164,29 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     }
 
     /// <inheritdoc/>
-    protected override async Task<IFdwResult<T>> ExecuteCore<T>(StreamCommand command)
+    protected override Task<IFdwResult<T>> ExecuteCore<T>(StreamCommand command)
     {
         // Delegate to OnExecuteCommandAsync which handles the actual stream operations
-        return await OnExecuteCommandAsync<T>(command);
+        return OnExecuteCommandAsync<T>(command);
     }
 
     /// <inheritdoc/>
     public override async Task<IFdwResult<TOut>> Execute<TOut>(StreamCommand command, CancellationToken cancellationToken)
     {
-        var validationResult = await ValidateCommand(command);
+        var validationResult = await ValidateCommand(command).ConfigureAwait(false);
         if (!validationResult.IsSuccess)
         {
             StreamConnectionLog.StreamCommandValidationFailed(Logger, validationResult.Message!);
             return FdwResult<TOut>.Failure(validationResult.Message!);
         }
 
-        return await ExecuteCore<TOut>(validationResult.Value);
+        return await ExecuteCore<TOut>(validationResult.Value).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public override async Task<IFdwResult> Execute(StreamCommand command, CancellationToken cancellationToken)
     {
-        var result = await Execute<object>(command, cancellationToken);
+        var result = await Execute<object>(command, cancellationToken).ConfigureAwait(false);
         return result.IsSuccess ? FdwResult.Success() : FdwResult.Failure(result.Message!);
     }
 
@@ -208,7 +220,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         }
 
         var buffer = new byte[command.BufferSize ?? _configuration.BufferSize];
-        var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
+        var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false);
         
         if (bytesRead == 0)
         {
@@ -244,7 +256,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
             return FdwResult<TResult>.Failure("Stream operation failed");
         }
 
-        await stream.WriteAsync(command.Data, 0, command.Data.Length, cancellationToken).ConfigureAwait(false);
+        await stream.WriteAsync(command.Data.AsMemory(), cancellationToken).ConfigureAwait(false);
         
         if (_configuration.AutoFlush)
         {
@@ -259,7 +271,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         return FdwResult<TResult>.Success(default(TResult)!);
     }
 
-    private async Task<IFdwResult<TResult>> ExecuteSeekAsync<TResult>(
+    private Task<IFdwResult<TResult>> ExecuteSeekAsync<TResult>(
         System.IO.Stream stream,
         StreamCommand command,
         CancellationToken cancellationToken)
@@ -267,20 +279,20 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         if (!stream.CanSeek)
         {
             StreamConnectionLog.StreamOperationFailed(Logger);
-            return FdwResult<TResult>.Failure("Stream operation failed");
+            return Task.FromResult(FdwResult<TResult>.Failure("Stream operation failed"));
         }
 
         var newPosition = stream.Seek(command.Position ?? 0, command.SeekOrigin ?? SeekOrigin.Begin);
         
         if (typeof(TResult) == typeof(long))
         {
-            return await Task.FromResult(FdwResult<TResult>.Success((TResult)(object)newPosition));
+            return Task.FromResult(FdwResult<TResult>.Success((TResult)(object)newPosition));
         }
         
-        return await Task.FromResult(FdwResult<TResult>.Success(default(TResult)!));
+        return Task.FromResult(FdwResult<TResult>.Success(default(TResult)!));
     }
 
-    private async Task<IFdwResult<TResult>> ExecuteGetInfoAsync<TResult>(
+    private Task<IFdwResult<TResult>> ExecuteGetInfoAsync<TResult>(
         System.IO.Stream stream,
         StreamCommand command,
         CancellationToken cancellationToken)
@@ -297,10 +309,10 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
         
         if (typeof(TResult) == typeof(StreamInfo))
         {
-            return await Task.FromResult(FdwResult<TResult>.Success((TResult)(object)info));
+            return Task.FromResult(FdwResult<TResult>.Success((TResult)(object)info));
         }
         
-        return await Task.FromResult(FdwResult<TResult>.Failure("Stream operation failed"));
+        return Task.FromResult(FdwResult<TResult>.Failure("Stream operation failed"));
     }
 
     /// <inheritdoc/>
@@ -308,7 +320,7 @@ public class StreamConnection : ConnectionBase<StreamCommand, StreamConnectionCo
     {
         if (disposing)
         {
-            lock (_streamLock)
+            using (_streamLock.EnterScope())
             {
                 _stream?.Dispose();
                 _stream = null;

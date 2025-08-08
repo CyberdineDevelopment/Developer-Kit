@@ -166,7 +166,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         }
 
         // Validation removed during refactoring. Assuming valid configuration.
-        // TODO: Add proper validation when reimplementing
+        _ = configuration.Validate();
 
         // Mark as modified if updating
         if (configuration.Id > 0)
@@ -252,22 +252,22 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
     }
 
     /// <inheritdoc/>
-    public virtual async Task<IValidationResult> Validate(TConfiguration configuration)
+    public virtual Task<IValidationResult> Validate(TConfiguration configuration)
     {
         if (configuration == null)
         {
-            return await Task.FromResult(new ConfigurationValidationResult(false, 
+            return Task.FromResult<IValidationResult>(new ConfigurationValidationResult(false, 
                 new[] { new ConfigurationValidationError(nameof(configuration), "Configuration cannot be null", null, ValidationSeverity.Error) }));
         }
 
         // Basic validation can be extended in derived classes
         if (string.IsNullOrWhiteSpace(configuration.Name))
         {
-            return await Task.FromResult(new ConfigurationValidationResult(false, 
+            return Task.FromResult<IValidationResult>(new ConfigurationValidationResult(false, 
                 new[] { new ConfigurationValidationError(nameof(configuration.Name), "Configuration name cannot be empty", null, ValidationSeverity.Error) }));
         }
 
-        return await Task.FromResult(new ConfigurationValidationResult(true, Array.Empty<IValidationError>()));
+        return Task.FromResult<IValidationResult>(new ConfigurationValidationResult(true, Array.Empty<IValidationError>()));
     }
 
     /// <summary>

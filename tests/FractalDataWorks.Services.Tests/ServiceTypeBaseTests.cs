@@ -150,7 +150,7 @@ public class ServiceTypeBaseTests
     }
 
     // Test implementation to verify instantiation
-    private class TestServiceType : ServiceTypeBase<IFdwService, IFdwConfiguration>
+    private sealed class TestServiceType : ServiceTypeBase<IFdwService, IFdwConfiguration>
     {
         public TestServiceType(int id, string name, string description) 
             : base(id, name, description)

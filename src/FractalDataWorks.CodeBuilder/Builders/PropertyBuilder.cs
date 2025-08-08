@@ -10,6 +10,7 @@ namespace FractalDataWorks.CodeBuilder.Builders;
 /// </summary>
 public sealed class PropertyBuilder : CodeBuilderBase, IPropertyBuilder
 {
+    private static readonly char[] NewLineSeparator = { '\n' };
     private string _name = "Property";
     private string _type = "object";
     private string _accessModifier = "public";
@@ -169,24 +170,36 @@ public sealed class PropertyBuilder : CodeBuilderBase, IPropertyBuilder
     {
         Clear();
 
-        // XML documentation
+        BuildXmlDocumentation();
+        BuildAttributes();
+        BuildPropertySignature();
+
+        return Builder.ToString().TrimEnd();
+    }
+
+    private void BuildXmlDocumentation()
+    {
         if (!string.IsNullOrEmpty(_xmlDocSummary))
         {
             AppendLine("/// <summary>");
-            foreach (var line in _xmlDocSummary.Split('\n'))
+            foreach (var line in _xmlDocSummary!.Split(NewLineSeparator, StringSplitOptions.None))
             {
                 AppendLine($"/// {line.Trim()}");
             }
             AppendLine("/// </summary>");
         }
+    }
 
-        // Attributes
+    private void BuildAttributes()
+    {
         foreach (var attribute in _attributes)
         {
             AppendLine($"[{attribute}]");
         }
+    }
 
-        // Property signature
+    private void BuildPropertySignature()
+    {
         var signature = new StringBuilder();
         signature.Append(_accessModifier);
 
@@ -204,102 +217,126 @@ public sealed class PropertyBuilder : CodeBuilderBase, IPropertyBuilder
         else
         {
             Append(signature.ToString());
+            BuildPropertyAccessors();
+            BuildPropertyInitializer();
+        }
+    }
 
-            // Property accessors
-            if (_getterBody != null || _setterBody != null)
+    private void BuildPropertyAccessors()
+    {
+        if (_getterBody != null || _setterBody != null)
+        {
+            BuildBlockAccessors();
+        }
+        else
+        {
+            BuildInlineAccessors();
+        }
+    }
+
+    private void BuildBlockAccessors()
+    {
+        AppendLine("");
+        AppendLine("{");
+        Indent();
+
+        BuildGetter();
+        BuildSetter();
+
+        Outdent();
+        Append("}");
+    }
+
+    private void BuildGetter()
+    {
+        if (!_isWriteOnly)
+        {
+            if (_getterAccessModifier != null)
+                Append($"{_getterAccessModifier} ");
+            
+            if (_getterBody != null)
             {
-                AppendLine("");
+                AppendLine("get");
                 AppendLine("{");
                 Indent();
-
-                if (!_isWriteOnly)
+                foreach (var line in _getterBody.Split(NewLineSeparator, StringSplitOptions.None))
                 {
-                    if (_getterAccessModifier != null)
-                        Append($"{_getterAccessModifier} ");
-                    
-                    if (_getterBody != null)
-                    {
-                        AppendLine("get");
-                        AppendLine("{");
-                        Indent();
-                        foreach (var line in _getterBody.Split('\n'))
-                        {
-                            AppendLine(line.TrimEnd());
-                        }
-                        Outdent();
-                        AppendLine("}");
-                    }
-                    else
-                    {
-                        AppendLine("get;");
-                    }
+                    AppendLine(line.TrimEnd());
                 }
-
-                if (!_isReadOnly)
-                {
-                    if (_setterAccessModifier != null)
-                        Append($"{_setterAccessModifier} ");
-
-                    if (_hasInitSetter)
-                    {
-                        AppendLine("init;");
-                    }
-                    else if (_setterBody != null)
-                    {
-                        AppendLine("set");
-                        AppendLine("{");
-                        Indent();
-                        foreach (var line in _setterBody.Split('\n'))
-                        {
-                            AppendLine(line.TrimEnd());
-                        }
-                        Outdent();
-                        AppendLine("}");
-                    }
-                    else
-                    {
-                        AppendLine("set;");
-                    }
-                }
-
                 Outdent();
-                Append("}");
+                AppendLine("}");
             }
             else
             {
-                Append(" { ");
-                
-                if (!_isWriteOnly)
-                {
-                    if (_getterAccessModifier != null)
-                        Append($"{_getterAccessModifier} ");
-                    Append("get; ");
-                }
-
-                if (!_isReadOnly)
-                {
-                    if (_setterAccessModifier != null)
-                        Append($"{_setterAccessModifier} ");
-                    
-                    if (_hasInitSetter)
-                        Append("init; ");
-                    else
-                        Append("set; ");
-                }
-
-                Append("}");
-            }
-
-            if (_initializer != null)
-            {
-                Append($" = {_initializer};");
-            }
-            else if (!_isAbstract)
-            {
-                AppendLine("");
+                AppendLine("get;");
             }
         }
+    }
 
-        return Builder.ToString().TrimEnd();
+    private void BuildSetter()
+    {
+        if (!_isReadOnly)
+        {
+            if (_setterAccessModifier != null)
+                Append($"{_setterAccessModifier} ");
+
+            if (_hasInitSetter)
+            {
+                AppendLine("init;");
+            }
+            else if (_setterBody != null)
+            {
+                AppendLine("set");
+                AppendLine("{");
+                Indent();
+                foreach (var line in _setterBody.Split(NewLineSeparator, StringSplitOptions.None))
+                {
+                    AppendLine(line.TrimEnd());
+                }
+                Outdent();
+                AppendLine("}");
+            }
+            else
+            {
+                AppendLine("set;");
+            }
+        }
+    }
+
+    private void BuildInlineAccessors()
+    {
+        Append(" { ");
+        
+        if (!_isWriteOnly)
+        {
+            if (_getterAccessModifier != null)
+                Append($"{_getterAccessModifier} ");
+            Append("get; ");
+        }
+
+        if (!_isReadOnly)
+        {
+            if (_setterAccessModifier != null)
+                Append($"{_setterAccessModifier} ");
+            
+            if (_hasInitSetter)
+                Append("init; ");
+            else
+                Append("set; ");
+        }
+
+        Append("}");
+    }
+
+    private void BuildPropertyInitializer()
+    {
+        if (_initializer != null)
+        {
+            Append($" = {_initializer};");
+        }
+        else if (!_isAbstract)
+        {
+            AppendLine("");
+        }
     }
 }

@@ -42,7 +42,7 @@ public static class ServiceCollectionExtensions
         while (baseType != null)
         {
             if (baseType.IsGenericType && 
-                baseType.GetGenericTypeDefinition().Name.StartsWith("ToolTypeBase"))
+                baseType.GetGenericTypeDefinition().Name.StartsWith("ToolTypeBase", StringComparison.Ordinal))
             {
                 return true;
             }
@@ -57,7 +57,7 @@ public static class ServiceCollectionExtensions
         while (baseType != null && baseType.IsGenericType)
         {
             var genericDef = baseType.GetGenericTypeDefinition();
-            if (genericDef.Name.StartsWith("ToolTypeBase"))
+            if (genericDef.Name.StartsWith("ToolTypeBase", StringComparison.Ordinal))
             {
                 var genericArgs = baseType.GetGenericArguments();
                 if (genericArgs.Length >= 2)

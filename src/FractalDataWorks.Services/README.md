@@ -477,6 +477,543 @@ foreach (var serviceType in ServiceTypes.All)
 }
 ```
 
+## ICommand Execution Flow and Patterns
+
+### Command Interface Architecture
+
+The FractalDataWorks framework uses the command pattern for all service operations. Understanding the command execution flow is critical for effective service implementation.
+
+#### Core ICommand Interface
+
+```csharp
+public interface ICommand
+{
+    Guid CommandId { get; }           // Unique identifier for this command instance
+    Guid CorrelationId { get; }       // Correlation identifier for tracking related operations
+    DateTimeOffset Timestamp { get; }  // When this command was created
+    IFdwConfiguration? Configuration { get; } // Configuration associated with this command
+    Task<IValidationResult> Validate(); // Validates this command
+}
+
+public interface ICommand<T> : ICommand
+{
+    T? Payload { get; init; }         // The command payload/data
+}
+```
+
+#### Command Execution Pipeline
+
+Every command executed through ServiceBase follows this pipeline:
+
+1. **Command Receipt**: Service receives ICommand through Execute method
+2. **Type Validation**: Command is cast to expected TCommand type
+3. **Command Validation**: Command.Validate() method is called
+4. **Configuration Validation**: Command.Configuration is validated if present
+5. **ExecuteCore Invocation**: Your implementation receives the validated command
+6. **Result Processing**: Results are wrapped and logged
+7. **Exception Handling**: Exceptions are caught, logged, and converted to failure results
+
+```csharp
+// Simplified execution flow
+public async Task<IFdwResult<T>> Execute<T>(ICommand command, CancellationToken cancellationToken)
+{
+    using (Logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = command.CorrelationId }))
+    {
+        // 1. Type validation
+        if (command is not TCommand cmd)
+            return FdwResult<T>.Failure("Invalid command type");
+        
+        // 2. Command validation
+        var validationResult = await ValidateCommand(cmd);
+        if (validationResult.Error)
+            return FdwResult<T>.Failure(validationResult.Message);
+        
+        try
+        {
+            // 3. Execute your implementation
+            var result = await ExecuteCore<T>(validationResult.Value);
+            
+            // 4. Log and return
+            if (result.IsSuccess)
+                ServiceBaseLog.CommandExecuted(Logger, cmd.GetType().Name, duration);
+            else
+                ServiceBaseLog.CommandFailed(Logger, cmd.GetType().Name, result.Message);
+                
+            return result;
+        }
+        catch (Exception ex)
+        {
+            ServiceBaseLog.OperationFailed(Logger, cmd.GetType().Name, ex.Message, ex);
+            return FdwResult<T>.Failure("Operation failed.");
+        }
+    }
+}
+```
+
+### Command Implementation Patterns
+
+#### Basic Command Implementation
+
+```csharp
+public class CustomerCommand : ICommand<CustomerRequest>
+{
+    public Guid CommandId { get; } = Guid.NewGuid();
+    public Guid CorrelationId { get; set; }
+    public DateTimeOffset Timestamp { get; } = DateTimeOffset.UtcNow;
+    public IFdwConfiguration? Configuration { get; set; }
+    public CustomerRequest? Payload { get; init; }
+    
+    public async Task<IValidationResult> Validate()
+    {
+        var result = new ValidationResult();
+        
+        if (Payload == null)
+        {
+            result.AddError("Payload is required");
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(Payload.Name))
+                result.AddError("Customer name is required");
+                
+            if (Payload.Id <= 0)
+                result.AddError("Customer ID must be positive");
+        }
+        
+        return await Task.FromResult(result);
+    }
+}
+```
+
+#### Command with FluentValidation
+
+```csharp
+public class CreateCustomerCommand : ICommand<CreateCustomerRequest>
+{
+    private readonly IValidator<CreateCustomerRequest> _validator;
+    
+    public CreateCustomerCommand(IValidator<CreateCustomerRequest> validator)
+    {
+        _validator = validator;
+        CommandId = Guid.NewGuid();
+        Timestamp = DateTimeOffset.UtcNow;
+    }
+    
+    public Guid CommandId { get; }
+    public Guid CorrelationId { get; set; }
+    public DateTimeOffset Timestamp { get; }
+    public IFdwConfiguration? Configuration { get; set; }
+    public CreateCustomerRequest? Payload { get; init; }
+    
+    public async Task<IValidationResult> Validate()
+    {
+        if (Payload == null)
+            return ValidationResult.Failed("Payload is required");
+            
+        var fluentResult = await _validator.ValidateAsync(Payload);
+        return fluentResult.ToFdwValidationResult();
+    }
+}
+```
+
+#### Command Factory Pattern
+
+```csharp
+public static class CustomerCommandFactory
+{
+    public static CustomerCommand GetCustomer(int customerId, Guid correlationId)
+    {
+        return new CustomerCommand
+        {
+            CorrelationId = correlationId,
+            Payload = new CustomerRequest { Id = customerId, Operation = "Get" }
+        };
+    }
+    
+    public static CustomerCommand UpdateCustomer(Customer customer, Guid correlationId)
+    {
+        return new CustomerCommand
+        {
+            CorrelationId = correlationId,
+            Payload = new CustomerRequest 
+            { 
+                Id = customer.Id, 
+                Name = customer.Name,
+                Operation = "Update" 
+            }
+        };
+    }
+}
+```
+
+### Command Correlation and Tracking
+
+Commands support correlation tracking for distributed operations:
+
+```csharp
+// Start a new operation
+var correlationId = Guid.NewGuid();
+
+// Create related commands with same correlation ID
+var getCustomerCmd = CustomerCommandFactory.GetCustomer(123, correlationId);
+var updateAddressCmd = AddressCommandFactory.UpdateAddress(456, correlationId);
+var sendEmailCmd = EmailCommandFactory.SendWelcomeEmail(customerEmail, correlationId);
+
+// Execute related operations
+var customer = await customerService.Execute<Customer>(getCustomerCmd);
+var address = await addressService.Execute<Address>(updateAddressCmd);  
+var email = await emailService.Execute<EmailResult>(sendEmailCmd);
+
+// All operations share the same correlation ID in logs
+```
+
+### Command Configuration Patterns
+
+Commands can carry their own configuration for flexibility:
+
+```csharp
+public class DatabaseCommand : ICommand<QueryRequest>
+{
+    public Guid CommandId { get; } = Guid.NewGuid();
+    public Guid CorrelationId { get; set; }
+    public DateTimeOffset Timestamp { get; } = DateTimeOffset.UtcNow;
+    
+    // Command can specify which database configuration to use
+    public IFdwConfiguration? Configuration { get; set; }
+    public QueryRequest? Payload { get; init; }
+    
+    // Override database configuration for this specific command
+    public string? ConnectionString { get; init; }
+    public TimeSpan? CommandTimeout { get; init; }
+    
+    public async Task<IValidationResult> Validate()
+    {
+        var result = new ValidationResult();
+        
+        // Validate both payload and configuration
+        if (Payload == null)
+            result.AddError("Query payload is required");
+            
+        if (Configuration != null && !Configuration.Validate())
+            result.AddError("Command configuration is invalid");
+            
+        return await Task.FromResult(result);
+    }
+}
+```
+
+## ServiceBase Usage Patterns
+
+### Basic Service Implementation
+
+```csharp
+public class CustomerService : ServiceBase<CustomerCommand, CustomerConfiguration, CustomerService>
+{
+    private readonly ICustomerRepository _repository;
+    private readonly IValidator<CustomerCommand> _commandValidator;
+    
+    public CustomerService(
+        ILogger<CustomerService> logger, 
+        CustomerConfiguration configuration,
+        ICustomerRepository repository,
+        IValidator<CustomerCommand> commandValidator)
+        : base(logger, configuration)
+    {
+        _repository = repository;
+        _commandValidator = commandValidator;
+    }
+    
+    protected override async Task<IFdwResult<T>> ExecuteCore<T>(CustomerCommand command)
+    {
+        return command.Payload?.Operation switch
+        {
+            "Get" => await GetCustomer<T>(command),
+            "Create" => await CreateCustomer<T>(command),
+            "Update" => await UpdateCustomer<T>(command),
+            "Delete" => await DeleteCustomer<T>(command),
+            _ => FdwResult<T>.Failure("Unknown operation")
+        };
+    }
+    
+    private async Task<IFdwResult<T>> GetCustomer<T>(CustomerCommand command)
+    {
+        var customer = await _repository.GetAsync(command.Payload!.Id);
+        if (customer == null)
+        {
+            return FdwResult<T>.Failure($"Customer {command.Payload.Id} not found");
+        }
+        
+        return FdwResult<T>.Success((T)(object)customer);
+    }
+    
+    // Additional methods for Create, Update, Delete...
+}
+```
+
+### Advanced Service with Custom Validation
+
+```csharp
+public class BankingService : ServiceBase<BankingCommand, BankingConfiguration, BankingService>
+{
+    private readonly IBankingRepository _repository;
+    private readonly IFraudDetectionService _fraudDetection;
+    
+    public BankingService(
+        ILogger<BankingService> logger,
+        BankingConfiguration configuration,
+        IBankingRepository repository,
+        IFraudDetectionService fraudDetection)
+        : base(logger, configuration)
+    {
+        _repository = repository;
+        _fraudDetection = fraudDetection;
+    }
+    
+    // Override validation to add business rules
+    protected override async Task<IFdwResult<BankingCommand>> ValidateCommand(ICommand command)
+    {
+        // First, run base validation
+        var baseResult = await base.ValidateCommand(command);
+        if (baseResult.Error) return baseResult;
+        
+        var bankingCommand = baseResult.Value!;
+        
+        // Add fraud detection validation
+        if (bankingCommand.Payload?.Operation == "Transfer" && bankingCommand.Payload.Amount > 10000)
+        {
+            var fraudResult = await _fraudDetection.CheckTransaction(bankingCommand.Payload);
+            if (fraudResult.IsHighRisk)
+            {
+                Logger.LogWarning("High-risk transaction blocked: {CorrelationId}", 
+                    bankingCommand.CorrelationId);
+                return FdwResult<BankingCommand>.Failure("Transaction blocked for security review");
+            }
+        }
+        
+        return baseResult;
+    }
+    
+    protected override async Task<IFdwResult<T>> ExecuteCore<T>(BankingCommand command)
+    {
+        // Business logic here - validation has already passed
+        return command.Payload?.Operation switch
+        {
+            "Transfer" => await ProcessTransfer<T>(command),
+            "Withdraw" => await ProcessWithdrawal<T>(command),
+            "Deposit" => await ProcessDeposit<T>(command),
+            _ => FdwResult<T>.Failure("Unknown banking operation")
+        };
+    }
+}
+```
+
+### Service with Transaction Support
+
+```csharp
+public class OrderService : ServiceBase<OrderCommand, OrderConfiguration, OrderService>
+{
+    private readonly IOrderRepository _orderRepository;
+    private readonly IInventoryRepository _inventoryRepository;
+    private readonly IPaymentService _paymentService;
+    private readonly IDbContext _dbContext;
+    
+    public OrderService(/* dependencies */) : base(logger, configuration)
+    {
+        // Initialize dependencies...
+    }
+    
+    protected override async Task<IFdwResult<T>> ExecuteCore<T>(OrderCommand command)
+    {
+        if (command.Payload?.Operation == "PlaceOrder")
+        {
+            return await PlaceOrderWithTransaction<T>(command);
+        }
+        
+        // Handle other operations...
+    }
+    
+    private async Task<IFdwResult<T>> PlaceOrderWithTransaction<T>(OrderCommand command)
+    {
+        using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        
+        try
+        {
+            // Step 1: Reserve inventory
+            var inventoryResult = await _inventoryRepository.ReserveItems(command.Payload!.Items);
+            if (inventoryResult.IsFailure)
+            {
+                return FdwResult<T>.Failure($"Inventory reservation failed: {inventoryResult.Message}");
+            }
+            
+            // Step 2: Process payment
+            var paymentResult = await _paymentService.ProcessPayment(command.Payload.Payment);
+            if (paymentResult.IsFailure)
+            {
+                return FdwResult<T>.Failure($"Payment failed: {paymentResult.Message}");
+            }
+            
+            // Step 3: Create order record
+            var order = new Order
+            {
+                CustomerId = command.Payload.CustomerId,
+                Items = command.Payload.Items,
+                PaymentId = paymentResult.Value!.PaymentId,
+                Status = OrderStatus.Confirmed
+            };
+            
+            await _orderRepository.AddAsync(order);
+            
+            // Step 4: Commit transaction
+            await transaction.CommitAsync();
+            
+            Logger.LogInformation("Order {OrderId} placed successfully for customer {CustomerId}", 
+                order.Id, order.CustomerId);
+                
+            return FdwResult<T>.Success((T)(object)order);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            Logger.LogError(ex, "Failed to place order for customer {CustomerId}", 
+                command.Payload?.CustomerId);
+            throw; // Let base class handle the exception
+        }
+    }
+}
+```
+
+### Service with Performance Monitoring
+
+```csharp
+public class ReportingService : ServiceBase<ReportCommand, ReportConfiguration, ReportingService>
+{
+    private readonly IReportingRepository _repository;
+    private readonly IMemoryCache _cache;
+    
+    public ReportingService(/* dependencies */) : base(logger, configuration)
+    {
+        // Initialize...
+    }
+    
+    protected override async Task<IFdwResult<T>> ExecuteCore<T>(ReportCommand command)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var itemsProcessed = 0;
+        
+        try
+        {
+            var result = command.Payload?.ReportType switch
+            {
+                "Sales" => await GenerateSalesReport<T>(command),
+                "Customer" => await GenerateCustomerReport<T>(command),
+                "Inventory" => await GenerateInventoryReport<T>(command),
+                _ => FdwResult<T>.Failure("Unknown report type")
+            };
+            
+            if (result.IsSuccess && result.Value is ICollection collection)
+            {
+                itemsProcessed = collection.Count;
+            }
+            
+            return result;
+        }
+        finally
+        {
+            // Log performance metrics
+            stopwatch.Stop();
+            var metrics = new PerformanceMetrics(
+                Duration: stopwatch.Elapsed.TotalMilliseconds,
+                ItemsProcessed: itemsProcessed,
+                OperationType: $"Report_{command.Payload?.ReportType}"
+            );
+            
+            ServiceBaseLog.PerformanceMetrics(Logger, metrics);
+            
+            // Log warning for slow operations
+            if (stopwatch.Elapsed.TotalSeconds > 30)
+            {
+                Logger.LogWarning("Slow report generation: {ReportType} took {Duration}ms", 
+                    command.Payload?.ReportType, stopwatch.Elapsed.TotalMilliseconds);
+            }
+        }
+    }
+}
+```
+
+### Service Health and Availability Patterns
+
+```csharp
+public class ExternalApiService : ServiceBase<ApiCommand, ApiConfiguration, ExternalApiService>
+{
+    private readonly HttpClient _httpClient;
+    private readonly ICircuitBreaker _circuitBreaker;
+    private readonly IRetryPolicy _retryPolicy;
+    private bool _lastHealthCheckPassed = true;
+    private DateTime _lastHealthCheck = DateTime.MinValue;
+    
+    public ExternalApiService(/* dependencies */) : base(logger, configuration)
+    {
+        // Initialize...
+    }
+    
+    // Override health check with circuit breaker pattern
+    public override bool IsAvailable
+    {
+        get
+        {
+            // Check every 60 seconds
+            if (DateTime.UtcNow - _lastHealthCheck > TimeSpan.FromSeconds(60))
+            {
+                _ = Task.Run(async () => await CheckHealthAsync());
+            }
+            
+            return base.IsAvailable && _lastHealthCheckPassed && !_circuitBreaker.IsOpen;
+        }
+    }
+    
+    private async Task CheckHealthAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync(_configuration.HealthCheckUrl);
+            _lastHealthCheckPassed = response.IsSuccessStatusCode;
+            _lastHealthCheck = DateTime.UtcNow;
+            
+            if (_lastHealthCheckPassed)
+            {
+                _circuitBreaker.RecordSuccess();
+            }
+            else
+            {
+                _circuitBreaker.RecordFailure();
+                Logger.LogWarning("Health check failed for external API: {StatusCode}", 
+                    response.StatusCode);
+            }
+        }
+        catch (Exception ex)
+        {
+            _lastHealthCheckPassed = false;
+            _lastHealthCheck = DateTime.UtcNow;
+            _circuitBreaker.RecordFailure();
+            Logger.LogError(ex, "Health check exception for external API");
+        }
+    }
+    
+    protected override async Task<IFdwResult<T>> ExecuteCore<T>(ApiCommand command)
+    {
+        if (!IsAvailable)
+        {
+            return FdwResult<T>.Failure("External API service is currently unavailable");
+        }
+        
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            return await ExecuteApiCall<T>(command);
+        });
+    }
+}
+```
+
 ## Advanced Scenarios
 
 ### Custom Validation

@@ -10,6 +10,7 @@ namespace FractalDataWorks.CodeBuilder.Tests;
 
 public class ClassBuilderTests
 {
+    private static readonly string[] NewLineSeparators = ["\r\n", "\n"];
     [Fact]
     public void DefaultClassDeclaration()
     {
@@ -97,7 +98,7 @@ public class ClassBuilderTests
             .Build();
 
         // Assert
-        var usingCount = result.Split('\n').Where(line => line.StartsWith("using ")).Count();
+        var usingCount = result.Split('\n').Where(line => line.StartsWith("using ", StringComparison.Ordinal)).Count();
         usingCount.ShouldBe(2);
     }
 
@@ -562,7 +563,7 @@ public class ClassBuilderTests
             .Build();
 
         // Assert
-        var lines = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        var lines = result.Split(NewLineSeparators, StringSplitOptions.None);
         lines[0].ShouldBe("public class EmptyClass");
         lines[1].ShouldBe("{");
         lines[2].ShouldBe("}");

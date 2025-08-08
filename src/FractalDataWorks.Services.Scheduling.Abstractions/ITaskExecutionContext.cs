@@ -62,14 +62,15 @@ public interface ITaskExecutionContext
     /// </remarks>
     IServiceProvider ServiceProvider { get; }
     
-    /// <summary>
-    /// Gets the logger instance for this task execution.
-    /// </summary>
-    /// <value>A logger configured for this specific task and execution.</value>
-    /// <remarks>
-    /// The logger is pre-configured with task context information for consistent
-    /// and traceable logging during task execution.
-    /// </remarks>
+    // Logger support would be added here in the future
+    // /// <summary>
+    // /// Gets the logger instance for this task execution.
+    // /// </summary>
+    // /// <value>A logger configured for this specific task and execution.</value>
+    // /// <remarks>
+    // /// The logger is pre-configured with task context information for consistent
+    // /// and traceable logging during task execution.
+    // /// </remarks>
     // ILogger Logger { get; } // Would require Microsoft.Extensions.Logging reference
     
     /// <summary>

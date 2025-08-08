@@ -67,7 +67,7 @@ public sealed class RoslynSyntaxTree : ISyntaxTree
     /// <inheritdoc/>
     public IEnumerable<ISyntaxNode> FindNodes(string nodeType)
     {
-        return Root.DescendantNodes().Where(n => n.NodeType == nodeType);
+        return Root.DescendantNodes().Where(n => string.Equals(n.NodeType, nodeType, StringComparison.Ordinal));
     }
 
     /// <inheritdoc/>

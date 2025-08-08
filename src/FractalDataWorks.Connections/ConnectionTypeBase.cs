@@ -6,10 +6,7 @@ namespace FractalDataWorks.Connections;
 
 /// <summary>
 /// Base class for connection type definitions.
-/// Note: Enhanced Enum attributes temporarily disabled due to compatibility issues.
 /// </summary>
-// TODO: Re-enable when Enhanced Enum supports factory pattern
-// [EnhancedEnumBase("ConnectionTypes", ReturnType = "IConnectionFactory", ReturnTypeNamespace = "FractalDataWorks.Connections")]
 public abstract class ConnectionTypeBase
 {
     /// <summary>
@@ -44,10 +41,7 @@ public abstract class ConnectionTypeBase
     /// Creates a factory for this connection type.
     /// </summary>
     /// <returns>The connection factory.</returns>
-    public virtual IConnectionFactory CreateFactory()
-    {
-        throw new NotImplementedException("Enhanced Enum implementation should override this method.");
-    }
+    public abstract IConnectionFactory CreateFactory();
 }
 
 /// <summary>

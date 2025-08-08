@@ -9,7 +9,7 @@ namespace FractalDataWorks.Tests;
 /// <summary>
 /// Tests for FdwResult{T} generic class using Moq for message mocking.
 /// </summary>
-public class FdwResultOfTTestsWithMoq
+public sealed class FdwResultOfTTestsWithMoq
 {
     [Fact]
     public void SuccessCreatesResultWithValue()
@@ -202,7 +202,7 @@ public class FdwResultOfTTestsWithMoq
         result.Error.ShouldBeFalse($"Expected Error to be false due to bug in implementation");
     }
 
-    private class ComplexType
+    private sealed class ComplexType
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;

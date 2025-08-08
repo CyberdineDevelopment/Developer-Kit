@@ -38,9 +38,9 @@ public interface ICommand
 
 
 /// <summary>
-/// Represents a command that can be executed.
+/// Represents a command that can be executed with a payload.
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="T">The type of the payload carried by this command.</typeparam>
 public interface ICommand<T> : ICommand
 {
     /// <summary>

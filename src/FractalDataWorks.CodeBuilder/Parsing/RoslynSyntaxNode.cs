@@ -91,13 +91,13 @@ public sealed class RoslynSyntaxNode : ISyntaxNode
     /// <inheritdoc/>
     public ISyntaxNode? FindChild(string nodeType)
     {
-        return Children.FirstOrDefault(c => c.NodeType == nodeType);
+        return Children.FirstOrDefault(c => string.Equals(c.NodeType, nodeType, StringComparison.Ordinal));
     }
 
     /// <inheritdoc/>
     public IEnumerable<ISyntaxNode> FindChildren(string nodeType)
     {
-        return Children.Where(c => c.NodeType == nodeType);
+        return Children.Where(c => string.Equals(c.NodeType, nodeType, StringComparison.Ordinal));
     }
 
     /// <inheritdoc/>

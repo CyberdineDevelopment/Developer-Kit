@@ -21,7 +21,7 @@ public class StreamCommand : ICommand
     }
 
     /// <inheritdoc/>
-    public Guid CommandId { get; }
+    public Guid CommandId { get; init; }
 
     /// <inheritdoc/>
     public Guid CorrelationId { get; set; }
@@ -61,7 +61,7 @@ public class StreamCommand : ICommand
     public async Task<IValidationResult> Validate()
     {
         var validator = new StreamCommandValidator();
-        var result = await validator.ValidateAsync(this);
+        var result = await validator.ValidateAsync(this).ConfigureAwait(false);
         return new ValidationResultAdapter(result);
     }
 }

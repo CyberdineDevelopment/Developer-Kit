@@ -88,7 +88,7 @@ public abstract class ServiceTypeProviderBase<TService, TServiceType, TConfigura
         if (configResult.IsFailure)
         {
             ServiceProviderBaseLog.ConfigurationRetrievalFailed(_logger, serviceTypeName, configResult.Message ?? "Unknown error");
-            return FdwResult<TService>.Failure(configResult.Message);
+            return FdwResult<TService>.Failure(configResult.Message ?? "unknown error");
         }
 
         // Use the service type's factory method to create the service
@@ -96,7 +96,7 @@ public abstract class ServiceTypeProviderBase<TService, TServiceType, TConfigura
         if (serviceResult.IsFailure)
         {
             ServiceProviderBaseLog.ServiceCreationFailed(_logger, serviceTypeName, serviceResult.Message ?? "Unknown error");
-            return FdwResult<TService>.Failure(serviceResult.Message);
+            return FdwResult<TService>.Failure(serviceResult.Message ?? "unknown error");
         }
 
         ServiceProviderBaseLog.ServiceCreated(_logger, serviceTypeName);

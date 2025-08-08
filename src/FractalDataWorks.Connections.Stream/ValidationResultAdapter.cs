@@ -8,7 +8,7 @@ namespace FractalDataWorks.Connections.Stream;
 /// <summary>
 /// Adapter to convert FluentValidation results to IValidationResult.
 /// </summary>
-internal class ValidationResultAdapter : IValidationResult
+internal sealed class ValidationResultAdapter : IValidationResult
 {
     private readonly ValidationResult _validationResult;
 

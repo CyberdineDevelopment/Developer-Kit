@@ -6,10 +6,7 @@ namespace FractalDataWorks.Tools;
 
 /// <summary>
 /// Base class for tool type definitions.
-/// Note: Enhanced Enum attributes temporarily disabled due to compatibility issues.
 /// </summary>
-// TODO: Re-enable when Enhanced Enum supports factory pattern
-// [EnhancedEnumBase("ToolTypes", ReturnType = "IToolFactory", ReturnTypeNamespace = "FractalDataWorks")]
 public abstract class ToolTypeBase
 {
     /// <summary>
@@ -44,10 +41,7 @@ public abstract class ToolTypeBase
     /// Creates a factory for this tool type.
     /// </summary>
     /// <returns>The tool factory.</returns>
-    public virtual IToolFactory CreateFactory()
-    {
-        throw new NotImplementedException("Enhanced Enum implementation should override this method.");
-    }
+    public abstract IToolFactory CreateFactory();
 }
 
 /// <summary>

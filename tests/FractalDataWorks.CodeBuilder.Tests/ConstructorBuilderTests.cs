@@ -7,6 +7,7 @@ namespace FractalDataWorks.CodeBuilder.Tests;
 
 public class ConstructorBuilderTests
 {
+    private static readonly string[] NewLineSeparators = { "\r\n", "\n" };
     [Fact]
     public void DefaultConstructorDeclaration()
     {
@@ -486,7 +487,7 @@ public class ConstructorBuilderTests
             .Build();
 
         // Assert
-        var lines = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        var lines = result.Split(NewLineSeparators, StringSplitOptions.None);
         lines[0].ShouldBe("public MyClass()");
         lines[1].ShouldBe("{");
         lines[2].ShouldBe("}");

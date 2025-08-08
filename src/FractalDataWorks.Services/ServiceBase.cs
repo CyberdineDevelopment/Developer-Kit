@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -100,7 +102,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         if (command is not TCommand cmd)
         {
             ServiceBaseLog.InvalidConfigurationWarning(_logger,
-                string.Format("Invalid command type. {0}", command?.GetType().Name ?? "null"));
+                string.Format(CultureInfo.InvariantCulture, "Invalid command type. {0}", command?.GetType().Name ?? "null"));
 
             return FdwResult<TCommand>.Failure(
                 "Invalid command type.");
@@ -111,7 +113,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         if (validationResult == null)
         {
             ServiceBaseLog.InvalidConfigurationWarning(_logger,
-                string.Format("Command validation failed. {0}", "Validation returned null"));
+                string.Format(CultureInfo.InvariantCulture, "Command validation failed. {0}", "Validation returned null"));
             
             return FdwResult<TCommand>.Failure(
                 "Command validation failed.");
@@ -128,7 +130,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         if (cmd.Configuration is TConfiguration config && !config.Validate())
         {
             ServiceBaseLog.InvalidConfigurationWarning(_logger,
-                string.Format("Invalid configuration: {0} of type {1}", "Command configuration", config.GetType().Name));
+                string.Format(CultureInfo.InvariantCulture, "Invalid configuration: {0} of type {1}", "Command configuration", config.GetType().Name));
 
             return FdwResult<TCommand>.Failure(
                 "Invalid configuration.");
@@ -214,10 +216,14 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <param name="command">The command to execute.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task containing the result of the command execution.</returns>
+    [SuppressMessage("CA1848", "Use the LoggerMessage delegates", Justification = "Dynamic message with variable content")]
+    [SuppressMessage("CA1727", "Use PascalCase for named placeholders", Justification = "Existing placeholder format")]
     public async Task<IFdwResult> Execute(ICommand command, CancellationToken cancellationToken)
     {
         if (command is TCommand cmd) return await Execute(cmd, cancellationToken).ConfigureAwait(false);
-        _logger.LogWarning("Invalid command for {type}: {command}",nameof(ServiceBase<TCommand,TConfiguration,TService>),command);
+        #pragma warning disable CA1848 // Use the LoggerMessage delegates
+        _logger.LogWarning("Invalid command for {Type}: {Command}", nameof(ServiceBase<TCommand, TConfiguration, TService>), command);
+        #pragma warning restore CA1848 // Use the LoggerMessage delegates
         ServiceBaseLog.InvalidCommandType(_logger);
         return FdwResult.Failure("Invalid command type");
 
@@ -230,11 +236,15 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <typeparam name="TOut">The type of result the command should return.</typeparam>
     /// <returns>A task containing the result of the command execution.</returns>
+    [SuppressMessage("CA1848", "Use the LoggerMessage delegates", Justification = "Dynamic message with variable content")]
+    [SuppressMessage("CA1727", "Use PascalCase for named placeholders", Justification = "Existing placeholder format")]
     public async Task<IFdwResult<TOut>> Execute<TOut>(ICommand command, CancellationToken cancellationToken)
     {
-        if (command is TCommand cmd) return await Execute<TOut>(cmd).ConfigureAwait(false);
-        _logger.LogWarning("Invalid command for {type}: {command}",
+        if (command is TCommand cmd) return await Execute<TOut>(cmd, cancellationToken).ConfigureAwait(false);
+        #pragma warning disable CA1848 // Use the LoggerMessage delegates
+        _logger.LogWarning("Invalid command for {Type}: {Command}",
             nameof(ServiceBase<TCommand, TConfiguration, TService>), command);
+        #pragma warning restore CA1848 // Use the LoggerMessage delegates
         ServiceBaseLog.InvalidCommandType(_logger);
         return FdwResult<TOut>.Failure("Invalid command type");
 
@@ -251,7 +261,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
     /// <returns>A task containing the result of the command execution.</returns>
     public async Task<IFdwResult> Execute(TCommand command)
     {
-        var result = await Execute<object>(command, CancellationToken.None);
+        var result = await Execute<object>(command, CancellationToken.None).ConfigureAwait(false);
         return result.IsSuccess ? FdwResult.Success() : FdwResult.Failure(result.Message!);
     }
 
