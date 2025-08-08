@@ -1,0 +1,31 @@
+<Project>
+  <!-- Don't import parent Directory.Build.props to avoid being included in main build -->
+  
+  <PropertyGroup>
+    <!-- Mark these as sample projects that shouldn't be packaged or tested -->
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <IsSample>true</IsSample>
+    <ExcludeFromBuild>true</ExcludeFromBuild>
+    
+    <!-- Samples use latest C# features for demonstration -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    
+    <!-- Don't generate documentation for samples -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    
+    <!-- Samples don't need to be signed -->
+    <SignAssembly>false</SignAssembly>
+    
+    <!-- Exclude from code coverage -->
+    <ExcludeFromCodeCoverage>true</ExcludeFromCodeCoverage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference the local projects -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\FractalDataWorks.net\FractalDataWorks.net.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
+  </ItemGroup>
+</Project>
