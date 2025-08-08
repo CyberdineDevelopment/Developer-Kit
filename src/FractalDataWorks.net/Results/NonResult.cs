@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FractalDataWorks.Results;
 
@@ -6,6 +7,8 @@ namespace FractalDataWorks.Results;
 /// Represents a unit type for operations that don't return a value.
 /// Similar to void but can be used as a generic type parameter.
 /// </summary>
+/// <ExcludeFromTest>Simple unit type with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage]
 public struct NonResult : IEquatable<NonResult>
 {
     /// <summary>

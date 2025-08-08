@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace FractalDataWorks.Services;
@@ -11,6 +12,8 @@ namespace FractalDataWorks.Services;
 /// <typeparam name="TServiceType">The service type that inherits from ServiceTypeBase.</typeparam>
 /// <typeparam name="TService">The service interface type.</typeparam>
 /// <typeparam name="TConfiguration">The configuration type.</typeparam>
+/// <ExcludeFromTest>Abstract base class for service type collections with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage(Justification = "Abstract base class for service type collections with no business logic")]
 public abstract class ServiceTypeCollectionBase<TServiceType, TService, TConfiguration>
     where TServiceType : ServiceTypeBase<TService, TConfiguration>
     where TService : class, IFdwService

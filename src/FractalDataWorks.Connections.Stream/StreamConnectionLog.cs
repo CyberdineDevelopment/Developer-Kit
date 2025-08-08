@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Connections.Stream;
@@ -6,6 +7,8 @@ namespace FractalDataWorks.Connections.Stream;
 /// <summary>
 /// High-performance logging methods for StreamConnection using source generators.
 /// </summary>
+/// <ExcludeFromTest>Source-generated logging class with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage(Justification = "Source-generated logging class with no business logic")]
 public static partial class StreamConnectionLog
 {
     /// <summary>

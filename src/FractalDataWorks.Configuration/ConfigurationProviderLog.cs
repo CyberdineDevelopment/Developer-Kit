@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Configuration;
@@ -6,6 +7,8 @@ namespace FractalDataWorks.Configuration;
 /// <summary>
 /// High-performance logging methods for ConfigurationProvider using source generators.
 /// </summary>
+/// <ExcludeFromTest>Source-generated logging class with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage(Justification = "Source-generated logging class with no business logic")]
 internal static partial class ConfigurationProviderLog
 {
     [LoggerMessage(

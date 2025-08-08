@@ -1,0 +1,74 @@
+Summary
+  Generated on: 8/7/2025 - 9:38:19 PM
+  Coverage date: 8/7/2025 - 8:14:59 PM - 8/7/2025 - 9:38:12 PM
+  Parser: MultiReport (28x Cobertura)
+  Assemblies: 6
+  Classes: 42
+  Files: 38
+  Line coverage: 69.7%
+  Covered lines: 1516
+  Uncovered lines: 658
+  Coverable lines: 2174
+  Total lines: 4855
+  Branch coverage: 70.3% (419 of 596)
+  Covered branches: 419
+  Total branches: 596
+  Method coverage: 67.7% (242 of 357)
+  Full method coverage: 59.6% (213 of 357)
+  Covered methods: 242
+  Fully covered methods: 213
+  Total methods: 357
+
+FractalDataWorks.CodeBuilder                                                98.3%
+  FractalDataWorks.CodeBuilder.Builders.ClassBuilder                         100%
+  FractalDataWorks.CodeBuilder.Builders.ConstructorBuilder                   100%
+  FractalDataWorks.CodeBuilder.Builders.FieldBuilder                         100%
+  FractalDataWorks.CodeBuilder.Builders.MethodBuilder                        100%
+  FractalDataWorks.CodeBuilder.Builders.PropertyBuilder                     98.4%
+  FractalDataWorks.CodeBuilder.CodeBuilderBase                               100%
+  FractalDataWorks.CodeBuilder.Generators.CSharpCodeGenerator                100%
+  FractalDataWorks.CodeBuilder.LanguageRegistry                              100%
+  FractalDataWorks.CodeBuilder.Parsing.RoslynCSharpParser                   93.1%
+  FractalDataWorks.CodeBuilder.Parsing.RoslynSyntaxNode                     83.3%
+  FractalDataWorks.CodeBuilder.Parsing.RoslynSyntaxTree                       94%
+
+FractalDataWorks.Configuration                                              55.2%
+  FractalDataWorks.Configuration.ConfigurationBase<T>                       63.4%
+  FractalDataWorks.Configuration.ConfigurationProviderBase<T>               69.5%
+  FractalDataWorks.Configuration.ConfigurationProviderLog                   28.1%
+  FractalDataWorks.Configuration.ConfigurationSourceBase                       0%
+  FractalDataWorks.Configuration.ConfigurationSourceBaseLog                    0%
+  FractalDataWorks.Configuration.ConfigurationValidationError               73.3%
+  FractalDataWorks.Configuration.ConfigurationValidationResult               100%
+  FractalDataWorks.Configuration.Validation.ConfigurationValidatorBase<T>      0%
+
+FractalDataWorks.Data                                                       94.5%
+  FractalDataWorks.Data.EntityBase<T>                                        100%
+  FractalDataWorks.Data.GuidEntityBase                                         0%
+
+FractalDataWorks.EnhancedEnums                                              22.7%
+  FractalDataWorks.EnhancedEnums.EnhancedEnumBaseAttribute                     0%
+  FractalDataWorks.EnhancedEnums.EnumOption<T>                                 0%
+  FractalDataWorks.EnhancedEnums.EnumOptionAttribute                        71.4%
+
+FractalDataWorks.net                                                        30.4%
+  FractalDataWorks.Configuration.ConfigurationSourceChangedEventArgs           0%
+  FractalDataWorks.FdwConfigurationBase                                        0%
+  FractalDataWorks.FdwResult                                                 100%
+  FractalDataWorks.FdwResult<T>                                             65.2%
+  FractalDataWorks.FdwResultLoggingExtensions                                  0%
+  FractalDataWorks.Fractal                                                     0%
+  FractalDataWorks.Results.NonResult                                           0%
+
+FractalDataWorks.Services                                                   33.5%
+  FractalDataWorks.Services.Data.DataConnectionBase<T1, T2, T3>                0%
+  FractalDataWorks.Services.Extensions.ServiceCollectionExtensions          91.8%
+  FractalDataWorks.Services.PerformanceMetrics                               100%
+  FractalDataWorks.Services.ServiceBase<T1, T2, T3>                         87.1%
+  FractalDataWorks.Services.ServiceBaseLog                                  25.9%
+  FractalDataWorks.Services.ServiceProviderBaseLog                             0%
+  FractalDataWorks.Services.ServiceTypeBase                                   60%
+  FractalDataWorks.Services.ServiceTypeBase<T1, T2>                          8.3%
+  FractalDataWorks.Services.ServiceTypeCollectionBase<T1, T2, T3>              0%
+  FractalDataWorks.Services.ServiceTypeFactoryBase<T1, T2>                     0%
+  FractalDataWorks.Services.ServiceTypeProviderBase<T1, T2, T3>                0%

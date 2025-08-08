@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 
 namespace FractalDataWorks.Configuration.Validation;
@@ -7,6 +8,8 @@ namespace FractalDataWorks.Configuration.Validation;
 /// Base validator for configuration types.
 /// </summary>
 /// <typeparam name="TConfiguration">The type of configuration to validate.</typeparam>
+/// <ExcludeFromTest>Abstract base class for configuration validators with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage(Justification = "Abstract base class for configuration validators with no business logic")]
 public abstract class ConfigurationValidatorBase<TConfiguration> : AbstractValidator<TConfiguration>
     where TConfiguration : ConfigurationBase<TConfiguration>, IFdwConfiguration, new()
 {

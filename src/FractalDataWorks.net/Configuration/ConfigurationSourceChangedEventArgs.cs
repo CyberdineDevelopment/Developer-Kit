@@ -1,10 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FractalDataWorks.Configuration;
 
 /// <summary>
 /// Provides data for the ConfigurationSourceChanged event.
 /// </summary>
+/// <ExcludeFromTest>Simple event args DTO with no business logic to test</ExcludeFromTest>
+[ExcludeFromCodeCoverage]
 public class ConfigurationSourceChangedEventArgs : EventArgs
 {
     /// <summary>
