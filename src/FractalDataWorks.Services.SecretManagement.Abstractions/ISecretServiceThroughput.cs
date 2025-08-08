@@ -8,7 +8,7 @@ namespace FractalDataWorks.Services.SecretManagement.Abstractions;
 /// Throughput metrics help assess provider capacity and identify
 /// performance bottlenecks in high-load scenarios.
 /// </remarks>
-public interface ISecretProviderThroughput
+public interface ISecretServiceThroughput
 {
     /// <summary>
     /// Gets the operations per second rate.

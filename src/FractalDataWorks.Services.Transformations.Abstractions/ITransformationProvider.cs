@@ -1,20 +1,31 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-
+using FractalDataWorks;
+using FractalDataWorks.Services;
 
 namespace FractalDataWorks.Services.Transformations.Abstractions;
+
+/// <summary>
+/// Non-generic marker interface for transformation providers.
+/// </summary>
+public interface ITransformationProvider : IFdwService
+{
+}
 
 /// <summary>
 /// Interface for transformation providers in the FractalDataWorks framework.
 /// Provides data transformation capabilities with support for various input and output formats.
 /// </summary>
+/// <typeparam name="TTransformationRequest">The transformation request type.</typeparam>
 /// <remarks>
 /// Transformation providers handle the conversion, mapping, and processing of data between
 /// different formats, structures, and representations. They enable data pipeline operations
 /// and ETL (Extract, Transform, Load) processes within the framework.
 /// </remarks>
-public interface ITransformationProvider : IFdwService
+public interface ITransformationProvider<TTransformationRequest> : ITransformationProvider, IFdwService<TTransformationRequest>
+    where TTransformationRequest : ITransformationRequest
 {
     /// <summary>
     /// Gets the supported input data types for this transformation provider.
@@ -133,3 +144,4 @@ public interface ITransformationProvider : IFdwService
     /// </remarks>
     Task<IFdwResult<ITransformationMetrics>> GetTransformationMetricsAsync();
 }
+

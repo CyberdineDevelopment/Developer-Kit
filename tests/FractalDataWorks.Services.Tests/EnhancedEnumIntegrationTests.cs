@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using FractalDataWorks.EnhancedEnums;
 using FractalDataWorks.Services.Extensions;
-using FractalDataWorks.Services.Messages;
 using Shouldly;
 using Xunit;
 
@@ -113,6 +112,9 @@ public class EnhancedEnumIntegrationTests
 
     public class TestService : ITestService
     {
+        public string Id => Guid.NewGuid().ToString();
+        public string ServiceType => "TestService";
+        public bool IsAvailable => true;
         public string Name => "TestService";
 
         public string TestMethod() => "Test";
@@ -157,7 +159,7 @@ public class EnhancedEnumIntegrationTests
             {
                 return (IFdwResult<T>)(object)Create((TestConfiguration)configuration);
             }
-            return FdwResult<T>.Failure(ServiceMessages.InvalidCommand);
+            return FdwResult<T>.Failure("Invalid command type");
         }
 
         IFdwResult<ITestService> IServiceFactory<ITestService>.Create(IFdwConfiguration configuration)
@@ -172,7 +174,7 @@ public class EnhancedEnumIntegrationTests
             {
                 return FdwResult<IFdwService>.Success(result.Value);
             }
-            return FdwResult<IFdwService>.Failure(result.Message ?? ServiceMessages.InvalidCommand);
+            return FdwResult<IFdwService>.Failure(result.Message ?? "Invalid command type");
         }
 
         public Task<ITestService> GetService(string configurationName)

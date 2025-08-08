@@ -74,29 +74,6 @@ public interface ISecretManager : IFdwService
     IFdwResult ValidateCommand(ISecretCommand command);
     
     /// <summary>
-    /// Gets the secret providers available to this manager.
-    /// </summary>
-    /// <returns>A collection of available secret providers.</returns>
-    /// <remarks>
-    /// This method returns the providers that have been registered and are available
-    /// for handling secret operations. Useful for capability discovery and provider selection.
-    /// </remarks>
-    IReadOnlyCollection<ISecretProvider> GetAvailableProviders();
-    
-    /// <summary>
-    /// Gets a secret provider by its identifier.
-    /// </summary>
-    /// <param name="providerId">The provider identifier.</param>
-    /// <returns>The secret provider if found; otherwise, null.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="providerId"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="providerId"/> is empty or whitespace.</exception>
-    /// <remarks>
-    /// This method allows direct access to specific providers when fine-grained
-    /// control over provider selection is required.
-    /// </remarks>
-    ISecretProvider? GetProvider(string providerId);
-    
-    /// <summary>
     /// Performs a health check on all registered secret providers.
     /// </summary>
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>

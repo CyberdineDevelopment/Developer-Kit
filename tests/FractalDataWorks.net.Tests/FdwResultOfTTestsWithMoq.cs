@@ -73,12 +73,14 @@ public class FdwResultOfTTestsWithMoq
     {
         // Arrange
         var mockMessage = new Mock<IFdwMessage>();
+        const string expectedMessage = "Test error message";
+        mockMessage.Setup(m => m.Message).Returns(expectedMessage);
 
         // Act
         var result = FdwResult<int>.Failure(mockMessage.Object);
 
         // Assert
-        result.Message.ShouldBe(mockMessage.Object, $"Expected Message to be the provided message");
+        result.Message.ShouldBe(expectedMessage, $"Expected Message to be the provided message");
     }
 
     [Fact]
@@ -151,14 +153,16 @@ public class FdwResultOfTTestsWithMoq
     {
         // Arrange
         var mockMessage = new Mock<IFdwMessage>();
+        const string expectedMessage = "Generic failure message";
+        mockMessage.Setup(m => m.Message).Returns(expectedMessage);
         mockMessage.Setup(m => m.Severity).Returns(MessageSeverity.Error);
 
         // Act
-        var result = FdwResult<int>.Failure<int>(mockMessage.Object);
+        var result = FdwResult<int>.Failure(mockMessage.Object);
 
         // Assert
         result.IsSuccess.ShouldBeFalse($"Expected IsSuccess to be false");
-        result.Message.ShouldBe(mockMessage.Object, $"Expected Message to match provided message");
+        result.Message.ShouldBe(expectedMessage, $"Expected Message to match provided message");
     }
 
     [Fact]

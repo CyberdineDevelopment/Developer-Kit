@@ -38,7 +38,7 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
                 // Use GetAwaiter().GetResult() to avoid AggregateException wrapping
                 // This is a property getter that must be synchronous
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-                _lastValidationResult = ValidateAsync().GetAwaiter().GetResult();
+                _lastValidationResult = Validate().GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
                 _isValid = _lastValidationResult.IsValid;
             }
@@ -54,7 +54,7 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
     /// <summary>
     /// Gets the timestamp when this configuration was created.
     /// </summary>
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Gets or sets the timestamp when this configuration was last modified.
@@ -84,7 +84,7 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
     /// Validates this configuration asynchronously.
     /// </summary>
     /// <returns>A task containing the validation result.</returns>
-    public virtual async Task<IValidationResult> ValidateAsync()
+    public virtual async Task<IValidationResult> Validate()
     {
         var validator = GetValidator();
         if (validator == null)

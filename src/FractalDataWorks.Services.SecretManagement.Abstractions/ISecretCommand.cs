@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-
 namespace FractalDataWorks.Services.SecretManagement.Abstractions;
 
 /// <summary>
@@ -13,7 +12,7 @@ namespace FractalDataWorks.Services.SecretManagement.Abstractions;
 /// and provide a consistent interface for secret providers to execute operations
 /// regardless of the underlying secret storage technology.
 /// </remarks>
-public interface ISecretCommand
+public interface ISecretCommand : ICommand
 {
     /// <summary>
     /// Gets the unique identifier for this command.

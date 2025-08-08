@@ -4,31 +4,31 @@ using System.Collections.Generic;
 namespace FractalDataWorks.Services.SecretManagement.Abstractions;
 
 /// <summary>
-/// Interface representing performance metrics and operational statistics for a secret provider.
-/// Provides detailed information about provider performance, usage patterns, and operational health.
+/// Interface representing performance metrics and operational statistics for a secret service.
+/// Provides detailed information about service performance, usage patterns, and operational health.
 /// </summary>
 /// <remarks>
 /// Provider metrics enable monitoring, performance optimization, and capacity planning
-/// for secret management operations across different provider implementations.
+/// for secret management operations across different service implementations.
 /// </remarks>
-public interface ISecretProviderMetrics
+public interface ISecretServiceMetrics
 {
     /// <summary>
-    /// Gets the provider identifier.
+    /// Gets the service identifier.
     /// </summary>
-    /// <value>The unique identifier for the provider.</value>
+    /// <value>The unique identifier for the service.</value>
     string ProviderId { get; }
     
     /// <summary>
-    /// Gets the provider name.
+    /// Gets the service name.
     /// </summary>
-    /// <value>The display name of the provider.</value>
+    /// <value>The display name of the service.</value>
     string ProviderName { get; }
     
     /// <summary>
-    /// Gets the provider type.
+    /// Gets the service type.
     /// </summary>
-    /// <value>The provider type identifier.</value>
+    /// <value>The service type identifier.</value>
     string ProviderType { get; }
     
     /// <summary>
@@ -170,7 +170,7 @@ public interface ISecretProviderMetrics
     IReadOnlyDictionary<string, long> ErrorMetrics { get; }
     
     /// <summary>
-    /// Gets additional provider-specific metrics.
+    /// Gets additional service-specific metrics.
     /// </summary>
     /// <value>A dictionary of custom metric names to their values.</value>
     /// <remarks>
@@ -179,10 +179,5 @@ public interface ISecretProviderMetrics
     /// or storage utilization metrics.
     /// </remarks>
     IReadOnlyDictionary<string, object> CustomMetrics { get; }
-    
-    /// <summary>
-    /// Gets throughput metrics for the provider.
-    /// </summary>
-    /// <value>Throughput metrics, or null if not available.</value>
-    ISecretProviderThroughput? Throughput { get; }
+
 }

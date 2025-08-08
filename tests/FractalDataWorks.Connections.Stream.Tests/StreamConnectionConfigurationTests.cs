@@ -156,7 +156,7 @@ public class StreamConnectionConfigurationTests
         var config = new StreamConnectionConfiguration();
 
         // Act
-        var result = await config.ValidateAsync();
+        var result = await config.Validate();
 
         // Assert
         result.ShouldNotBeNull();

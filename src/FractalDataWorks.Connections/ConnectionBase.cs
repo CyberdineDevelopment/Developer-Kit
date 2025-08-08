@@ -22,19 +22,17 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
     where TCommand : ICommand
     where TConnection : class
 {
-
-    private readonly SemaphoreSlim _connectionLock = new(1, 1);
     private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConnectionBase{TConfiguration, TCommand, TConnection}"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    /// <param name="configurations">The configuration registry.</param>
+    /// <param name="configuration">The configuration instance.</param>
     protected ConnectionBase(
         ILogger<TConnection>? logger,
-        IConfigurationRegistry<TConfiguration> configurations)
-        : base(logger, configurations)
+        TConfiguration configuration)
+        : base(logger, configuration)
     {
         ConnectionId = Guid.NewGuid();
     }
@@ -68,7 +66,6 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
             return FdwResult.Failure("Invalid connection credentials provided");
         }
 
-        await _connectionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (IsConnected)
@@ -110,14 +107,13 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
         }
         finally
         {
-            _connectionLock.Release();
+            // Removed semaphore - connections should handle their own thread safety if needed
         }
     }
 
     /// <inheritdoc/>
     public async Task<IFdwResult> DisconnectAsync(CancellationToken cancellationToken = default)
     {
-        await _connectionLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             if (!IsConnected)
@@ -147,7 +143,7 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
         }
         finally
         {
-            _connectionLock.Release();
+            // Removed semaphore - connections should handle their own thread safety if needed
         }
     }
 
@@ -271,7 +267,7 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
                 // Best effort disconnect - don't block on disposal
                 _ = Task.Run(async () => await DisconnectAsync().ConfigureAwait(false));
             }
-            _connectionLock?.Dispose();
+            // Semaphore removed - no disposal needed
         }
 
         _disposed = true;
@@ -286,6 +282,5 @@ public abstract class ConnectionBase<TCommand,TConfiguration, TConnection>
         {
             await DisconnectAsync().ConfigureAwait(false);
         }
-        _connectionLock?.Dispose();
     }
 }

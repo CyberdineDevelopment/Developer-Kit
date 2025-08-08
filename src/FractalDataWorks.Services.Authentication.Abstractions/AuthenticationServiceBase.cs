@@ -10,10 +10,10 @@ namespace FractalDataWorks.Services.Authentication.Abstractions;
 /// <typeparam name="TAuthenticationConfiguration">The authentication configuration type.</typeparam>
 /// <typeparam name="TAuthenticationService">The concrete authentication service type for logging category.</typeparam>
 public abstract class AuthenticationServiceBase<TAuthenticationCommand, TAuthenticationConfiguration, TAuthenticationService> 
-    : ServiceBase<TAuthenticationCommand, TAuthenticationConfiguration, TAuthenticationService>, IAuthenticationService
+    : ServiceBase<TAuthenticationCommand, TAuthenticationConfiguration, TAuthenticationService>, IAuthenticationService<TAuthenticationCommand>
     where TAuthenticationCommand : IAuthenticationCommand
     where TAuthenticationConfiguration : IAuthenticationConfiguration
-    where TAuthenticationService : AuthenticationServiceBase<TAuthenticationCommand, TAuthenticationConfiguration, TAuthenticationService>
+    where TAuthenticationService : class
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="AuthenticationServiceBase{TAuthenticationCommand, TAuthenticationConfiguration, TAuthenticationService}"/> class.

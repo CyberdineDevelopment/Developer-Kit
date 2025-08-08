@@ -10,10 +10,10 @@ namespace FractalDataWorks.Services.SecretManagement.Abstractions;
 /// <typeparam name="TSecretManagementConfiguration">The secret management configuration type.</typeparam>
 /// <typeparam name="TSecretManagementService">The concrete secret management service type for logging category.</typeparam>
 public abstract class SecretManagementServiceBase<TSecretCommand, TSecretManagementConfiguration, TSecretManagementService> 
-    : ServiceBase<TSecretCommand, TSecretManagementConfiguration, TSecretManagementService>, ISecretService
+    : ServiceBase<TSecretCommand, TSecretManagementConfiguration, TSecretManagementService>, ISecretService<TSecretCommand>
     where TSecretCommand : ISecretCommand
     where TSecretManagementConfiguration : ISecretManagementConfiguration
-    where TSecretManagementService : SecretManagementServiceBase<TSecretCommand, TSecretManagementConfiguration, TSecretManagementService>
+    where TSecretManagementService : class
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SecretManagementServiceBase{TSecretCommand, TSecretManagementConfiguration, TSecretManagementService}"/> class.

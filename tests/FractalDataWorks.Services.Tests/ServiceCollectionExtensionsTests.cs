@@ -10,7 +10,6 @@ using FractalDataWorks.Configuration;
 using FractalDataWorks.Results;
 using FractalDataWorks.Services;
 using FractalDataWorks.Services.Extensions;
-using FractalDataWorks.Services.Messages;
 using FractalDataWorks.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -298,7 +297,7 @@ public class ServiceCollectionExtensionsTests
                     ? FdwResult<T>.Success((T)result.Value!)
                     : FdwResult<T>.Failure(result.Message!);
             }
-            return FdwResult<T>.Failure(new InvalidCommand());
+            return FdwResult<T>.Failure("Invalid command type");
         }
 
         public async Task<ITestService> GetService(string configurationName)
@@ -334,6 +333,9 @@ public class ServiceCollectionExtensionsTests
 
     public class TestService : ITestService
     {
+        public string Id => Guid.NewGuid().ToString();
+        public string ServiceType => "TestService";
+        public bool IsAvailable => true;
         public string Name => "TestService";
 
         public Task<IFdwResult<TOut>> Execute<TOut>(ICommand command, CancellationToken cancellationToken = default)

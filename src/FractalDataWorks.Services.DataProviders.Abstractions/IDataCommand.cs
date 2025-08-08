@@ -1,5 +1,5 @@
 using System;
-
+using System.Collections.Generic;
 
 namespace FractalDataWorks.Services.DataProviders.Abstractions;
 
@@ -12,7 +12,7 @@ namespace FractalDataWorks.Services.DataProviders.Abstractions;
 /// and provide a consistent interface for data providers to execute operations
 /// regardless of the underlying data store technology.
 /// </remarks>
-public interface IDataCommand
+public interface IDataCommand : ICommand
 {
     /// <summary>
     /// Gets the unique identifier for this command.

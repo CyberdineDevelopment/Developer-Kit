@@ -14,7 +14,7 @@ namespace FractalDataWorks.Services.DataProviders.Abstractions;
 /// interface for creating properly configured data commands. They enable fluent configuration
 /// and validation of command parameters, metadata, and execution options.
 /// </remarks>
-public interface ICommandBuilder<out TCommand> where TCommand : IDataCommand
+public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
 {
     /// <summary>
     /// Sets the target resource (table, collection, endpoint) for the command.
@@ -173,7 +173,7 @@ public interface ICommandBuilder<out TCommand> where TCommand : IDataCommand
 /// Typed command builders provide compile-time type safety for both command construction
 /// and result type specification, eliminating runtime type checking and casting.
 /// </remarks>
-public interface ICommandBuilder<out TCommand, TResult> : ICommandBuilder<TCommand> 
+public interface ICommandBuilder<TCommand, TResult> : ICommandBuilder<TCommand> 
     where TCommand : IDataCommand<TResult>
 {
     /// <summary>
