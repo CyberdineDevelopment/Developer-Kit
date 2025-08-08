@@ -27,4 +27,31 @@ public static partial class ConfigurationSourceBaseLog
         string sourceName, 
         ConfigurationChangeType changeType, 
         string configurationType);
+
+    /// <summary>
+    /// Logs when configuration load fails.
+    /// </summary>
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Error,
+        Message = "Failed to load configuration from source {SourceName}: {Error}")]
+    public static partial void LoadFailed(ILogger logger, string sourceName, string error);
+    
+    /// <summary>
+    /// Logs when a configuration is saved successfully.
+    /// </summary>
+    [LoggerMessage(
+        EventId = 3,
+        Level = LogLevel.Information,
+        Message = "Configuration saved to source {SourceName} with ID {ConfigurationId}")]
+    public static partial void ConfigurationSaved(ILogger logger, string sourceName, int configurationId);
+    
+    /// <summary>
+    /// Logs when a configuration is deleted successfully.
+    /// </summary>
+    [LoggerMessage(
+        EventId = 4,
+        Level = LogLevel.Information,
+        Message = "Configuration deleted from source {SourceName} with ID {ConfigurationId}")]
+    public static partial void ConfigurationDeleted(ILogger logger, string sourceName, int configurationId);
 }
