@@ -76,18 +76,7 @@ public class ConnectionTypeBaseTests
             $"ConnectionTypeBase<,> should inherit from non-generic ConnectionTypeBase");
     }
 
-    [Fact]
-    public void ConnectionTypeFactoryBaseHasNoEnhancedEnumAttributes()
-    {
-        // Arrange
-        var factoryBaseType = typeof(ConnectionTypeFactoryBase<,>);
-
-        // Act
-        var attribute = factoryBaseType.GetCustomAttribute<EnhancedEnumBaseAttribute>();
-
-        // Assert
-        attribute.ShouldBeNull($"ConnectionTypeFactoryBase should NOT have EnhancedEnumBaseAttribute");
-    }
+    // Note: EnhancedEnumBaseAttribute test removed as this attribute does not exist in the consolidated attribute structure
 
     [Fact]
     public void ConnectionTypeFactoryBaseHasRequiredProperties()

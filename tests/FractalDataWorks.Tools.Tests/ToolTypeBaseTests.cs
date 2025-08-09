@@ -76,18 +76,7 @@ public class ToolTypeBaseTests
             $"ToolTypeBase<,> should inherit from non-generic ToolTypeBase");
     }
 
-    [Fact]
-    public void ToolTypeFactoryBaseHasNoEnhancedEnumAttributes()
-    {
-        // Arrange
-        var factoryBaseType = typeof(ToolTypeFactoryBase<,>);
-
-        // Act
-        var attribute = factoryBaseType.GetCustomAttribute<EnhancedEnumBaseAttribute>();
-
-        // Assert
-        attribute.ShouldBeNull($"ToolTypeFactoryBase should NOT have EnhancedEnumBaseAttribute");
-    }
+    // Note: EnhancedEnumBaseAttribute test removed as this attribute does not exist in the consolidated attribute structure
 
     [Fact]
     public void ToolTypeFactoryBaseHasRequiredProperties()
