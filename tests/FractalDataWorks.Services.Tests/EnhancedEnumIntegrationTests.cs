@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using FractalDataWorks.EnhancedEnums;
+using FractalDataWorks.EnhancedEnums.Attributes;
 using FractalDataWorks.Services.Extensions;
 using Shouldly;
 using Xunit;
