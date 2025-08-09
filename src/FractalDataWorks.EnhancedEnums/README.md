@@ -64,26 +64,20 @@ public abstract class EnumOption<TBase> where TBase : EnumOption<TBase>
 
 ### Attributes
 
-#### `[EnhancedEnumBase]`
-Marks a class as the base type for an enhanced enum collection:
+All Enhanced Enum attributes are located in the `FractalDataWorks.EnhancedEnums.Attributes` namespace.
 
-```csharp
-[EnhancedEnumBase("ServiceTypes")]
-public abstract class ServiceTypeBase : EnumOptionBase<ServiceTypeBase>
-{
-    protected ServiceTypeBase(int id, string name) : base(id, name) { }
-}
-```
-
-#### `[EnumCollection]`
+#### `[EnumCollectionAttribute]`
 Configures collection generation for enhanced enums:
 
 ```csharp
-[EnumCollection(
+using FractalDataWorks.EnhancedEnums.Attributes;
+
+[EnumCollectionAttribute(
     CollectionName = "ServiceTypes",
     ReturnType = typeof(IServiceType),
     GenerateFactoryMethods = true,
-    GenerateStaticCollection = true
+    GenerateStaticCollection = true,
+    UseSingletonInstances = true
 )]
 public abstract class ServiceTypeBase : EnumOptionBase<ServiceTypeBase> { }
 ```
@@ -91,17 +85,22 @@ public abstract class ServiceTypeBase : EnumOptionBase<ServiceTypeBase> { }
 **Properties:**
 - `CollectionName`: Name of the generated collection class
 - `ReturnType`: Interface or base type returned by factory methods
-- `GenerateFactoryMethods`: Whether to generate factory methods
-- `GenerateStaticCollection`: Generate static vs instance collection
-- `Generic`: Generate generic collection class
-- `NameComparison`: String comparison for name lookups
-- `UseSingletonInstances`: Use singleton pattern for enum instances
+- `GenerateFactoryMethods`: Whether to generate factory methods (default: true)
+- `GenerateStaticCollection`: Generate static vs instance collection (default: true)
+- `Generic`: Generate generic collection class (default: false)
+- `NameComparison`: String comparison for name lookups (default: StringComparison.Ordinal)
+- `UseSingletonInstances`: Use singleton pattern for enum instances (default: true)
+- `Namespace`: Custom namespace for generated collection
+- `DefaultGenericReturnType`: Default return type for generic enum bases
+- `IncludeReferencedAssemblies`: Include enum options from referenced assemblies
 
-#### `[EnumOption]`
+#### `[EnumOptionAttribute]`
 Marks individual enum implementations and configures their behavior:
 
 ```csharp
-[EnumOption(Name = "SQL Server", Order = 1)]
+using FractalDataWorks.EnhancedEnums.Attributes;
+
+[EnumOptionAttribute(Name = "SQL Server", Order = 1, CollectionName = "ServiceTypes")]
 public class SqlServerServiceType : ServiceTypeBase
 {
     public SqlServerServiceType() : base(1, "SqlServer") { }
@@ -109,33 +108,75 @@ public class SqlServerServiceType : ServiceTypeBase
 ```
 
 **Properties:**
-- `Name`: Custom display name
-- `Order`: Sort order in collections
+- `Name`: Custom display name for the enum option
+- `Order`: Sort order in collections (default: 0)
 - `CollectionName`: Specific collection to include in
 - `ReturnType`: Override return type for this option
-- `GenerateFactoryMethod`: Override factory method generation
+- `GenerateFactoryMethod`: Override factory method generation for this option
 - `MethodName`: Custom factory method name
+
+#### `[EnumLookupAttribute]`
+Marks properties for which to generate lookup methods:
+
+```csharp
+using FractalDataWorks.EnhancedEnums.Attributes;
+
+public abstract class ServiceTypeBase : EnumOptionBase<ServiceTypeBase>
+{
+    [EnumLookupAttribute(methodName: "ByCode", allowMultiple: false)]
+    public abstract string Code { get; }
+}
+```
+
+**Properties:**
+- `MethodName`: Custom method name for the lookup (e.g., "ByCode")
+- `AllowMultiple`: Allow multiple results per lookup key (default: false)
+- `ReturnType`: Return type for the lookup method
+
+#### `[GlobalEnumCollectionAttribute]`
+Marks an enhanced enum collection for global cross-assembly discovery:
+
+```csharp
+using FractalDataWorks.EnhancedEnums.Attributes;
+
+[GlobalEnumCollectionAttribute(
+    CollectionName = "AllServiceTypes",
+    GenerateFactoryMethods = true,
+    UseSingletonInstances = true
+)]
+public abstract class ServiceTypeBase : EnumOptionBase<ServiceTypeBase> { }
+```
+
+**Properties:**
+- `CollectionName`: Name of the generated collection class
+- `GenerateFactoryMethods`: Whether to generate factory methods (default: true)
+- `GenerateStaticCollection`: Generate static collection properties (default: true)
+- `NameComparison`: String comparison for name lookups (default: StringComparison.OrdinalIgnoreCase)
+- `UseSingletonInstances`: Use singleton instances for enum options (default: true)
+- `ReturnType`: Return type for collection methods
 
 ## Usage Examples
 
 ### Basic Enhanced Enum
 
 ```csharp
+using FractalDataWorks.EnhancedEnums.Attributes;
+
 // Define the base type
-[EnumCollection(CollectionName = "ConnectionTypes")]
+[EnumCollectionAttribute(CollectionName = "ConnectionTypes")]
 public abstract class ConnectionTypeBase : EnumOptionBase<ConnectionTypeBase>
 {
     protected ConnectionTypeBase(int id, string name) : base(id, name) { }
 }
 
 // Define concrete implementations
-[EnumOption]
+[EnumOptionAttribute]
 public class SqlServerConnectionType : ConnectionTypeBase
 {
     public SqlServerConnectionType() : base(1, "SqlServer") { }
 }
 
-[EnumOption]
+[EnumOptionAttribute]
 public class PostgreSqlConnectionType : ConnectionTypeBase
 {
     public PostgreSqlConnectionType() : base(2, "PostgreSql") { }
@@ -152,12 +193,14 @@ Console.WriteLine($"ID: {connectionType.Id}, Name: {connectionType.Name}");
 Enhanced enums integrate seamlessly with service factories:
 
 ```csharp
+using FractalDataWorks.EnhancedEnums.Attributes;
+
 public interface IDataService
 {
     Task<IFdwResult<T>> ExecuteQuery<T>(string query);
 }
 
-[EnumCollection(
+[EnumCollectionAttribute(
     CollectionName = "DataServiceTypes",
     ReturnType = typeof(IDataService),
     GenerateFactoryMethods = true
@@ -169,7 +212,7 @@ public abstract class DataServiceTypeBase : EnumOptionBase<DataServiceTypeBase>
     public abstract IServiceFactory<IDataService> CreateFactory();
 }
 
-[EnumOption]
+[EnumOptionAttribute]
 public class SqlServerDataServiceType : DataServiceTypeBase
 {
     public SqlServerDataServiceType() : base(1, "SqlServer") { }
@@ -184,21 +227,23 @@ public class SqlServerDataServiceType : DataServiceTypeBase
 ### Complex Configuration with Multiple Collections
 
 ```csharp
-[EnumCollection(CollectionName = "AllProviders", ReturnType = typeof(IProvider))]
-[EnumCollection(CollectionName = "DatabaseProviders", ReturnType = typeof(IDatabaseProvider))]
-[EnumCollection(CollectionName = "CloudProviders", ReturnType = typeof(ICloudProvider))]
+using FractalDataWorks.EnhancedEnums.Attributes;
+
+[EnumCollectionAttribute(CollectionName = "AllProviders", ReturnType = typeof(IProvider))]
+[EnumCollectionAttribute(CollectionName = "DatabaseProviders", ReturnType = typeof(IDatabaseProvider))]
+[EnumCollectionAttribute(CollectionName = "CloudProviders", ReturnType = typeof(ICloudProvider))]
 public abstract class ProviderTypeBase : EnumOptionBase<ProviderTypeBase>
 {
     protected ProviderTypeBase(int id, string name) : base(id, name) { }
 }
 
-[EnumOption(CollectionName = "DatabaseProviders", Order = 1)]
+[EnumOptionAttribute(CollectionName = "DatabaseProviders", Order = 1)]
 public class SqlServerProvider : ProviderTypeBase, IDatabaseProvider
 {
     public SqlServerProvider() : base(1, "SqlServer") { }
 }
 
-[EnumOption(CollectionName = "CloudProviders", Order = 2)]
+[EnumOptionAttribute(CollectionName = "CloudProviders", Order = 2)]
 public class AzureProvider : ProviderTypeBase, ICloudProvider
 {
     public AzureProvider() : base(2, "Azure") { }
@@ -261,7 +306,9 @@ ProcessConnectionType(new ServiceTypeBase()); // ✗ Compile error
 Unlike standard enums, enhanced enums can be extended with custom behavior:
 
 ```csharp
-[EnumOption]
+using FractalDataWorks.EnhancedEnums.Attributes;
+
+[EnumOptionAttribute]
 public class SqlServerConnectionType : ConnectionTypeBase
 {
     public SqlServerConnectionType() : base(1, "SqlServer") { }
@@ -318,7 +365,9 @@ Enhanced enums integrate naturally with the FractalDataWorks framework patterns:
 
 ### Custom Validation
 ```csharp
-[EnumOption]
+using FractalDataWorks.EnhancedEnums.Attributes;
+
+[EnumOptionAttribute]
 public class DatabaseConnectionType : ConnectionTypeBase, IValidatable
 {
     public DatabaseConnectionType() : base(1, "Database") { }
@@ -340,6 +389,8 @@ public class DatabaseConnectionType : ConnectionTypeBase, IValidatable
 ### Runtime Discovery
 ```csharp
 // Discover all enum options at runtime
+using FractalDataWorks.EnhancedEnums.Attributes;
+
 var allConnectionTypes = Assembly.GetExecutingAssembly()
     .GetTypes()
     .Where(t => typeof(ConnectionTypeBase).IsAssignableFrom(t) 
@@ -377,7 +428,9 @@ public void ProcessConnection(ConnectionType type)
 
 ### After (Enhanced Enum)
 ```csharp
-[EnumCollection(CollectionName = "ConnectionTypes")]
+using FractalDataWorks.EnhancedEnums.Attributes;
+
+[EnumCollectionAttribute(CollectionName = "ConnectionTypes")]
 public abstract class ConnectionTypeBase : EnumOptionBase<ConnectionTypeBase>
 {
     protected ConnectionTypeBase(int id, string name) : base(id, name) { }
@@ -385,7 +438,7 @@ public abstract class ConnectionTypeBase : EnumOptionBase<ConnectionTypeBase>
     public abstract IConnection CreateConnection(string connectionString);
 }
 
-[EnumOption]
+[EnumOptionAttribute]
 public class SqlServerConnectionType : ConnectionTypeBase
 {
     public SqlServerConnectionType() : base(1, "SqlServer") { }
@@ -409,10 +462,10 @@ public void ProcessConnection(ConnectionTypeBase type, string connectionString)
 ### Common Issues
 
 **Issue**: Enum options not being discovered
-**Solution**: Ensure classes are marked with `[EnumOption]` attribute and inherit from the correct base class
+**Solution**: Ensure classes are marked with `[EnumOptionAttribute]` attribute and inherit from the correct base class
 
 **Issue**: Factory methods not generated  
-**Solution**: Set `GenerateFactoryMethods = true` in `[EnumCollection]` attribute
+**Solution**: Set `GenerateFactoryMethods = true` in `[EnumCollectionAttribute]` attribute
 
 **Issue**: Dependency injection not working
 **Solution**: Call `services.AddServiceTypes(assembly)` in your service configuration
