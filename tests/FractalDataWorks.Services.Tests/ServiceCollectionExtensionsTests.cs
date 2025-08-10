@@ -13,6 +13,7 @@ using FractalDataWorks.Services;
 using FractalDataWorks.Services.Extensions;
 using FractalDataWorks.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
