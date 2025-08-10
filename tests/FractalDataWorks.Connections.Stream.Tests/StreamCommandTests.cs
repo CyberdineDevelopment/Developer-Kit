@@ -130,7 +130,7 @@ public class StreamCommandTests
         // Assert
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldNotBeEmpty();
-        var error = result.Errors.FirstOrDefault();
+        var error = result.Errors[0];
         error.ShouldNotBeNull();
         error.PropertyName.ShouldBe("SeekOrigin");
     }

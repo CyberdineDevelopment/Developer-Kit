@@ -67,7 +67,7 @@ public class StreamConnectionTests : IDisposable
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
 
         // Act
-        var result = await connection.ConnectAsync(_testFilePath);
+        var result = await connection.ConnectAsync(_testFilePath, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -81,7 +81,7 @@ public class StreamConnectionTests : IDisposable
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
 
         // Act
-        var result = await connection.ConnectAsync("memory");
+        var result = await connection.ConnectAsync("memory", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -93,10 +93,10 @@ public class StreamConnectionTests : IDisposable
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
-        await connection.ConnectAsync("memory");
+        await connection.ConnectAsync("memory", TestContext.Current.CancellationToken);
 
         // Act
-        var result = await connection.ConnectAsync("memory");
+        var result = await connection.ConnectAsync("memory", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -108,10 +108,10 @@ public class StreamConnectionTests : IDisposable
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
-        await connection.ConnectAsync("memory");
+        await connection.ConnectAsync("memory", TestContext.Current.CancellationToken);
 
         // Act
-        var result = await connection.DisconnectAsync();
+        var result = await connection.DisconnectAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -126,7 +126,7 @@ public class StreamConnectionTests : IDisposable
         var command = new StreamCommand { Operation = StreamOperation.GetInfo };
 
         // Act
-        var result = await connection.Execute<StreamInfo>(command);
+        var result = await connection.Execute<StreamInfo>(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -138,7 +138,7 @@ public class StreamConnectionTests : IDisposable
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
-        await connection.ConnectAsync("stream");
+        await connection.ConnectAsync("stream", TestContext.Current.CancellationToken);
         
         var data = new byte[] { 1, 2, 3, 4, 5 };
         var command = new StreamCommand 
@@ -148,7 +148,7 @@ public class StreamConnectionTests : IDisposable
         };
 
         // Act
-        var result = await connection.Execute<int>(command);
+        var result = await connection.Execute<int>(command, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -161,7 +161,7 @@ public class StreamConnectionTests : IDisposable
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
-        await connection.ConnectAsync("stream");
+        await connection.ConnectAsync("stream", TestContext.Current.CancellationToken);
         
         // Write some data first
         var data = new byte[] { 1, 2, 3, 4, 5 };
@@ -169,7 +169,7 @@ public class StreamConnectionTests : IDisposable
         { 
             Operation = StreamOperation.Write,
             Data = data
-        });
+        }, TestContext.Current.CancellationToken);
         
         // Seek to beginning
         await connection.Execute<long>(new StreamCommand
@@ -177,14 +177,14 @@ public class StreamConnectionTests : IDisposable
             Operation = StreamOperation.Seek,
             Position = 0,
             SeekOrigin = SeekOrigin.Begin
-        });
+        }, TestContext.Current.CancellationToken);
 
         // Act
         var result = await connection.Execute<byte[]>(new StreamCommand 
         { 
             Operation = StreamOperation.Read,
             BufferSize = 10
-        });
+        }, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -197,13 +197,13 @@ public class StreamConnectionTests : IDisposable
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
-        await connection.ConnectAsync("stream");
+        await connection.ConnectAsync("stream", TestContext.Current.CancellationToken);
 
         // Act
         var result = await connection.Execute<StreamInfo>(new StreamCommand 
         { 
             Operation = StreamOperation.GetInfo
-        });
+        }, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -220,14 +220,14 @@ public class StreamConnectionTests : IDisposable
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
-        await connection.ConnectAsync("stream");
+        await connection.ConnectAsync("stream", TestContext.Current.CancellationToken);
         
         // Write some data to have a position to seek to
         await connection.Execute<int>(new StreamCommand 
         { 
             Operation = StreamOperation.Write,
             Data = new byte[100]
-        });
+        }, TestContext.Current.CancellationToken);
 
         // Act
         var result = await connection.Execute<long>(new StreamCommand 
@@ -235,7 +235,7 @@ public class StreamConnectionTests : IDisposable
             Operation = StreamOperation.Seek,
             Position = 50,
             SeekOrigin = SeekOrigin.Begin
-        });
+        }, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -243,22 +243,22 @@ public class StreamConnectionTests : IDisposable
     }
 
     [Fact]
-    public void DisposeClosesStream()
+    public async Task DisposeClosesStream()
     {
         // Arrange
         _mockConfigRegistry.Setup(c => c.GetAll()).Returns(new[] { _memoryConfig });
         var connection = new StreamConnection(_mockLogger.Object, _fileConfig);
-        connection.ConnectAsync("stream").Wait();
+        await connection.ConnectAsync("stream", TestContext.Current.CancellationToken);
 
         // Act
         connection.Dispose();
 
         // Assert
         // Try to execute a command after dispose - should fail
-        var result = connection.Execute<StreamInfo>(new StreamCommand 
+        var result = await connection.Execute<StreamInfo>(new StreamCommand 
         { 
             Operation = StreamOperation.GetInfo
-        }).Result;
+        }, TestContext.Current.CancellationToken);
         
         result.IsSuccess.ShouldBeFalse();
     }
@@ -276,5 +276,7 @@ public class StreamConnectionTests : IDisposable
         {
             // Best effort cleanup
         }
+        
+        GC.SuppressFinalize(this);
     }
 }
