@@ -28,7 +28,7 @@ public interface IServiceFactory
 /// </summary>
 /// <typeparam name="TService">The type of service this factory creates.</typeparam>
 public interface IServiceFactory<TService> : IServiceFactory
-    where TService : IFdwService
+    where TService : class
 {
     /// <summary>
     /// Creates a service instance.
@@ -44,7 +44,7 @@ public interface IServiceFactory<TService> : IServiceFactory
 /// <typeparam name="TService">The type of service this factory creates.</typeparam>
 /// <typeparam name="TConfiguration">The type of configuration the service uses.</typeparam>
 public interface IServiceFactory<TService, TConfiguration> : IServiceFactory<TService>
-    where TService : IFdwService
+    where TService : class
     where TConfiguration : IFdwConfiguration
 {
     /// <summary>
