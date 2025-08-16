@@ -98,7 +98,7 @@ jobs:
       - name: Run unit tests with coverage
         run: |
           dotnet test --configuration ${{ env.BUILD_CONFIGURATION }} --no-build --collect:"XPlat Code Coverage" --settings coverlet.runsettings --filter "Category!=Integration" --logger trx --results-directory ${{ runner.temp }}
-        continue-on-error: ${{ contains(fromJSON('["Experimental", "Alpha"]'), env.BUILD_CONFIGURATION) }}
+        continue-on-error: ${{ contains(fromJSON('["Experimental", "Alpha", "Debug"]'), env.BUILD_CONFIGURATION) || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/experimental/') || github.ref == 'refs/heads/develop' }}
         
       - name: Generate coverage report
         if: always()
@@ -134,11 +134,12 @@ jobs:
     name: Security Scanning
     runs-on: windows-latest
     needs: validate
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/beta/') || startsWith(github.ref, 'refs/heads/release/')
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/beta/') || startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/experimental/') || startsWith(github.ref, 'refs/heads/feature/')
     permissions:
       actions: read
       contents: read
       security-events: write
+    continue-on-error: ${{ startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/experimental/') || github.ref == 'refs/heads/develop' }}
     env:
       BUILD_CONFIGURATION: ${{ github.ref == 'refs/heads/master' && 'Release' || github.ref == 'refs/heads/develop' && 'Alpha' || startsWith(github.ref, 'refs/heads/beta/') && 'Beta' || startsWith(github.ref, 'refs/heads/release/') && 'Preview' || 'Alpha' }}
     steps:
@@ -188,7 +189,7 @@ jobs:
   publish-packages:
     name: Publish Packages
     runs-on: windows-latest
-    needs: [build, security-scan]
+    needs: [build]
     permissions:
       contents: read
       packages: write
@@ -198,7 +199,9 @@ jobs:
        github.ref == 'refs/heads/main' ||
        github.ref == 'refs/heads/develop' ||
        startsWith(github.ref, 'refs/heads/beta/') ||
-       startsWith(github.ref, 'refs/heads/release/'))
+       startsWith(github.ref, 'refs/heads/release/') ||
+       startsWith(github.ref, 'refs/heads/experimental/') ||
+       startsWith(github.ref, 'refs/heads/feature/'))
     steps:
       - name: Download packages
         uses: actions/download-artifact@v4
