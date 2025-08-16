@@ -222,7 +222,7 @@ jobs:
            startsWith(github.ref, 'refs/heads/feature/'))
         run: |
           Get-ChildItem -Path "${{ github.workspace }}/packages" -Filter "*.nupkg" -Recurse | ForEach-Object {
-            dotnet nuget push $_.FullName --source "https://nuget.pkg.github.com/${{ github.repository }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+            dotnet nuget push $_.FullName --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
           }
         continue-on-error: true
         
