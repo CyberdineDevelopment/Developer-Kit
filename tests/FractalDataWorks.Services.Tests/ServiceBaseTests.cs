@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using FluentValidation;
 using FractalDataWorks;
 using FractalDataWorks.Configuration;
-
-
 using FractalDataWorks.Services;
 using FractalDataWorks.Validation;
 using Microsoft.Extensions.Logging;

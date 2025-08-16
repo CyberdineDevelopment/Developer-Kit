@@ -189,6 +189,9 @@ jobs:
     name: Publish Packages
     runs-on: windows-latest
     needs: [build, security-scan]
+    permissions:
+      contents: read
+      packages: write
     if: |
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/master' || 
@@ -207,8 +210,8 @@ jobs:
         run: |
           Get-ChildItem -Path "${{ github.workspace }}/packages" -Recurse
           
-      # For GitHub Packages - only for nightly/experimental branches
-      - name: Push to GitHub Packages
+      # For GitHub Packages - develop, experimental, and feature builds (internal private feed)
+      - name: Push to GitHub Packages (Internal Feed)
         if: |
           github.event_name == 'push' &&
           (github.ref == 'refs/heads/develop' ||
@@ -220,13 +223,12 @@ jobs:
           }
         continue-on-error: true
         
-      # For NuGet.org - publish stable and prerelease versions
-      - name: Push to NuGet.org
+      # For NuGet.org - only preview, rc, and release builds (public feed)
+      - name: Push to NuGet.org (Public Feed)
         if: |
           github.event_name == 'push' && 
           (github.ref == 'refs/heads/master' || 
            github.ref == 'refs/heads/main' ||
-           github.ref == 'refs/heads/develop' ||
            startsWith(github.ref, 'refs/heads/release/')) &&
           env.NUGET_API_KEY != ''
         env:
