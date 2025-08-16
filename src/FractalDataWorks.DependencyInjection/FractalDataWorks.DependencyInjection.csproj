@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\FractalDataWorks.Net\FractalDataWorks.Net.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+	  <PackageReference Include="FractalDataWorks.Net" />
   </ItemGroup>
 
 </Project>
