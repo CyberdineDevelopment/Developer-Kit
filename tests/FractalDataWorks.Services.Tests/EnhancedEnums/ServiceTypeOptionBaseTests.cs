@@ -79,22 +79,22 @@ public class ServiceTypeOptionBaseTests
     }
 
     [Fact]
-    public void AddWithHostApplicationBuilderRegistersCorrectly()
+    public void AddWithIServiceCollectionRegistersCorrectly()
     {
         // Arrange
-        var builder = Host.CreateApplicationBuilder();
-        ConfigureTestConfiguration(builder.Configuration);
+        var services = new ServiceCollection();
+        var configuration = CreateTestConfiguration();
 
         // Act
-        TestEmailServiceType.SendGrid.Add(builder);
-        using var app = builder.Build();
+        TestEmailServiceType.SendGrid.Add(services, configuration);
+        using var provider = services.BuildServiceProvider();
 
         // Assert
-        var emailService = app.Services.GetService<ITestEmailService>();
+        var emailService = provider.GetService<ITestEmailService>();
         emailService.ShouldNotBeNull();
         emailService.ShouldBeOfType<TestEmailService>();
 
-        var configRegistry = app.Services.GetService<IConfigurationRegistry<TestEmailConfiguration>>();
+        var configRegistry = provider.GetService<IConfigurationRegistry<TestEmailConfiguration>>();
         configRegistry.ShouldNotBeNull();
         
         var configs = configRegistry.GetAll().ToList();
@@ -185,7 +185,7 @@ public class ServiceTypeOptionBaseTests
         var services = new ServiceCollection();
         var configDict = new Dictionary<string, string>
         {
-            {"ITestEmailService:Configurations:0:Id", "999"}, // Different ID than service type
+            {"ITestEmailService:Configurations:0:Id", "1"}, // Same ID as service type but disabled
             {"ITestEmailService:Configurations:0:Name", "DisabledConfig"},
             {"ITestEmailService:Configurations:0:IsEnabled", "false"},
             {"ITestEmailService:Configurations:0:SectionName", "test"}
@@ -222,22 +222,6 @@ public class ServiceTypeOptionBaseTests
             .Build();
     }
 
-    private static void ConfigureTestConfiguration(IConfiguration configuration)
-    {
-        if (configuration is IConfigurationRoot configRoot)
-        {
-            var configDict = new Dictionary<string, string>
-            {
-                {"ITestEmailService:Configurations:0:Id", "1"},
-                {"ITestEmailService:Configurations:0:Name", "TestConfig"},
-                {"ITestEmailService:Configurations:0:IsEnabled", "true"},
-                {"ITestEmailService:Configurations:0:SectionName", "test"}
-            };
-
-            configRoot.Providers.Add(new Microsoft.Extensions.Configuration.Memory.MemoryConfigurationProvider(
-                new Microsoft.Extensions.Configuration.Memory.MemoryConfigurationSource()));
-        }
-    }
 }
 
 // ========== TEST TYPES ==========
@@ -284,6 +268,42 @@ public sealed class TestEmailServiceFactory : IServiceFactory<ITestEmailService,
     {
         var service = new TestEmailService(configuration);
         return FdwResult<ITestEmailService>.Success(service);
+    }
+
+    // IServiceFactory<ITestEmailService> explicit implementation
+    IFdwResult<ITestEmailService> IServiceFactory<ITestEmailService>.Create(IFdwConfiguration configuration)
+    {
+        if (configuration is TestEmailConfiguration emailConfig)
+        {
+            return Create(emailConfig);
+        }
+        return FdwResult<ITestEmailService>.Failure("Invalid configuration type");
+    }
+
+    // IServiceFactory generic Create<T> implementation
+    public IFdwResult<T> Create<T>(IFdwConfiguration configuration) where T : IFdwService
+    {
+        if (typeof(T).IsAssignableFrom(typeof(ITestEmailService)))
+        {
+            var result = ((IServiceFactory<ITestEmailService>)this).Create(configuration);
+            if (result.IsSuccess && result.Value is T typedService)
+            {
+                return FdwResult<T>.Success(typedService);
+            }
+            return FdwResult<T>.Failure(result.Message ?? "Service creation failed");
+        }
+        return FdwResult<T>.Failure("Invalid service type");
+    }
+
+    // IServiceFactory base Create implementation
+    public IFdwResult<IFdwService> Create(IFdwConfiguration configuration)
+    {
+        var result = ((IServiceFactory<ITestEmailService>)this).Create(configuration);
+        if (result.IsSuccess && result.Value is IFdwService fdwService)
+        {
+            return FdwResult<IFdwService>.Success(fdwService);
+        }
+        return FdwResult<IFdwService>.Failure(result.Message ?? "Service creation failed");
     }
 
     public Task<ITestEmailService> GetService(string configurationName)
