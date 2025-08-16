@@ -54,10 +54,6 @@ public abstract class ServiceTypeOptionBase<TDerived, TService, TConfiguration, 
             section.Bind(options);
         });
 
-        // Register IOptions, IOptionsMonitor, IOptionsSnapshot for the list
-        services.AddSingleton<IOptionsMonitor<List<TConfiguration>>>();
-        services.AddScoped<IOptionsSnapshot<List<TConfiguration>>>();
-
         // Register IConfigurationRegistry
         services.AddSingleton<IConfigurationRegistry<TConfiguration>>(provider =>
         {
@@ -85,6 +81,12 @@ public abstract class ServiceTypeOptionBase<TDerived, TService, TConfiguration, 
 
             if (config == null)
                 throw new InvalidOperationException($"No configuration found for service type '{Name}' with ID {Id}");
+
+            // Check if configuration is enabled (if it has an IsEnabled property)
+            var configType = config.GetType();
+            var isEnabledProperty = configType.GetProperty("IsEnabled");
+            if (isEnabledProperty != null && isEnabledProperty.GetValue(config) is bool isEnabled && !isEnabled)
+                throw new InvalidOperationException($"No enabled configuration found for service type '{Name}' with ID {Id}");
 
             var result = factory.Create(config);
             if (!result.IsSuccess)
