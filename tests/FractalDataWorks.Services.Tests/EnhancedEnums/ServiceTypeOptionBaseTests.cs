@@ -262,58 +262,30 @@ public sealed class TestEmailConfiguration : IFdwConfiguration
     public bool Validate() => !string.IsNullOrEmpty(Name);
 }
 
-public sealed class TestEmailServiceFactory : IServiceFactory<ITestEmailService, TestEmailConfiguration>
+public sealed class TestEmailServiceFactory : ServiceFactoryBase<ITestEmailService, TestEmailConfiguration>
 {
-    public IFdwResult<ITestEmailService> Create(TestEmailConfiguration configuration)
+    public TestEmailServiceFactory() : base(null)
+    {
+    }
+
+    protected override IFdwResult<ITestEmailService> CreateCore(TestEmailConfiguration configuration)
     {
         var service = new TestEmailService(configuration);
         return FdwResult<ITestEmailService>.Success(service);
     }
 
-    // IServiceFactory<ITestEmailService> explicit implementation
-    IFdwResult<ITestEmailService> IServiceFactory<ITestEmailService>.Create(IFdwConfiguration configuration)
+    public override Task<ITestEmailService> GetService(string configurationName)
     {
-        if (configuration is TestEmailConfiguration emailConfig)
-        {
-            return Create(emailConfig);
-        }
-        return FdwResult<ITestEmailService>.Failure("Invalid configuration type");
+        var config = new TestEmailConfiguration { Name = configurationName };
+        var result = CreateCore(config);
+        return Task.FromResult(result.IsSuccess ? result.Value! : throw new InvalidOperationException(result.Message));
     }
 
-    // IServiceFactory generic Create<T> implementation
-    public IFdwResult<T> Create<T>(IFdwConfiguration configuration) where T : IFdwService
+    public override Task<ITestEmailService> GetService(int configurationId)
     {
-        if (typeof(T).IsAssignableFrom(typeof(ITestEmailService)))
-        {
-            var result = ((IServiceFactory<ITestEmailService>)this).Create(configuration);
-            if (result.IsSuccess && result.Value is T typedService)
-            {
-                return FdwResult<T>.Success(typedService);
-            }
-            return FdwResult<T>.Failure(result.Message ?? "Service creation failed");
-        }
-        return FdwResult<T>.Failure("Invalid service type");
-    }
-
-    // IServiceFactory base Create implementation
-    public IFdwResult<IFdwService> Create(IFdwConfiguration configuration)
-    {
-        var result = ((IServiceFactory<ITestEmailService>)this).Create(configuration);
-        if (result.IsSuccess && result.Value is IFdwService fdwService)
-        {
-            return FdwResult<IFdwService>.Success(fdwService);
-        }
-        return FdwResult<IFdwService>.Failure(result.Message ?? "Service creation failed");
-    }
-
-    public Task<ITestEmailService> GetService(string configurationName)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<ITestEmailService> GetService(int configurationId)
-    {
-        throw new NotImplementedException();
+        var config = new TestEmailConfiguration { Id = configurationId, Name = "Test" };
+        var result = CreateCore(config);
+        return Task.FromResult(result.IsSuccess ? result.Value! : throw new InvalidOperationException(result.Message));
     }
 }
 

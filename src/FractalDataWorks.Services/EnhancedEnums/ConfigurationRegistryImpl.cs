@@ -17,10 +17,10 @@ public sealed class ConfigurationRegistryImpl<TConfiguration> : IConfigurationRe
     /// <summary>
     /// Initializes a new instance of the <see cref="ConfigurationRegistryImpl{TConfiguration}"/> class.
     /// </summary>
-    /// <param name="configurations">The list of configurations to manage.</param>
-    public ConfigurationRegistryImpl(List<TConfiguration> configurations)
+    /// <param name="configurations">The collection of configurations to manage.</param>
+    public ConfigurationRegistryImpl(IEnumerable<TConfiguration> configurations)
     {
-        _configurations = configurations ?? new List<TConfiguration>();
+        _configurations = configurations?.ToList() ?? new List<TConfiguration>();
     }
 
     /// <summary>

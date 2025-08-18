@@ -122,6 +122,10 @@ coverage*.xml
 coverage*.info
 lcov.info
 
+# Coverage reports
+CoverageReport/
+coverage-report/
+
 # ===============================================
 # Build and Publish
 # ===============================================
