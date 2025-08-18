@@ -133,9 +133,9 @@ IFdwService<T>
     ↓
 ISecretService : IFdwService<ISecretCommand>
     ↓  
-SecretManagementServiceBase<TConfig, TCommand>
+SecretManagementServiceBase<TCommand, TConfiguration, TService>
     ↓
-ConcreteSecretService<SpecificConfig, SpecificCommand>
+ConcreteSecretService<SpecificCommand, SpecificConfiguration, ConcreteSecretService>
 ```
 
 ## Security Considerations

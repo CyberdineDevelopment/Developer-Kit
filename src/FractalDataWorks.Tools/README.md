@@ -459,7 +459,7 @@ using (new DisposableStopwatch(time => _logger.LogDebug($"Query took {time.Total
 
 ## Dependencies
 
-- FractalDataWorks.net (core abstractions)
+- FractalDataWorks.Services (core abstractions)
 - System.Text.Json (for serialization utilities)
 
 ## Status

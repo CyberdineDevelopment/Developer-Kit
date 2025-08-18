@@ -55,19 +55,20 @@ public class InvalidEmailAddress : MessageBase<string>
 - **MessageBase<T>** provides structured, type-safe error and success messages
 - **Attributes** enable automatic discovery and cross-assembly generation
 
-### ServiceBase<TConfiguration, TCommand>
+### ServiceBase<TCommand, TConfiguration, TService>
 
 The primary base class for implementing services:
 
 ```csharp
-public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfiguration, TCommand>
-    where TConfiguration : ConfigurationBase<TConfiguration>, new()
+public abstract class ServiceBase<TCommand, TConfiguration, TService> : IFdwService<TCommand>
+    where TConfiguration : IFdwConfiguration
     where TCommand : ICommand
+    where TService : class
 {
-    protected ServiceBase(ILogger logger, IConfigurationRegistry<TConfiguration> configurations);
+    protected ServiceBase(ILogger<TService> logger, TConfiguration configuration);
     
     // Override this to implement your service logic
-    protected abstract Task<FdwResult<T>> ExecuteCore<T>(TCommand command);
+    protected abstract Task<IFdwResult<T>> ExecuteCore<T>(TCommand command);
 }
 ```
 
@@ -79,18 +80,25 @@ public abstract class ServiceBase<TConfiguration, TCommand> : IFdwService<TConfi
 - **Error Handling**: Consistent error handling and logging
 - **Health Checks**: Built-in health status based on configuration validity
 
-### DataConnection<TDataCommand, TConnection>
+### DataConnectionBase<TCommand, TConnection, TConfiguration>
 
 Universal data service implementation that works with any data source:
 
 ```csharp
-public class DataConnection<TDataCommand, TConnection> : ServiceBase<DataConnectionConfiguration, TDataCommand>
-    where TDataCommand : IFdwDataCommand
-    where TConnection : IExternalConnection
+public class DataConnection<TCommand, TConnection, TConfiguration> : DataConnectionBase<TCommand, TConnection, TConfiguration>
+    where TCommand : IDataCommand
+    where TConfiguration : ConfigurationBase<TConfiguration>, new()
+    where TConnection : class
 {
     private readonly IExternalConnectionProvider _connectionProvider;
     
-    protected override async Task<FdwResult<T>> ExecuteCore<T>(TDataCommand command)
+    public DataConnection(ILogger<DataConnectionBase<TCommand, TConnection, TConfiguration>> logger, TConfiguration configuration)
+        : base(logger, configuration)
+    {
+        _connectionProvider = /* injected provider */;
+    }
+    
+    protected override async Task<IFdwResult<T>> ExecuteCore<T>(TCommand command)
     {
         // Get the appropriate external connection based on command
         var connection = await _connectionProvider.GetConnection<TConnection>(command.ConnectionId);
@@ -112,20 +120,20 @@ public class DataConnection<TDataCommand, TConnection> : ServiceBase<DataConnect
 ### Creating a Service
 
 ```csharp
-public class CustomerService : ServiceBase<CustomerConfiguration, CustomerCommand>
+public class CustomerService : ServiceBase<CustomerCommand, CustomerConfiguration, CustomerService>
 {
     private readonly ICustomerRepository _repository;
     
     public CustomerService(
         ILogger<CustomerService> logger, 
-        IConfigurationRegistry<CustomerConfiguration> configurations,
+        CustomerConfiguration configuration,
         ICustomerRepository repository)
-        : base(logger, configurations)
+        : base(logger, configuration)
     {
         _repository = repository;
     }
     
-    protected override async Task<FdwResult<T>> ExecuteCore<T>(CustomerCommand command)
+    protected override async Task<IFdwResult<T>> ExecuteCore<T>(CustomerCommand command)
     {
         // Your service implementation here
         // Validation has already been performed
@@ -139,7 +147,7 @@ public class CustomerService : ServiceBase<CustomerConfiguration, CustomerComman
         };
     }
     
-    private async Task<FdwResult<T>> GetCustomer<T>(GetCustomerCommand command)
+    private async Task<IFdwResult<T>> GetCustomer<T>(GetCustomerCommand command)
     {
         var customer = await _repository.GetAsync(command.CustomerId);
         if (customer == null)
@@ -172,27 +180,18 @@ var queryCommand = new FdwDataCommand
 var result = await dataConnection.Execute<IEnumerable<Customer>>(queryCommand);
 ```
 
-### Implementing a Configuration Registry
+### Configuration Management
+
+The current ServiceBase implementation uses direct configuration injection. Each service receives a single configuration instance through its constructor:
 
 ```csharp
-public class InMemoryConfigurationRegistry<T> : IConfigurationRegistry<T>
-    where T : IFdwConfiguration
+public class CustomerService : ServiceBase<CustomerCommand, CustomerConfiguration, CustomerService>
 {
-    private readonly Dictionary<int, T> _configurations = new();
-    
-    public InMemoryConfigurationRegistry(IEnumerable<T> configurations)
+    public CustomerService(ILogger<CustomerService> logger, CustomerConfiguration configuration)
+        : base(logger, configuration)
     {
-        foreach (var config in configurations)
-        {
-            _configurations[config.Id] = config;
-        }
+        // Configuration is now available through the base class
     }
-    
-    public T? Get(int id) => _configurations.TryGetValue(id, out var config) ? config : null;
-    
-    public IEnumerable<T> GetAll() => _configurations.Values;
-    
-    public bool TryGet(int id, out T? configuration) => _configurations.TryGetValue(id, out configuration);
 }
 ```
 
@@ -200,13 +199,9 @@ public class InMemoryConfigurationRegistry<T> : IConfigurationRegistry<T>
 
 ```csharp
 // In your DI container setup
-services.AddSingleton<IConfigurationRegistry<CustomerConfiguration>>(sp =>
+services.AddSingleton<CustomerConfiguration>(sp =>
 {
-    var configs = new[]
-    {
-        new CustomerConfiguration { Id = 1, Name = "Default", IsEnabled = true, ConnectionString = "..." }
-    };
-    return new InMemoryConfigurationRegistry<CustomerConfiguration>(configs);
+    return new CustomerConfiguration { Id = 1, Name = "Default", IsEnabled = true, ConnectionString = "..." };
 });
 
 services.AddScoped<CustomerService>();
@@ -382,7 +377,7 @@ public static class MyMessages
 
 ## Dependencies
 
-- FractalDataWorks.net (core abstractions)
+- FractalDataWorks.Configuration (configuration abstractions)
 - FractalDataWorks.Configuration
 - Microsoft.Extensions.Logging.Abstractions
 - Microsoft.Extensions.Options
@@ -1039,3 +1034,54 @@ Override `IsHealthy` for custom health logic:
 ```csharp
 public override bool IsHealthy => base.IsHealthy && _repository.IsConnected;
 ```
+
+## ServiceTypeProviderBase: Factory Pattern, Not Service Locator
+
+The `ServiceTypeProviderBase<TService, TServiceType, TConfiguration>` class is often mistaken for a service locator anti-pattern, but it actually implements a legitimate **Factory Pattern** with **Strategy Pattern** elements. Here's why this is good design:
+
+### Why It's NOT a Service Locator Anti-Pattern
+
+1. **Explicit Dependencies**: The provider is injected as a dependency, not hidden or accessed globally
+2. **Single Responsibility**: Each provider manages only one type of service (e.g., notification services, data providers)
+3. **Type Safety**: Uses strongly-typed service types with compile-time verification
+4. **Configuration-Driven**: Service selection is based on explicit configuration, not arbitrary requests
+5. **Factory Semantics**: Creates instances rather than acting as a global registry
+
+### Legitimate Factory/Strategy Pattern Usage
+
+```csharp
+// This is a Factory Pattern, not Service Locator
+public class NotificationManager
+{
+    private readonly ServiceTypeProviderBase<INotificationService, NotificationServiceType, NotificationConfiguration> _notificationProvider;
+    
+    // Explicit dependency injection - no hidden dependencies
+    public NotificationManager(ServiceTypeProviderBase<INotificationService, NotificationServiceType, NotificationConfiguration> notificationProvider)
+    {
+        _notificationProvider = notificationProvider;
+    }
+    
+    // Factory method - creates instances based on business logic
+    public async Task<IFdwResult<INotificationService>> GetNotificationService(string notificationType)
+    {
+        // Uses configuration-driven selection, not arbitrary service location
+        return await _notificationProvider.GetServiceAsync(notificationType);
+    }
+}
+```
+
+### When This Pattern is Appropriate
+
+- **Runtime Service Selection**: When the specific service implementation must be chosen at runtime based on configuration
+- **Plugin Architecture**: When supporting multiple implementations of the same interface
+- **Multi-Tenant Systems**: When different tenants require different service implementations
+- **A/B Testing**: When switching between service implementations for testing
+
+### Design Benefits
+
+1. **Testability**: Easy to mock and test the provider interface
+2. **Flexibility**: New service types can be added without changing consumers
+3. **Encapsulation**: Service creation logic is centralized and consistent
+4. **Type Safety**: Enhanced Enum pattern provides compile-time verification
+
+The key difference from the anti-pattern is that ServiceTypeProviderBase doesn't hide dependencies or create global access points. It's an explicitly injected factory that follows dependency inversion principles.

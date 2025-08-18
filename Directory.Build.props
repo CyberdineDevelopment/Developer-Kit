@@ -22,6 +22,7 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/CyberdineDevelopment/Developer-Kit</RepositoryUrl>
+    <PackageDescription>Development tools and utilities for the FractalDataWorks ecosystem. Build: $(NBGV_GitCommitIdShort)</PackageDescription>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PackageReadmeFile>README.md</PackageReadmeFile>

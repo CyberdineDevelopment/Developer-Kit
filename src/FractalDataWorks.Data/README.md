@@ -256,7 +256,7 @@ public abstract class AggregateRoot<TKey> : EntityBase<TKey>
 
 ## Dependencies
 
-- FractalDataWorks.net (core abstractions only)
+- FractalDataWorks.Services (core abstractions only)
 
 ## Contributing
 

@@ -18,7 +18,7 @@ FractalDataWorks.Configuration provides:
 Base class for creating self-validating configurations:
 
 ```csharp
-public abstract class ConfigurationBase<T> : IFractalConfiguration
+public abstract class ConfigurationBase<T> : IFdwConfiguration
     where T : ConfigurationBase<T>, new()
 {
     public int Id { get; set; }
@@ -46,13 +46,13 @@ public abstract class ConfigurationProviderBase : IConfigurationProvider
     protected ConfigurationProviderBase(ILogger logger);
     
     // Override these to implement your provider
-    protected abstract Task<IEnumerable<IFractalConfiguration>> LoadConfigurationsAsync();
-    protected abstract Task SaveConfigurationAsync(IFractalConfiguration configuration);
+    protected abstract Task<IEnumerable<IFdwConfiguration>> LoadConfigurationsAsync();
+    protected abstract Task SaveConfigurationAsync(IFdwConfiguration configuration);
     
     // Built-in features
-    public async Task<T?> GetAsync<T>(int id) where T : IFractalConfiguration;
-    public async Task<IEnumerable<T>> GetAllAsync<T>() where T : IFractalConfiguration;
-    public async Task<FractalResult> SaveAsync(IFractalConfiguration configuration);
+    public async Task<T?> GetAsync<T>(int id) where T : IFdwConfiguration;
+    public async Task<IEnumerable<T>> GetAllAsync<T>() where T : IFdwConfiguration;
+    public async Task<IFdwResult> SaveAsync(IFdwConfiguration configuration);
 }
 ```
 
@@ -134,7 +134,7 @@ public class JsonConfigurationProvider : ConfigurationProviderBase
         _filePath = filePath;
     }
     
-    protected override async Task<IEnumerable<IFractalConfiguration>> LoadConfigurationsAsync()
+    protected override async Task<IEnumerable<IFdwConfiguration>> LoadConfigurationsAsync()
     {
         if (!File.Exists(_filePath))
             return Enumerable.Empty<IFractalConfiguration>();
@@ -142,10 +142,10 @@ public class JsonConfigurationProvider : ConfigurationProviderBase
         var json = await File.ReadAllTextAsync(_filePath);
         var configs = JsonSerializer.Deserialize<List<DatabaseConfiguration>>(json);
         
-        return configs ?? Enumerable.Empty<IFractalConfiguration>();
+        return configs ?? Enumerable.Empty<IFdwConfiguration>();
     }
     
-    protected override async Task SaveConfigurationAsync(IFractalConfiguration configuration)
+    protected override async Task SaveConfigurationAsync(IFdwConfiguration configuration)
     {
         var configs = (await LoadConfigurationsAsync()).ToList();
         
@@ -238,11 +238,10 @@ else
 Configurations work seamlessly with the service pattern:
 
 ```csharp
-public class MyService : ServiceBase<DatabaseConfiguration, MyCommand>
+public class MyService : ServiceBase<MyCommand, DatabaseConfiguration, MyService>
 {
-    public MyService(ILogger<MyService> logger, 
-        IConfigurationRegistry<DatabaseConfiguration> configurations)
-        : base(logger, configurations)
+    public MyService(ILogger<MyService> logger, DatabaseConfiguration configuration)
+        : base(logger, configuration)
     {
         // Configuration is automatically validated
         // Access via this.Configuration
@@ -316,7 +315,7 @@ public class ReloadableConfigurationProvider : ConfigurationProviderBase
         OnConfigurationsReloaded?.Invoke(configs);
     }
     
-    public event Action<IEnumerable<IFractalConfiguration>>? OnConfigurationsReloaded;
+    public event Action<IEnumerable<IFdwConfiguration>>? OnConfigurationsReloaded;
 }
 ```
 
@@ -328,7 +327,7 @@ public class ReloadableConfigurationProvider : ConfigurationProviderBase
 
 ## Dependencies
 
-- FractalDataWorks.net (core abstractions)
+- FractalDataWorks.Services (core abstractions)
 - Microsoft.Extensions.Configuration
 - Microsoft.Extensions.Configuration.Binder
 - Microsoft.Extensions.Logging.Abstractions

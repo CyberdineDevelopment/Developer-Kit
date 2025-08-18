@@ -46,7 +46,7 @@ public abstract class ExternalConnectionBase<TCommandBuilder, TCommand, TConnect
     }
     
     // Execute provider-specific command
-    public abstract Task<FdwResult<T>> Execute<T>(IFdwDataCommand command);
+    public abstract Task<IFdwResult<T>> Execute<T>(IFdwDataCommand command);
 }
 ```
 
@@ -138,7 +138,7 @@ public class MsSqlConnection : ExternalConnectionBase<SqlCommandBuilder, SqlComm
     {
     }
     
-    public override async Task<FdwResult<T>> Execute<T>(IFdwDataCommand dataCommand)
+    public override async Task<IFdwResult<T>> Execute<T>(IFdwDataCommand dataCommand)
     {
         // Transform universal command to SQL
         var sqlCommand = BuildCommand(dataCommand);
@@ -157,7 +157,7 @@ public class MsSqlConnection : ExternalConnectionBase<SqlCommandBuilder, SqlComm
         };
     }
     
-    private async Task<FdwResult<T>> ExecuteQuery<T>(SqlConnection connection, SqlCommand command)
+    private async Task<IFdwResult<T>> ExecuteQuery<T>(SqlConnection connection, SqlCommand command)
     {
         // Execute query and map results
         command.Connection = connection;
@@ -175,7 +175,7 @@ public class MsSqlConnection : ExternalConnectionBase<SqlCommandBuilder, SqlComm
 ```csharp
 public class MongoConnection : ExternalConnectionBase<MongoCommandBuilder, BsonDocument, IMongoDatabase, MongoConnectionFactory, MongoConfiguration>
 {
-    public override async Task<FdwResult<T>> Execute<T>(IFdwDataCommand dataCommand)
+    public override async Task<IFdwResult<T>> Execute<T>(IFdwDataCommand dataCommand)
     {
         // Transform LINQ to MongoDB query
         var bsonQuery = BuildCommand(dataCommand);
@@ -192,7 +192,7 @@ public class MongoConnection : ExternalConnectionBase<MongoCommandBuilder, BsonD
 ```csharp
 public class ApiConnection : ExternalConnectionBase<ApiCommandBuilder, HttpRequestMessage, HttpClient, HttpClientFactory, ApiConfiguration>
 {
-    public override async Task<FdwResult<T>> Execute<T>(IFdwDataCommand dataCommand)
+    public override async Task<IFdwResult<T>> Execute<T>(IFdwDataCommand dataCommand)
     {
         // Transform to HTTP request
         var httpRequest = BuildCommand(dataCommand);
@@ -209,7 +209,7 @@ public class ApiConnection : ExternalConnectionBase<ApiCommandBuilder, HttpReque
 ```csharp
 public class FileConnection : ExternalConnectionBase<FileCommandBuilder, FileOperation, FileStream, FileConnectionFactory, FileConfiguration>
 {
-    public override async Task<FdwResult<T>> Execute<T>(IFdwDataCommand dataCommand)
+    public override async Task<IFdwResult<T>> Execute<T>(IFdwDataCommand dataCommand)
     {
         // Transform to file operation
         var fileOp = BuildCommand(dataCommand);
@@ -267,7 +267,7 @@ services.AddSingleton<IExternalConnectionProvider, ExternalConnectionProvider>()
 
 ## Dependencies
 
-- FractalDataWorks.net (core abstractions)
+- FractalDataWorks.Services (core abstractions)
 - FractalDataWorks.Services (service base class)
 - FractalDataWorks.Configuration (configuration management)
 - Microsoft.Extensions.Logging.Abstractions
