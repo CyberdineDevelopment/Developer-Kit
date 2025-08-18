@@ -208,19 +208,38 @@ jobs:
        startsWith(github.ref, 'refs/heads/experimental/') ||
        startsWith(github.ref, 'refs/heads/feature/'))
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          
+      - name: Check for nopublish file
+        id: check_nopublish
+        run: |
+          if (Test-Path "nopublish") {
+            Write-Host "nopublish file found - skipping package publishing"
+            echo "skip_publish=true" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "No nopublish file found - proceeding with publishing"
+            echo "skip_publish=false" >> $env:GITHUB_OUTPUT
+          }
+          
       - name: Download packages
+        if: steps.check_nopublish.outputs.skip_publish != 'true'
         uses: actions/download-artifact@v4
         with:
           name: packages
           path: ${{ github.workspace }}/packages
           
       - name: List package contents
+        if: steps.check_nopublish.outputs.skip_publish != 'true'
         run: |
           Get-ChildItem -Path "${{ github.workspace }}/packages" -Recurse
           
       # For GitHub Packages - develop, experimental, and feature builds (internal private feed)
       - name: Push to GitHub Packages (Internal Feed)
         if: |
+          steps.check_nopublish.outputs.skip_publish != 'true' &&
           github.event_name == 'push' &&
           (github.ref == 'refs/heads/develop' ||
            startsWith(github.ref, 'refs/heads/experimental/') ||
@@ -234,6 +253,7 @@ jobs:
       # For NuGet.org - only preview, rc, and release builds (public feed)
       - name: Push to NuGet.org (Public Feed)
         if: |
+          steps.check_nopublish.outputs.skip_publish != 'true' &&
           github.event_name == 'push' && 
           (github.ref == 'refs/heads/master' || 
            github.ref == 'refs/heads/main' ||
@@ -248,7 +268,7 @@ jobs:
         continue-on-error: true
         
       - name: Tag release
-        if: github.ref == 'refs/heads/master'
+        if: steps.check_nopublish.outputs.skip_publish != 'true' && github.ref == 'refs/heads/master'
         run: |
           git config user.email "cmblair@domesticateddata.com"
           git config user.name "jConner"

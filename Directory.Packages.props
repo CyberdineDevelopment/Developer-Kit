@@ -78,5 +78,8 @@
     <!-- Dependency Injection -->
     <!-- Hosting -->
     <!-- Logging Extensions -->
+    <!-- Data Access -->
+    <PackageVersion Include="Dapper" Version="2.1.44" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.2" />
   </ItemGroup>
 </Project>
