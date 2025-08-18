@@ -58,9 +58,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFractalService<TService, TImplementation, TConfiguration>(
         this IServiceCollection services,
         ServiceLifetime lifetime = ServiceLifetime.Scoped)
-        where TService : class, IFractalService<TConfiguration>
+        where TService : class, IFdwService<TConfiguration>
         where TImplementation : class, TService
-        where TConfiguration : class, IFractalConfiguration
+        where TConfiguration : class, IFdwConfiguration
     {
         services.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), lifetime));
         services.AddConfigurationRegistry<TConfiguration>();
@@ -77,7 +77,7 @@ public static class ConfigurationRegistrationExtensions
     public static IServiceCollection AddConfigurationRegistry<T>(
         this IServiceCollection services,
         Func<IServiceProvider, IConfigurationRegistry<T>>? factory = null)
-        where T : class, IFractalConfiguration
+        where T : class, IFdwConfiguration
     {
         if (factory != null)
         {
@@ -116,7 +116,7 @@ public class ConventionBasedServiceDiscovery : IServiceDiscovery
             .Where(t => t.IsClass && !t.IsAbstract)
             .Where(t => t.GetInterfaces().Any(i => 
                 i.IsGenericType && 
-                i.GetGenericTypeDefinition() == typeof(IFractalService<,>)));
+                i.GetGenericTypeDefinition() == typeof(IFdwService<>)));
     }
 }
 ```
@@ -164,15 +164,15 @@ public class CustomerServiceModule : ServiceModuleBase
 ### Service Factory Pattern
 
 ```csharp
-public interface IServiceFactory<TService> where TService : IFractalService
+public interface IServiceFactory<TService> where TService : IFdwService
 {
     TService CreateService(string name);
     TService CreateService(int configurationId);
 }
 
 public class ServiceFactory<TService, TConfiguration> : IServiceFactory<TService>
-    where TService : IFractalService<TConfiguration>
-    where TConfiguration : class, IFractalConfiguration
+    where TService : IFdwService<TConfiguration>
+    where TConfiguration : class, IFdwConfiguration
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfigurationRegistry<TConfiguration> _configurations;
@@ -278,7 +278,7 @@ services.Decorate<ICustomerService, LoggingCustomerService>();
 
 ## Dependencies
 
-- FractalDataWorks.net (core abstractions)
+- FractalDataWorks.Services (core abstractions)
 - FractalDataWorks.Configuration
 - Microsoft.Extensions.DependencyInjection.Abstractions
 

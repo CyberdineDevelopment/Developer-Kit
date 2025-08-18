@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using FractalDataWorks;
@@ -44,11 +44,24 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
 
     /// <summary>
     /// Creates a service instance with the specified strongly-typed configuration.
-    /// This is the core creation method that derived classes must implement.
+    /// Default implementation creates a new instance using the constructor.
+    /// Override this method for custom creation logic.
     /// </summary>
     /// <param name="configuration">The strongly-typed configuration for the service.</param>
     /// <returns>A result containing the created service or an error message.</returns>
-    protected abstract IFdwResult<TService> CreateCore(TConfiguration configuration);
+    protected virtual IFdwResult<TService> CreateCore(TConfiguration configuration)
+    {
+        try
+        {
+            var service = (TService)Activator.CreateInstance(typeof(TService), configuration)!;
+            return FdwResult<TService>.Success(service);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create service of type {ServiceType}", typeof(TService).Name);
+            return FdwResult<TService>.Failure($"Failed to create service: {ex.Message}");
+        }
+    }
 
     /// <summary>
     /// Creates a service instance for the specified configuration name.
@@ -156,7 +169,7 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
     /// </summary>
     /// <param name="configuration">The configuration for the service.</param>
     /// <returns>A result containing the created service or an error message.</returns>
-    public IFdwResult<IFdwService> Create(IFdwConfiguration configuration)
+    IFdwResult<IFdwService> IServiceFactory.Create(IFdwConfiguration configuration)
     {
         // Validate configuration and create service
         var validationResult = ValidateConfiguration(configuration, out var validConfig);

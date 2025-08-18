@@ -46,7 +46,7 @@ The framework follows a progressive layered architecture with clear separation b
 
 ### Layer 1 - Domain-Specific Implementations
 - **FractalDataWorks.Services** - Service patterns, base implementations, and service/message infrastructure
-  - `ServiceBase<TConfiguration, TCommand>` - Base service with validation and Serilog structured logging
+  - `ServiceBase<TCommand, TConfiguration, TService>` - Base service with validation and Serilog structured logging
   - `ServiceTypeBase<T>` - Base class for service type definitions with Enhanced Enum support
   - `MessageBase<T>` - Base class for result messages (moved from separate Messages project) with Enhanced Enum support
   - `ServiceTypeAttribute` - Attribute for marking service types for discovery
@@ -281,14 +281,14 @@ This repository includes both Azure Pipelines and GitHub Actions workflows for C
 
 ### Service Pattern
 ```csharp
-public class MyService : ServiceBase<MyConfiguration, MyCommand>
+public class MyService : ServiceBase<MyCommand, MyConfiguration, MyService>
 {
-    public MyService(ILogger<MyService> logger, IConfigurationRegistry<MyConfiguration> configs)
-        : base(logger, configs)
+    public MyService(ILogger<MyService> logger, MyConfiguration configuration)
+        : base(logger, configuration)
     {
     }
 
-    protected override async Task<FdwResult<TResult>> ExecuteCore<TResult>(MyCommand command)
+    protected override async Task<IFdwResult<TResult>> ExecuteCore<TResult>(MyCommand command)
     {
         // Implementation with automatic validation and error handling
     }
@@ -342,12 +342,20 @@ else
 ### Universal Data Service Pattern
 ```csharp
 // Universal data service that works with any data source
-public class DataConnection<TDataCommand, TConnection> : ServiceBase<TDataCommand>
-    where TDataCommand : IFdwDataCommand
+public class DataConnection<TCommand, TConnection, TConfiguration> : DataConnectionBase<TCommand, TConnection, TConfiguration>
+    where TCommand : IDataCommand
+    where TConfiguration : ConfigurationBase<TConfiguration>, new()
+    where TConnection : class
 {
     private readonly IExternalConnectionProvider _connectionProvider;
     
-    protected override async Task<FdwResult<TResult>> ExecuteCore<TResult>(TDataCommand command)
+    public DataConnection(ILogger<DataConnectionBase<TCommand, TConnection, TConfiguration>> logger, TConfiguration configuration)
+        : base(logger, configuration)
+    {
+        _connectionProvider = /* injected provider */;
+    }
+    
+    protected override async Task<IFdwResult<TResult>> ExecuteCore<TResult>(TCommand command)
     {
         // Provider selects appropriate connection based on configuration
         var connection = await _connectionProvider.GetConnection(command.ConnectionId);

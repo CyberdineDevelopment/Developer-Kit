@@ -113,9 +113,9 @@ IFdwService<T>
     ↓
 IDataService : IFdwService<IDataCommand>
     ↓  
-DataProvidersServiceBase<TConfig, TCommand>
+DataProvidersServiceBase<TCommand, TConfiguration, TService>
     ↓
-ConcreteDataService<SpecificConfig, SpecificCommand>
+ConcreteDataService<SpecificCommand, SpecificConfiguration, ConcreteDataService>
 ```
 
 ## Framework Integration

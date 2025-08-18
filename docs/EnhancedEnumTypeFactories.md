@@ -55,13 +55,14 @@ public abstract class ServiceTypeFactoryBase<TService, TConfiguration>
 [EnhancedEnumBase("ServiceTypes", 
     ReturnType = "IServiceFactory<IFdwService, IFdwConfiguration>",
     ReturnTypeNamespace = "FractalDataWorks.Services")]
-public abstract class ServiceTypeBase<TService, TConfiguration> 
-    : ServiceTypeFactoryBase<TService, TConfiguration>
-    where TService : class, IFdwService
-    where TConfiguration : class, IFdwConfiguration
+public abstract class ServiceTypeBase<TService, TFactory, TConfiguration>
+    : EnumOptionBase<ServiceTypeBase<TService, TFactory, TConfiguration>>, IServiceType
+    where TService : class
+    where TFactory : class, new()
+    where TConfiguration : class
 {
-    protected ServiceTypeBase(int id, string name, string description)
-        : base(id, name, description)
+    protected ServiceTypeBase(int id, string name, string description, Type serviceType, Type configurationType, string category)
+        : base(id, name)
     {
     }
 }
@@ -71,41 +72,31 @@ public abstract class ServiceTypeBase<TService, TConfiguration>
 
 ```csharp
 [EnumOption(1, "EmailNotification", "Email notification service")]
-public class EmailNotificationServiceType : ServiceTypeBase<INotificationService, EmailConfiguration>
+public class EmailNotificationServiceType : ServiceTypeBase<INotificationService, EmailNotificationFactory, EmailConfiguration>
 {
-    private readonly IEmailProvider _emailProvider;
-    private readonly ITemplateEngine _templateEngine;
-    
-    public EmailNotificationServiceType(
-        IEmailProvider emailProvider,
-        ITemplateEngine templateEngine) 
-        : base(1, "EmailNotification", "Email notification service")
+    public EmailNotificationServiceType() 
+        : base(1, "EmailNotification", "Email notification service", typeof(INotificationService), typeof(EmailConfiguration), "Notification")
     {
-        _emailProvider = emailProvider;
-        _templateEngine = templateEngine;
     }
 
-    public override object Create(EmailConfiguration configuration)
+    public override INotificationService CreateService(IServiceProvider serviceProvider)
     {
-        return new EmailNotificationService(_emailProvider, _templateEngine, configuration);
+        var emailProvider = serviceProvider.GetRequiredService<IEmailProvider>();
+        var templateEngine = serviceProvider.GetRequiredService<ITemplateEngine>();
+        var configuration = serviceProvider.GetRequiredService<EmailConfiguration>();
+        return new EmailNotificationService(emailProvider, templateEngine, configuration);
     }
 
-    public override async Task<INotificationService> GetService(string configurationName)
+    public override void RegisterService(IServiceCollection services)
     {
-        var config = await _configurationRegistry.GetByNameAsync(configurationName);
-        if (config == null)
-            throw new InvalidOperationException($"Configuration '{configurationName}' not found");
-            
-        return new EmailNotificationService(_emailProvider, _templateEngine, config);
+        services.AddScoped<INotificationService, EmailNotificationService>();
+        services.AddScoped<IEmailProvider, DefaultEmailProvider>();
+        services.AddScoped<ITemplateEngine, DefaultTemplateEngine>();
     }
 
-    public override async Task<INotificationService> GetService(int configurationId)
+    public override EmailNotificationFactory Factory()
     {
-        var config = await _configurationRegistry.GetByIdAsync(configurationId);
-        if (config == null)
-            throw new InvalidOperationException($"Configuration with ID {configurationId} not found");
-            
-        return new EmailNotificationService(_emailProvider, _templateEngine, config);
+        return new EmailNotificationFactory();
     }
 }
 ```
@@ -388,16 +379,14 @@ Always inject dependencies through the constructor:
 
 ```csharp
 [EnumOption(1, "MyService", "My service implementation")]
-public class MyServiceType : ServiceTypeBase<IMyService, MyConfiguration>
+public class MyServiceType : ServiceTypeBase<IMyService, MyServiceFactory, MyConfiguration>
 {
     private readonly IDependency1 _dep1;
     private readonly IDependency2 _dep2;
     
-    public MyServiceType(IDependency1 dep1, IDependency2 dep2) 
-        : base(1, "MyService", "My service implementation")
+    public MyServiceType() 
+        : base(1, "MyService", "My service implementation", typeof(IMyService), typeof(MyConfiguration), "Custom")
     {
-        _dep1 = dep1;
-        _dep2 = dep2;
     }
 }
 ```
@@ -407,31 +396,40 @@ public class MyServiceType : ServiceTypeBase<IMyService, MyConfiguration>
 Validate configurations in factory methods:
 
 ```csharp
-public override object Create(MyConfiguration configuration)
+public override IMyService CreateService(IServiceProvider serviceProvider)
 {
+    var configuration = serviceProvider.GetRequiredService<MyConfiguration>();
+    
     if (configuration == null)
         throw new ArgumentNullException(nameof(configuration));
         
     var validationResult = configuration.Validate();
     if (!validationResult.IsValid)
         throw new InvalidOperationException($"Invalid configuration: {validationResult.Error}");
+    
+    var dep1 = serviceProvider.GetRequiredService<IDependency1>();
+    var dep2 = serviceProvider.GetRequiredService<IDependency2>();
         
-    return new MyService(_dep1, _dep2, configuration);
+    return new MyService(dep1, dep2, configuration);
 }
 ```
 
-### 3. Async Factory Methods
+### 3. Service Registration
 
-Use async/await properly in factory methods:
+Properly register all dependencies in the RegisterService method:
 
 ```csharp
-public override async Task<IMyService> GetService(string configurationName)
+public override void RegisterService(IServiceCollection services)
 {
-    var config = await _configurationRegistry.GetByNameAsync(configurationName);
-    if (config == null)
-        return null; // or throw, depending on requirements
-        
-    return new MyService(_dep1, _dep2, config);
+    // Register the main service
+    services.AddScoped<IMyService, MyService>();
+    
+    // Register all dependencies
+    services.AddScoped<IDependency1, ConcreteDependency1>();
+    services.AddScoped<IDependency2, ConcreteDependency2>();
+    
+    // Register configuration if needed
+    services.AddSingleton<MyConfiguration>(sp => /* configuration setup */);
 }
 ```
 
@@ -449,7 +447,7 @@ public static class ServiceTypeIds
 }
 
 [EnumOption(ServiceTypeIds.EmailNotification, "EmailNotification", "Email notification service")]
-public class EmailNotificationServiceType : ServiceTypeBase<INotificationService, EmailConfiguration>
+public class EmailNotificationServiceType : ServiceTypeBase<INotificationService, EmailNotificationFactory, EmailConfiguration>
 {
     // ...
 }
@@ -484,13 +482,28 @@ public class ServiceFactory
 After:
 ```csharp
 [EnumOption(1, "EmailNotification", "Email notification service")]
-public class EmailNotificationServiceType : ServiceTypeBase<INotificationService, EmailConfiguration>
+public class EmailNotificationServiceType : ServiceTypeBase<INotificationService, EmailNotificationFactory, EmailConfiguration>
 {
-    public override object Create(EmailConfiguration configuration)
+    public EmailNotificationServiceType() 
+        : base(1, "EmailNotification", "Email notification service", typeof(INotificationService), typeof(EmailConfiguration), "Notification")
     {
+    }
+
+    public override INotificationService CreateService(IServiceProvider serviceProvider)
+    {
+        var configuration = serviceProvider.GetRequiredService<EmailConfiguration>();
         return new EmailNotificationService(configuration);
     }
-    // ... other methods
+
+    public override void RegisterService(IServiceCollection services)
+    {
+        services.AddScoped<INotificationService, EmailNotificationService>();
+    }
+
+    public override EmailNotificationFactory Factory()
+    {
+        return new EmailNotificationFactory();
+    }
 }
 
 // Usage

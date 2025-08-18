@@ -73,9 +73,9 @@ IFdwService<T>
     ↓
 IAuthenticationService : IFdwService<IAuthenticationCommand>
     ↓  
-AuthenticationServiceBase<TConfig, TCommand>
+AuthenticationServiceBase<TCommand, TConfiguration, TService>
     ↓
-ConcreteAuthenticationService<SpecificConfig, SpecificCommand>
+ConcreteAuthenticationService<SpecificCommand, SpecificConfiguration, ConcreteAuthenticationService>
 ```
 
 ## Framework Integration

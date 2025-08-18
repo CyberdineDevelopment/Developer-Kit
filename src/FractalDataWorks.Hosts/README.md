@@ -13,11 +13,11 @@ FractalDataWorks.Hosts provides:
 
 ## Planned Components
 
-### IFractalHost
+### IFdwHost
 
 Base host abstraction:
 ```csharp
-public interface IFractalHost
+public interface IFdwHost
 {
     string Name { get; }
     HostStatus Status { get; }
@@ -26,11 +26,11 @@ public interface IFractalHost
 }
 ```
 
-### IFractalWebHost
+### IFdwWebHost
 
 Web-specific host features:
 ```csharp
-public interface IFractalWebHost : IFractalHost
+public interface IFdwWebHost : IFdwHost
 {
     int Port { get; }
     string[] Urls { get; }
@@ -39,11 +39,11 @@ public interface IFractalWebHost : IFractalHost
 }
 ```
 
-### IFractalWorkerHost
+### IFdwWorkerHost
 
 Background service host:
 ```csharp
-public interface IFractalWorkerHost : IFractalHost
+public interface IFdwWorkerHost : IFdwHost
 {
     TimeSpan ExecutionInterval { get; }
     bool RunContinuously { get; }
@@ -54,7 +54,7 @@ public interface IFractalWorkerHost : IFractalHost
 ### Base Host Implementations
 
 ```csharp
-public abstract class FractalHostBase : IFractalHost, IHostedService
+public abstract class FdwHostBase : IFdwHost, IHostedService
 {
     protected readonly ILogger Logger;
     protected readonly IHostApplicationLifetime Lifetime;
@@ -62,7 +62,7 @@ public abstract class FractalHostBase : IFractalHost, IHostedService
     public string Name { get; }
     public HostStatus Status { get; protected set; }
     
-    protected FractalHostBase(
+    protected FdwHostBase(
         string name,
         ILogger logger,
         IHostApplicationLifetime lifetime)
@@ -103,9 +103,9 @@ public abstract class FractalHostBase : IFractalHost, IHostedService
 ### Worker Service Base
 
 ```csharp
-public abstract class FractalWorkerBase<TService, TConfiguration> : BackgroundService, IFractalWorkerHost
-    where TService : IFractalService<TConfiguration>
-    where TConfiguration : class, IFractalConfiguration
+public abstract class FdwWorkerBase<TService, TConfiguration> : BackgroundService, IFdwWorkerHost
+    where TService : IFdwService<TConfiguration>
+    where TConfiguration : class, IFdwConfiguration
 {
     private readonly TService _service;
     private readonly ILogger _logger;
@@ -153,15 +153,15 @@ public abstract class FractalWorkerBase<TService, TConfiguration> : BackgroundSe
 ```csharp
 public static class WebHostExtensions
 {
-    public static IServiceCollection AddFractalWebHost<THost>(
+    public static IServiceCollection AddFdwWebHost<THost>(
         this IServiceCollection services,
-        Action<FractalWebHostOptions>? configure = null)
-        where THost : class, IFractalWebHost
+        Action<FdwWebHostOptions>? configure = null)
+        where THost : class, IFdwWebHost
     {
-        var options = new FractalWebHostOptions();
+        var options = new FdwWebHostOptions();
         configure?.Invoke(options);
         
-        services.Configure<FractalWebHostOptions>(opt =>
+        services.Configure<FdwWebHostOptions>(opt =>
         {
             opt.EnableHealthChecks = options.EnableHealthChecks;
             opt.EnableMetrics = options.EnableMetrics;
@@ -174,23 +174,23 @@ public static class WebHostExtensions
         if (options.EnableHealthChecks)
         {
             services.AddHealthChecks()
-                .AddCheck<FractalHealthCheck>("fractal_services");
+                .AddCheck<FdwHealthCheck>("fdw_services");
         }
         
         return services;
     }
     
-    public static IApplicationBuilder UseFractalWebHost(
+    public static IApplicationBuilder UseFdwWebHost(
         this IApplicationBuilder app,
-        IFractalWebHost host)
+        IFdwWebHost host)
     {
         host.ConfigureMiddleware(app);
         return app;
     }
     
-    public static IEndpointRouteBuilder MapFractalEndpoints(
+    public static IEndpointRouteBuilder MapFdwEndpoints(
         this IEndpointRouteBuilder endpoints,
-        IFractalWebHost host)
+        IFdwWebHost host)
     {
         host.ConfigureEndpoints(endpoints);
         
@@ -218,11 +218,11 @@ public static class WebHostExtensions
 ### Health Checks
 
 ```csharp
-public class FractalHealthCheck : IHealthCheck
+public class FdwHealthCheck : IHealthCheck
 {
-    private readonly IEnumerable<IFractalService> _services;
+    private readonly IEnumerable<IFdwService> _services;
     
-    public FractalHealthCheck(IEnumerable<IFractalService> services)
+    public FdwHealthCheck(IEnumerable<IFdwService> services)
     {
         _services = services;
     }
@@ -255,7 +255,7 @@ public class FractalHealthCheck : IHealthCheck
 
 ### Creating a Worker Service
 ```csharp
-public class OrderProcessingWorker : FractalWorkerBase<IOrderService, OrderConfiguration>
+public class OrderProcessingWorker : FdwWorkerBase<IOrderService, OrderConfiguration>
 {
     public override TimeSpan ExecutionInterval => TimeSpan.FromMinutes(5);
     
@@ -279,12 +279,12 @@ public class OrderProcessingWorker : FractalWorkerBase<IOrderService, OrderConfi
 }
 
 // Registration
-services.AddFractalWorkerHost<OrderProcessingWorker>();
+services.AddFdwWorkerHost<OrderProcessingWorker>();
 ```
 
 ### Creating a Web API Host
 ```csharp
-public class ApiHost : FractalWebHostBase
+public class ApiHost : FdwWebHostBase
 {
     private readonly IServiceProvider _serviceProvider;
     
@@ -292,7 +292,7 @@ public class ApiHost : FractalWebHostBase
     public override string[] Urls => new[] { "http://localhost:5000", "https://localhost:5001" };
     
     public ApiHost(IServiceProvider serviceProvider, ILogger<ApiHost> logger)
-        : base("FractalDataWorks API", logger)
+        : base("FdwDataWorks API", logger)
     {
         _serviceProvider = serviceProvider;
     }
@@ -315,7 +315,7 @@ public class ApiHost : FractalWebHostBase
 // In Startup.cs
 public void ConfigureServices(IServiceCollection services)
 {
-    services.AddFractalWebHost<ApiHost>(options =>
+    services.AddFdwWebHost<ApiHost>(options =>
     {
         options.EnableHealthChecks = true;
         options.EnableMetrics = true;
@@ -323,20 +323,20 @@ public void ConfigureServices(IServiceCollection services)
     });
 }
 
-public void Configure(IApplicationBuilder app, IFractalWebHost host)
+public void Configure(IApplicationBuilder app, IFdwWebHost host)
 {
-    app.UseFractalWebHost(host);
+    app.UseFdwWebHost(host);
     
     app.UseEndpoints(endpoints =>
     {
-        endpoints.MapFractalEndpoints(host);
+        endpoints.MapFdwEndpoints(host);
     });
 }
 ```
 
 ### Graceful Shutdown
 ```csharp
-public class GracefulShutdownWorker : FractalWorkerBase<ICleanupService, CleanupConfiguration>
+public class GracefulShutdownWorker : FdwWorkerBase<ICleanupService, CleanupConfiguration>
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -370,7 +370,7 @@ public class GracefulShutdownWorker : FractalWorkerBase<ICleanupService, Cleanup
 
 ## Dependencies
 
-- FractalDataWorks.net (core abstractions)
+- FractalDataWorks.Services (core abstractions)
 - FractalDataWorks.Services
 - Microsoft.Extensions.Hosting
 - Microsoft.Extensions.Hosting.Abstractions
