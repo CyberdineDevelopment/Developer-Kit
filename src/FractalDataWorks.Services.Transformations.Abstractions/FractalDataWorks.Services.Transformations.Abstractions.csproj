@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
-    <ProjectReference Include="..\FractalDataWorks.Services.DataProviders.Abstractions\FractalDataWorks.Services.DataProviders.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

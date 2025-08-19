@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FractalDataWorks.Validation;
@@ -10,8 +11,8 @@ namespace FractalDataWorks.Configuration;
 /// Base class for all configuration types in the Fractal framework.
 /// </summary>
 /// <typeparam name="TConfiguration">The derived configuration type.</typeparam>
-public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
-    where TConfiguration : ConfigurationBase<TConfiguration>, IFdwConfiguration, new()
+public abstract class ConfigurationBase<TConfiguration> : FdwConfigurationBase
+    where TConfiguration : ConfigurationBase<TConfiguration>, new()
 {
     private bool? _isValid;
     private IValidationResult? _lastValidationResult;
@@ -38,7 +39,7 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
                 // Use GetAwaiter().GetResult() to avoid AggregateException wrapping
                 // This is a property getter that must be synchronous
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-                _lastValidationResult = Validate().GetAwaiter().GetResult();
+                _lastValidationResult = ValidateAsync().GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
                 _isValid = _lastValidationResult.IsValid;
             }
@@ -72,19 +73,20 @@ public abstract class ConfigurationBase<TConfiguration> : IFdwConfiguration
     public IValidationResult? LastValidationResult => _lastValidationResult;
 
     /// <summary>
-    /// Validates this configuration.
+    /// Validates this configuration synchronously.
     /// </summary>
-    /// <returns>True if the configuration is valid; otherwise, false.</returns>
-    bool IFdwConfiguration.Validate()
+    /// <returns>A list of validation errors.</returns>
+    public override IReadOnlyList<string> Validate()
     {
-        return IsValid;
+        var result = ValidateAsync().GetAwaiter().GetResult();
+        return result.Errors?.Select(e => e.ErrorMessage).ToList() ?? new List<string>();
     }
 
     /// <summary>
     /// Validates this configuration asynchronously.
     /// </summary>
     /// <returns>A task containing the validation result.</returns>
-    public virtual async Task<IValidationResult> Validate()
+    public virtual async Task<IValidationResult> ValidateAsync()
     {
         var validator = GetValidator();
         if (validator == null)

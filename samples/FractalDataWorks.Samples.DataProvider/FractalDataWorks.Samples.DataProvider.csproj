@@ -19,8 +19,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\FractalDataWorks.Core\FractalDataWorks.Core.csproj" />
     <ProjectReference Include="..\..\src\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
-    <ProjectReference Include="..\..\src\FractalDataWorks.Services.DataProviders.Abstractions\FractalDataWorks.Services.DataProviders.Abstractions.csproj" />
-    <ProjectReference Include="..\..\src\FractalDataWorks.Services.DataProviders.MsSql\FractalDataWorks.Services.DataProviders.MsSql.csproj" />
   </ItemGroup>
 
   <ItemGroup>
