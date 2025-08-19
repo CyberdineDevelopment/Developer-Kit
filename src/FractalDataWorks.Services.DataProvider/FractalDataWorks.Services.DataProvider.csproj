@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Services.DataProvider.Abstractions\FractalDataWorks.Services.DataProvider.Abstractions.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Services.ExternalConnections.Abstractions\FractalDataWorks.Services.ExternalConnections.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FractalDataWorks.Net" />
+    <PackageReference Include="FractalDataWorks.EnhancedEnums" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+</Project>
