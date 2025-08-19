@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using FractalDataWorks.Configuration.Abstractions;
 using FractalDataWorks.Results;
-using FractalDataWorks.Validation;
+
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Configuration;
@@ -251,26 +252,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         }
     }
 
-    /// <inheritdoc/>
-    public virtual Task<IValidationResult> Validate(TConfiguration configuration)
-    {
-        if (configuration == null)
-        {
-            return Task.FromResult<IValidationResult>(new ConfigurationValidationResult(false, 
-                new[] { new ConfigurationValidationError(nameof(configuration), "Configuration cannot be null", null, ValidationSeverity.Error) }));
-        }
-
-        // Basic validation can be extended in derived classes
-        if (string.IsNullOrWhiteSpace(configuration.Name))
-        {
-            return Task.FromResult<IValidationResult>(new ConfigurationValidationResult(false, 
-                new[] { new ConfigurationValidationError(nameof(configuration.Name), "Configuration name cannot be empty", null, ValidationSeverity.Error) }));
-        }
-
-        return Task.FromResult<IValidationResult>(new ConfigurationValidationResult(true, Array.Empty<IValidationError>()));
-    }
-
-    /// <summary>
+  /// <summary>
     /// Handles source change events.
     /// </summary>
     /// <param name="sender">The event sender.</param>

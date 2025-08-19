@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace FractalDataWorks.Services.ExternalConnections.Abstractions;
@@ -118,7 +119,7 @@ public interface IExternalConnectionFactory
 /// It provides type safety and eliminates the need for runtime type checking and casting.
 /// </remarks>
 public interface IExternalConnectionFactory<in TConfiguration, TConnection> : IExternalConnectionFactory
-    where TConfiguration : FdwConfigurationBase
+    where TConfiguration : IExternalConnectionConfiguration, new()
     where TConnection : class, IExternalConnection
 {
     /// <summary>

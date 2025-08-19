@@ -11,7 +11,7 @@ using FractalDataWorks.Configuration;
 using FractalDataWorks.Results;
 using FractalDataWorks.Services;
 using FractalDataWorks.Services.Extensions;
-using FractalDataWorks.Validation;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -354,13 +354,18 @@ public class ServiceCollectionExtensionsTests
         }
     }
 
-    public class TestServiceConfiguration : ConfigurationBase<TestServiceConfiguration>
+    public class TestServiceConfiguration : ConfigurationBase<TestServiceConfiguration>, IFdwConfiguration
     {
         public override string SectionName => "TestService";
 
         protected override IValidator<TestServiceConfiguration> GetValidator()
         {
             return null!;
+        }
+
+        bool IFdwConfiguration.Validate()
+        {
+            return true;
         }
     }
 

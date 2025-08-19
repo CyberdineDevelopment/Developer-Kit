@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FractalDataWorks;
 using FractalDataWorks.Configuration;
+using FractalDataWorks.Configuration.Abstractions;
 using FractalDataWorks.Services;
 using FractalDataWorks.Services.DataProvider.Abstractions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -318,14 +319,6 @@ public sealed class DataStoreConfigurationRegistry : IConfigurationRegistry<Data
         if (string.IsNullOrWhiteSpace(configuration.ProviderType))
         {
             _logger.LogWarning("Configuration {StoreName} has empty ProviderType, skipping", configuration.StoreName);
-            return false;
-        }
-
-        if (!configuration.IsValid)
-        {
-            _logger.LogWarning("Configuration {StoreName} failed validation, skipping: {ValidationErrors}", 
-                configuration.StoreName, 
-                string.Join(", ", configuration.Validate()));
             return false;
         }
 

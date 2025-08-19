@@ -1,10 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+<PropertyGroup>
+	<TargetFramework>net10.0</TargetFramework>
+</PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <PackageReference Include="FractalDataWorks.Net" />
-    <ProjectReference Include="..\FractalDataWorks.Connections\FractalDataWorks.Connections.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Services.Abstractions\FractalDataWorks.Services.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

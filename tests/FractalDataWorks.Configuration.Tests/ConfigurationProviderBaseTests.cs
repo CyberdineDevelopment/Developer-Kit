@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using FluentValidation;
 using FractalDataWorks;
 using FractalDataWorks.Configuration;
-
-
+using FractalDataWorks.Configuration.Abstractions;
 using FractalDataWorks.Results;
-using FractalDataWorks.Validation;
+
 using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
@@ -393,7 +392,7 @@ public class ConfigurationProviderBaseTests : IDisposable
         }
     }
 
-    private sealed class TestConfiguration : ConfigurationBase<TestConfiguration>
+    private sealed class TestConfiguration : ConfigurationBase<TestConfiguration>, IFdwConfiguration
     {
         public string? RequiredProperty { get; set; }
 
@@ -402,6 +401,12 @@ public class ConfigurationProviderBaseTests : IDisposable
         protected override IValidator<TestConfiguration> GetValidator()
         {
             return new TestConfigurationValidator();
+        }
+
+        IFdwResult IFdwConfiguration.Validate()
+        {
+            var validationResult = GetValidator().Validate(this);
+            return FdwResult<bool>.Success(validationResult.IsValid);
         }
     }
 

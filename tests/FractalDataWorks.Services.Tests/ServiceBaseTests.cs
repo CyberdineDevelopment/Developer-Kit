@@ -7,7 +7,7 @@ using FluentValidation;
 using FractalDataWorks;
 using FractalDataWorks.Configuration;
 using FractalDataWorks.Services;
-using FractalDataWorks.Validation;
+
 using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
@@ -660,7 +660,7 @@ public class ServiceBaseTests
         public ILogger<TestService> TestLogger => Logger;
     }
 
-    public sealed class TestConfiguration : ConfigurationBase<TestConfiguration>
+    public sealed class TestConfiguration : ConfigurationBase<TestConfiguration>, IFdwConfiguration
     {
         public string? TestProperty { get; set; }
 
@@ -669,6 +669,12 @@ public class ServiceBaseTests
         protected override IValidator<TestConfiguration> GetValidator()
         {
             return new TestConfigurationValidator();
+        }
+
+        bool IFdwConfiguration.Validate()
+        {
+            var validationResult = GetValidator().Validate(this);
+            return validationResult.IsValid;
         }
     }
     

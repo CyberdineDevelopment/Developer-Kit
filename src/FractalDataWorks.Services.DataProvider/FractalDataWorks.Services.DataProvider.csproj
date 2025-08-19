@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FractalDataWorks.Net" />
+
     <PackageReference Include="FractalDataWorks.EnhancedEnums" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Extensions.Options" />

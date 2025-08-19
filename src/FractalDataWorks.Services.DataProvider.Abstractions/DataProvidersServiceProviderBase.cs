@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FractalDataWorks.Configuration.Abstractions;
 using Microsoft.Extensions.Logging;
 using FractalDataWorks.Services;
 

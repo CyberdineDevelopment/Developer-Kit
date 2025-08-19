@@ -132,11 +132,11 @@ public interface IExternalConnectionService : IServiceType
 /// It provides compile-time type safety and eliminates runtime type checking.
 /// </remarks>
 public interface IExternalConnectionService<TConfiguration> : IExternalConnectionService
-    where TConfiguration : FdwConfigurationBase
+    where TConfiguration : IExternalConnectionConfiguration, new()
 {
     /// <summary>
     /// Creates a typed connection factory instance using the provided service service.
-    /// </summary>
+    /// </summary>s
     /// <param name="serviceProvider">The service service for dependency resolution.</param>
     /// <returns>
     /// A task representing the asynchronous factory creation operation.

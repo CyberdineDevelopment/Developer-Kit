@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using FractalDataWorks.Configuration.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Configuration;

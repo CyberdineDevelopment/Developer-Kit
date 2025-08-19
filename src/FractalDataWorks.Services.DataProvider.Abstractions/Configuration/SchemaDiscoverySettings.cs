@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using FluentValidation;
 
 namespace FractalDataWorks.Services.DataProvider.Abstractions.Configuration;
 
@@ -294,104 +293,5 @@ public sealed class SchemaDiscoverySettings
         }
 
         return true;
-    }
-}
-
-/// <summary>
-/// Defines the caching strategies for discovered schema information.
-/// </summary>
-public enum CacheStrategy
-{
-    /// <summary>
-    /// No caching - discover schema on every request.
-    /// </summary>
-    /// <remarks>
-    /// Provides the most up-to-date information but has the highest performance cost.
-    /// Suitable for development environments or schemas that change frequently.
-    /// </remarks>
-    None = 1,
-
-    /// <summary>
-    /// Cache schema information in memory for the application lifetime.
-    /// </summary>
-    /// <remarks>
-    /// Fast access to cached information but lost on application restart.
-    /// Good balance of performance and freshness for most scenarios.
-    /// </remarks>
-    Memory = 2,
-
-    /// <summary>
-    /// Cache schema information persistently with configurable expiration.
-    /// </summary>
-    /// <remarks>
-    /// Preserves cache across application restarts. Requires additional storage
-    /// but provides the best performance for static schemas.
-    /// </remarks>
-    Persistent = 3,
-
-    /// <summary>
-    /// Use memory cache with persistent backup for resilience.
-    /// </summary>
-    /// <remarks>
-    /// Combines the speed of memory cache with the durability of persistent cache.
-    /// Memory cache is populated from persistent cache on startup if available.
-    /// </remarks>
-    Hybrid = 4
-}
-
-/// <summary>
-/// Validator for SchemaDiscoverySettings.
-/// </summary>
-internal sealed class SchemaDiscoverySettingsValidator : AbstractValidator<SchemaDiscoverySettings>
-{
-    public SchemaDiscoverySettingsValidator()
-    {
-        RuleFor(x => x.CacheStrategy)
-            .IsInEnum()
-            .WithMessage("Cache strategy must be a valid enum value.");
-
-        RuleFor(x => x.CacheDurationMinutes)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Cache duration must be non-negative.");
-
-        RuleFor(x => x.AutoRefreshIntervalMinutes)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Auto-refresh interval must be non-negative.");
-
-        RuleFor(x => x.MaxContainers)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Maximum containers must be non-negative.");
-
-        RuleFor(x => x.DiscoveryTimeoutSeconds)
-            .GreaterThan(0)
-            .When(x => x.Enabled)
-            .WithMessage("Discovery timeout must be positive when discovery is enabled.");
-
-        RuleFor(x => x.IncludePatterns)
-            .NotNull()
-            .WithMessage("Include patterns cannot be null.");
-
-        RuleFor(x => x.ExcludePatterns)
-            .NotNull()
-            .WithMessage("Exclude patterns cannot be null.");
-
-        RuleFor(x => x.ExtendedSettings)
-            .NotNull()
-            .WithMessage("Extended settings cannot be null.");
-
-        // Ensure patterns don't contain empty or null values
-        RuleForEach(x => x.IncludePatterns)
-            .NotEmpty()
-            .WithMessage("Include patterns cannot contain empty values.");
-
-        RuleForEach(x => x.ExcludePatterns)
-            .NotEmpty()
-            .WithMessage("Exclude patterns cannot contain empty values.");
-
-        // Cache duration should be reasonable when auto-refresh is enabled
-        RuleFor(x => x.CacheDurationMinutes)
-            .GreaterThan(x => x.AutoRefreshIntervalMinutes)
-            .When(x => x.AutoRefreshIntervalMinutes > 0 && x.CacheDurationMinutes > 0)
-            .WithMessage("Cache duration should be greater than auto-refresh interval.");
     }
 }

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-	  <PackageReference Include="FractalDataWorks.Net" />
+	  
     <!-- Temporarily keep .net reference until refactoring is complete -->
     <ProjectReference Include="..\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
