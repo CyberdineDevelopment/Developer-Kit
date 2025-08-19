@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using FractalDataWorks.Validation;
+
+using FractalDataWorks.Results;
 using FluentValidation;
+using FluentValidation.Results;
 
 namespace FractalDataWorks.Configuration;
 
@@ -14,8 +15,6 @@ namespace FractalDataWorks.Configuration;
 public abstract class ConfigurationBase<TConfiguration> : FdwConfigurationBase
     where TConfiguration : ConfigurationBase<TConfiguration>, new()
 {
-    private bool? _isValid;
-    private IValidationResult? _lastValidationResult;
 
     /// <summary>
     /// Gets or sets the unique identifier for this configuration instance.
@@ -26,26 +25,6 @@ public abstract class ConfigurationBase<TConfiguration> : FdwConfigurationBase
     /// Gets or sets the name of this configuration.
     /// </summary>
     public string Name { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets a value indicating whether this configuration is valid.
-    /// </summary>
-    public bool IsValid
-    {
-        get
-        {
-            if (!_isValid.HasValue)
-            {
-                // Use GetAwaiter().GetResult() to avoid AggregateException wrapping
-                // This is a property getter that must be synchronous
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-                _lastValidationResult = ValidateAsync().GetAwaiter().GetResult();
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-                _isValid = _lastValidationResult.IsValid;
-            }
-            return _isValid.Value;
-        }
-    }
 
     /// <summary>
     /// Gets or sets a value indicating whether this configuration is enabled.
@@ -67,48 +46,7 @@ public abstract class ConfigurationBase<TConfiguration> : FdwConfigurationBase
     /// </summary>
     public abstract string SectionName { get; }
 
-    /// <summary>
-    /// Gets the last validation result.
-    /// </summary>
-    public IValidationResult? LastValidationResult => _lastValidationResult;
 
-    /// <summary>
-    /// Validates this configuration synchronously.
-    /// </summary>
-    /// <returns>A list of validation errors.</returns>
-    public override IReadOnlyList<string> Validate()
-    {
-        var result = ValidateAsync().GetAwaiter().GetResult();
-        return result.Errors?.Select(e => e.ErrorMessage).ToList() ?? new List<string>();
-    }
-
-    /// <summary>
-    /// Validates this configuration asynchronously.
-    /// </summary>
-    /// <returns>A task containing the validation result.</returns>
-    public virtual async Task<IValidationResult> ValidateAsync()
-    {
-        var validator = GetValidator();
-        if (validator == null)
-        {
-            return new ConfigurationValidationResult(true, Array.Empty<IValidationError>());
-        }
-
-        var fluentResult = await validator.ValidateAsync((TConfiguration)this).ConfigureAwait(false);
-        
-        var errors = fluentResult.Errors
-            .Select(e => new ConfigurationValidationError(
-                e.PropertyName,
-                e.ErrorMessage,
-                e.ErrorCode,
-                MapSeverity(e.Severity)))
-            .ToList();
-
-        _lastValidationResult = new ConfigurationValidationResult(fluentResult.IsValid, errors);
-        _isValid = fluentResult.IsValid;
-
-        return _lastValidationResult;
-    }
 
     /// <summary>
     /// Gets the validator for this configuration type.
@@ -125,8 +63,6 @@ public abstract class ConfigurationBase<TConfiguration> : FdwConfigurationBase
     protected void MarkAsModified()
     {
         ModifiedAt = DateTime.UtcNow;
-        _isValid = null;
-        _lastValidationResult = null;
     }
 
     /// <summary>
@@ -151,21 +87,5 @@ public abstract class ConfigurationBase<TConfiguration> : FdwConfigurationBase
         target.IsEnabled = IsEnabled;
         target.CreatedAt = CreatedAt;
         target.ModifiedAt = ModifiedAt;
-    }
-
-    /// <summary>
-    /// Maps FluentValidation severity to our validation severity.
-    /// </summary>
-    /// <param name="severity">The FluentValidation severity.</param>
-    /// <returns>The mapped validation severity.</returns>
-    private static ValidationSeverity MapSeverity(Severity severity)
-    {
-        return severity switch
-        {
-            Severity.Error => ValidationSeverity.Error,
-            Severity.Warning => ValidationSeverity.Warning,
-            Severity.Info => ValidationSeverity.Information,
-            _ => ValidationSeverity.Error
-        };
     }
 }

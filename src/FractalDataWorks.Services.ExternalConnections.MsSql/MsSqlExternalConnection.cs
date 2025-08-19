@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using FractalDataWorks;
 using FractalDataWorks.Results;
 using FractalDataWorks.Services.ExternalConnections.Abstractions;
+using FractalDataWorks.Services.DataProvider.Abstractions;
 using FractalDataWorks.Services.DataProvider.Abstractions.Commands;
 using FractalDataWorks.Services.DataProvider.Abstractions.Models;
 
@@ -20,7 +22,7 @@ namespace FractalDataWorks.Services.ExternalConnections.MsSql;
 /// including command execution, schema discovery, and transaction support.
 /// It translates universal DataCommandBase instances to SQL Server-specific SQL statements.
 /// </remarks>
-public sealed class MsSqlExternalConnection : IExternalConnection<MsSqlConfiguration>, IDisposable
+public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfiguration>, IDisposable
 {
     private readonly ILogger<MsSqlExternalConnection> _logger;
     private MsSqlCommandTranslator? _commandTranslator;
@@ -225,10 +227,10 @@ public sealed class MsSqlExternalConnection : IExternalConnection<MsSqlConfigura
     /// <summary>
     /// Executes a DataCommandBase against the SQL Server database.
     /// </summary>
-    /// <typeparam name="TResult">The expected result type.</typeparam>
+    /// <typeparam name="T">The expected result type.</typeparam>
     /// <param name="command">The command to execute.</param>
     /// <returns>The execution result.</returns>
-    public async Task<IFdwResult<TResult>> ExecuteAsync<TResult>(DataCommandBase command)
+    public async Task<IFdwResult<T>> Execute<T>(IDataCommand command, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
 
@@ -238,6 +240,10 @@ public sealed class MsSqlExternalConnection : IExternalConnection<MsSqlConfigura
         if (_connection == null || _configuration == null || _commandTranslator == null)
             throw new InvalidOperationException("Connection has not been initialized.");
 
+        // Ensure the command is a DataCommandBase for our translator
+        if (command is not DataCommandBase dataCommand)
+            throw new ArgumentException($"Expected DataCommandBase, got {command.GetType().Name}", nameof(command));
+
         try
         {
             _logger.LogDebug("Executing {CommandType} command on SQL Server connection {ConnectionId}", 
@@ -246,15 +252,15 @@ public sealed class MsSqlExternalConnection : IExternalConnection<MsSqlConfigura
             // Ensure connection is open
             var openResult = await OpenAsync().ConfigureAwait(false);
             if (!openResult.IsSuccess)
-                return FdwResult<TResult>.Failure(openResult.Message);
+                return FdwResult<T>.Failure(openResult.Message);
 
             _state = FdwConnectionState.Executing;
 
             // Translate command to SQL
-            var translation = _commandTranslator.Translate(command);
+            var translation = _commandTranslator.Translate(dataCommand);
 
             // Execute the SQL
-            var result = await ExecuteSqlAsync<TResult>(translation, command).ConfigureAwait(false);
+            var result = await ExecuteSql<T>(translation, dataCommand, cancellationToken).ConfigureAwait(false);
 
             _state = FdwConnectionState.Open;
             
@@ -268,15 +274,17 @@ public sealed class MsSqlExternalConnection : IExternalConnection<MsSqlConfigura
             _state = FdwConnectionState.Open; // Reset state
             _logger.LogError(ex, "Failed to execute {CommandType} command on SQL Server connection {ConnectionId}",
                 command.CommandType, ConnectionId);
-            return FdwResult<TResult>.Failure($"Command execution failed: {ex.Message}");
+            return FdwResult<T>.Failure($"Command execution failed: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Discovers the schema structure of the connected database.
+    /// Discovers the schema structure starting from an optional path.
     /// </summary>
+    /// <param name="startPath">Optional starting path for schema discovery.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation if needed.</param>
     /// <returns>A collection of DataContainer objects representing the database schema.</returns>
-    public async Task<IFdwResult<IEnumerable<DataContainer>>> DiscoverSchemaAsync()
+    public async Task<IFdwResult<IEnumerable<DataContainer>>> DiscoverSchema(DataPath? startPath = null, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
 
@@ -364,7 +372,7 @@ public sealed class MsSqlExternalConnection : IExternalConnection<MsSqlConfigura
         };
     }
 
-    private async Task<IFdwResult<TResult>> ExecuteSqlAsync<TResult>(SqlTranslationResult translation, DataCommandBase originalCommand)
+    private async Task<IFdwResult<TResult>> ExecuteSql<TResult>(SqlTranslationResult translation, DataCommandBase originalCommand, CancellationToken cancellationToken)
     {
         if (_connection == null)
             throw new InvalidOperationException("Connection is null.");
@@ -559,6 +567,61 @@ public sealed class MsSqlExternalConnection : IExternalConnection<MsSqlConfigura
         return containers;
     }
 
+    /// <inheritdoc/>
+    public async Task<IFdwResult<bool>> TestConnection(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await TestConnectionAsync().ConfigureAwait(false);
+            return FdwResult<bool>.Success(result.IsSuccess);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Test connection failed for SQL Server connection {ConnectionId}", ConnectionId);
+            return FdwResult<bool>.Failure($"Test connection failed: {ex.Message}");
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IFdwResult<IDictionary<string, object>>> GetConnectionInfo(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var metadataResult = await GetMetadataAsync().ConfigureAwait(false);
+            if (!metadataResult.IsSuccess || metadataResult.Value == null)
+                return FdwResult<IDictionary<string, object>>.Failure(metadataResult.Message);
+
+            var metadata = metadataResult.Value;
+            var connectionInfo = new Dictionary<string, object>(StringComparer.Ordinal)
+            {
+                ["SystemName"] = metadata.SystemName,
+                ["Version"] = metadata.Version ?? "Unknown",
+                ["ServerInfo"] = metadata.ServerInfo ?? "Unknown",
+                ["DatabaseName"] = metadata.DatabaseName ?? "Unknown",
+                ["CollectedAt"] = metadata.CollectedAt
+            };
+
+            // Add capabilities
+            foreach (var capability in metadata.Capabilities)
+            {
+                connectionInfo[$"Capability_{capability.Key}"] = capability.Value;
+            }
+
+            // Add custom properties
+            foreach (var property in metadata.CustomProperties)
+            {
+                connectionInfo[$"Property_{property.Key}"] = property.Value;
+            }
+
+            return FdwResult<IDictionary<string, object>>.Success(connectionInfo);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Get connection info failed for SQL Server connection {ConnectionId}", ConnectionId);
+            return FdwResult<IDictionary<string, object>>.Failure($"Get connection info failed: {ex.Message}");
+        }
+    }
+
     private void ThrowIfDisposed()
     {
         if (_disposed)
@@ -585,20 +648,4 @@ public sealed class MsSqlExternalConnection : IExternalConnection<MsSqlConfigura
             _disposed = true;
         }
     }
-}
-
-/// <summary>
-/// SQL Server-specific implementation of IConnectionMetadata.
-/// </summary>
-internal sealed class MsSqlConnectionMetadata : IConnectionMetadata
-{
-    public string SystemName { get; init; } = string.Empty;
-    public string? Version { get; init; }
-    public string? ServerInfo { get; init; }
-    public string? DatabaseName { get; init; }
-    public IReadOnlyDictionary<string, object> Capabilities { get; init; } = 
-        new Dictionary<string, object>(StringComparer.Ordinal);
-    public DateTimeOffset CollectedAt { get; init; }
-    public IReadOnlyDictionary<string, object> CustomProperties { get; init; } = 
-        new Dictionary<string, object>(StringComparer.Ordinal);
 }

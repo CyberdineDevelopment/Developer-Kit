@@ -299,13 +299,89 @@ public class MyService : ServiceBase<MyCommand, MyConfiguration, MyService>
 ```csharp
 public class MyConfiguration : ConfigurationBase<MyConfiguration>
 {
-    public string ConnectionString { get; set; }
-    public int Timeout { get; set; }
+    public string ConnectionString { get; set; } = string.Empty;
+    public int Timeout { get; set; } = 30;
     
-    protected override FluentValidation.Results.ValidationResult ValidateCore()
+    protected override IValidator<MyConfiguration>? GetValidator()
+    {
+        return new MyConfigurationValidator();
+    }
+}
+
+internal sealed class MyConfigurationValidator : AbstractValidator<MyConfiguration>
+{
+    public MyConfigurationValidator()
+    {
+        RuleFor(x => x.ConnectionString)
+            .NotEmpty()
+            .WithMessage("Connection string is required.");
+            
+        RuleFor(x => x.Timeout)
+            .GreaterThan(0)
+            .WithMessage("Timeout must be positive.");
+    }
+}
+```
+
+### Configuration Validation
+
+Configuration classes use FluentValidation for validation logic with automatic IFdwResult extension method generation:
+
+#### With Source Generator (Recommended)
+Add the validation source generator package:
+```xml
+<PackageReference Include="FractalDataWorks.Validation.SourceGenerator" />
+```
+
+The source generator automatically creates `IFdwResult Validate()` extension methods for any configuration class that has a corresponding `AbstractValidator<T>`:
+
+```csharp
+public class MyConfiguration : ConfigurationBase<MyConfiguration>
+{
+    public string ConnectionString { get; set; } = string.Empty;
+    public int Timeout { get; set; } = 30;
+    
+    protected override IValidator<MyConfiguration>? GetValidator()
+    {
+        return new MyConfigurationValidator();
+    }
+}
+
+internal sealed class MyConfigurationValidator : AbstractValidator<MyConfiguration>
+{
+    public MyConfigurationValidator()
+    {
+        RuleFor(x => x.ConnectionString)
+            .NotEmpty()
+            .WithMessage("Connection string is required.");
+            
+        RuleFor(x => x.Timeout)
+            .GreaterThan(0)
+            .WithMessage("Timeout must be positive.");
+    }
+}
+
+// Usage - extension method generated automatically
+var config = new MyConfiguration();
+IFdwResult result = config.Validate(); // Generated extension method
+```
+
+#### Without Source Generator (Manual)
+If not using the source generator, you must manually create validation extension methods:
+
+```csharp
+public static class ConfigurationValidationExtensions
+{
+    public static IFdwResult Validate(this MyConfiguration config)
     {
         var validator = new MyConfigurationValidator();
-        return validator.Validate(this);
+        var result = validator.Validate(config);
+        
+        if (result.IsValid)
+            return FdwResult.Success();
+        
+        var errors = string.Join("; ", result.Errors.Select(e => e.ErrorMessage));
+        return FdwResult.Failure($"Validation failed: {errors}");
     }
 }
 ```

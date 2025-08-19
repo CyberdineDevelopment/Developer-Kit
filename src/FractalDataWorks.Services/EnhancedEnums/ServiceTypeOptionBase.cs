@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using FractalDataWorks;
-using FractalDataWorks.Configuration;
+using FractalDataWorks.Configuration.Abstractions;
 using FractalDataWorks.EnhancedEnums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System.Linq.Expressions;
 
 namespace FractalDataWorks.Services.EnhancedEnums;
 
@@ -58,7 +57,7 @@ public abstract class ServiceTypeOptionBase<TDerived, TService, TConfiguration, 
         services.AddSingleton<IConfigurationRegistry<TConfiguration>>(provider =>
         {
             var monitor = provider.GetRequiredService<IOptionsMonitor<List<TConfiguration>>>();
-            return new ConfigurationRegistryImpl<TConfiguration>(monitor.CurrentValue);
+            return new ConfigurationRegistryCore<TConfiguration>(monitor.CurrentValue);
         });
 
         // Register the factory as singleton at all interface levels

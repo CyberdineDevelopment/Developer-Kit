@@ -111,7 +111,7 @@ public interface IExternalConnection : IDisposable
 /// validation for connection parameters.
 /// </remarks>
 public interface IExternalConnection<TConfiguration> : IExternalConnection
-    where TConfiguration : FdwConfigurationBase
+    where TConfiguration : IExternalConnectionConfiguration
 {
     /// <summary>
     /// Gets the configuration object used by this connection.

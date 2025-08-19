@@ -23,6 +23,12 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
     where TConfiguration : class, IFdwConfiguration
 {
     private readonly ILogger _logger;
+    
+    private static readonly Action<ILogger, string, Exception> LogCreateServiceError =
+        LoggerMessage.Define<string>(
+            LogLevel.Error,
+            new EventId(1, "CreateServiceError"),
+            "Failed to create service of type {ServiceType}");
 
     /// <summary>
     /// Gets the logger instance for derived classes.
@@ -58,7 +64,7 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create service of type {ServiceType}", typeof(TService).Name);
+            LogCreateServiceError(_logger, typeof(TService).Name, ex);
             return FdwResult<TService>.Failure($"Failed to create service: {ex.Message}");
         }
     }

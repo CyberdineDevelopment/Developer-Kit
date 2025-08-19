@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using FractalDataWorks.Validation;
+using FractalDataWorks;
+using FluentValidation.Results;
+
 
 namespace FractalDataWorks.Connections.Stream;
 
@@ -58,10 +60,5 @@ public class StreamCommand : ICommand
     public SeekOrigin? SeekOrigin { get; set; }
 
     /// <inheritdoc/>
-    public async Task<IValidationResult> Validate()
-    {
-        var validator = new StreamCommandValidator();
-        var result = await validator.ValidateAsync(this).ConfigureAwait(false);
-        return new ValidationResultAdapter(result);
-    }
+    public ValidationResult Validate() => new StreamCommandValidator().Validate(this);
 }

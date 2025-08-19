@@ -1,17 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <Authors>jconner</Authors>
+    <Company>CyberdineDevelopment</Company>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Configuration.Abstractions\FractalDataWorks.Configuration.Abstractions.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Results\FractalDataWorks.Results.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.Services.Abstractions\FractalDataWorks.Services.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
 	  <PackageReference Include="FractalDataWorks.EnhancedEnums" />
-	  <PackageReference Include="FractalDataWorks.Net" />
+	  
 	  <PackageReference Include="FluentValidation" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
   </ItemGroup>
 
 

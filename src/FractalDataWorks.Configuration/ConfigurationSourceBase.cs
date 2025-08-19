@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using FractalDataWorks.Configuration.Abstractions;
 using FractalDataWorks.Results;
 using Microsoft.Extensions.Logging;
 

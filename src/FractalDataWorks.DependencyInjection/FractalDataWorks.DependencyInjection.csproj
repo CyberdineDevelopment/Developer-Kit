@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="FractalDataWorks.Net" />
+	  
   </ItemGroup>
 
 </Project>

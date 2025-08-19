@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using FractalDataWorks.Configuration;
 using FractalDataWorks.Results;
 using FractalDataWorks.Services;
 using FractalDataWorks.Services.EnhancedEnums;
-using FractalDataWorks.Validation;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -103,7 +102,7 @@ public class ServiceTypeOptionBaseTests
     }
 
     [Fact]
-    public void ConfigurationRegistryImplWorksCorrectly()
+    public void ConfigurationRegistryCoreWorksCorrectly()
     {
         // Arrange
         var configs = new List<TestEmailConfiguration>
@@ -113,7 +112,7 @@ public class ServiceTypeOptionBaseTests
             new() { Id = 3, Name = "Config3", IsEnabled = true }
         };
 
-        var registry = new ConfigurationRegistryImpl<TestEmailConfiguration>(configs);
+        var registry = new ConfigurationRegistryCore<TestEmailConfiguration>(configs);
 
         // Act & Assert
         registry.Get(1).ShouldNotBeNull();
@@ -226,112 +225,6 @@ public class ServiceTypeOptionBaseTests
 
 // ========== TEST TYPES ==========
 
-public interface ITestEmailService : IFdwService
-{
-    Task<IFdwResult> SendEmailAsync(string to, string subject, string body);
-}
-
-public sealed class TestEmailService : ITestEmailService
-{
-    private readonly TestEmailConfiguration _configuration;
-
-    public TestEmailService(TestEmailConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
-    public string Id => _configuration.Id.ToString();
-    public string ServiceType => _configuration.Name;
-    public bool IsAvailable => _configuration.IsEnabled;
-
-    public Task<IFdwResult> SendEmailAsync(string to, string subject, string body)
-    {
-        return Task.FromResult(FdwResult.Success());
-    }
-}
-
-public sealed class TestEmailConfiguration : IFdwConfiguration
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public bool IsEnabled { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? ModifiedAt { get; set; }
-    public string SectionName { get; set; } = string.Empty;
-
-    public bool Validate() => !string.IsNullOrEmpty(Name);
-}
-
-public sealed class TestEmailServiceFactory : ServiceFactoryBase<ITestEmailService, TestEmailConfiguration>
-{
-    public TestEmailServiceFactory() : base(null)
-    {
-    }
-
-    protected override IFdwResult<ITestEmailService> CreateCore(TestEmailConfiguration configuration)
-    {
-        var service = new TestEmailService(configuration);
-        return FdwResult<ITestEmailService>.Success(service);
-    }
-
-    public override Task<ITestEmailService> GetService(string configurationName)
-    {
-        var config = new TestEmailConfiguration { Name = configurationName };
-        var result = CreateCore(config);
-        return Task.FromResult(result.IsSuccess ? result.Value! : throw new InvalidOperationException(result.Message));
-    }
-
-    public override Task<ITestEmailService> GetService(int configurationId)
-    {
-        var config = new TestEmailConfiguration { Id = configurationId, Name = "Test" };
-        var result = CreateCore(config);
-        return Task.FromResult(result.IsSuccess ? result.Value! : throw new InvalidOperationException(result.Message));
-    }
-}
-
-public sealed class TestEmailServiceType : ServiceTypeOptionBase<TestEmailServiceType, ITestEmailService, TestEmailConfiguration, TestEmailServiceFactory>
-{
-    public static readonly TestEmailServiceType SendGrid = new(1, "SendGrid");
-    public static readonly TestEmailServiceType Smtp = new(2, "SMTP");
-
-    private TestEmailServiceType(int id, string name) : base(id, name)
-    {
-    }
-}
-
 // Test type with custom RegisterAdditional
-public interface IAdditionalTestService
-{
-    string GetMessage();
-}
-
-public sealed class AdditionalTestService : IAdditionalTestService
-{
-    public string GetMessage() => "Additional service registered";
-}
-
-public sealed class TestEmailServiceTypeWithAdditional : ServiceTypeOptionBase<TestEmailServiceTypeWithAdditional, ITestEmailService, TestEmailConfiguration, TestEmailServiceFactory>
-{
-    public static readonly TestEmailServiceTypeWithAdditional Custom = new(1, "Custom");
-
-    private TestEmailServiceTypeWithAdditional(int id, string name) : base(id, name)
-    {
-    }
-
-    protected override void RegisterAdditional(IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddSingleton<IAdditionalTestService, AdditionalTestService>();
-    }
-}
 
 // Test type with custom configuration section
-public sealed class TestEmailServiceTypeCustomSection : ServiceTypeOptionBase<TestEmailServiceTypeCustomSection, ITestEmailService, TestEmailConfiguration, TestEmailServiceFactory>
-{
-    public static readonly TestEmailServiceTypeCustomSection CustomSection = new(1, "CustomSection");
-
-    private TestEmailServiceTypeCustomSection(int id, string name) : base(id, name)
-    {
-    }
-
-    protected override string ConfigurationSection => "CustomEmail:Configurations";
-}

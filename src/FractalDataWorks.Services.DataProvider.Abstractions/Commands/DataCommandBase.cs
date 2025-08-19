@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using FractalDataWorks;
 using FractalDataWorks.Results;
 using FractalDataWorks.Services.DataProvider.Abstractions.Models;
-using FractalDataWorks.Validation;
+
 
 namespace FractalDataWorks.Services.DataProvider.Abstractions.Commands;
 
@@ -188,18 +188,7 @@ public abstract class DataCommandBase : IDataCommand
             ? FdwResult.Failure(string.Join("; ", errors))
             : FdwResult.Success();
     }
-
-    /// <inheritdoc/>
-    async Task<IValidationResult> ICommand.Validate()
-    {
-        await Task.CompletedTask; // Make this async to satisfy interface
-        var fdwResult = Validate();
-        
-        // Convert IFdwResult to IValidationResult 
-        // This is a simple adapter implementation
-        return new ValidationResultAdapter(fdwResult);
-    }
-
+    
     /// <inheritdoc/>
     public virtual IDataCommand WithParameters(IReadOnlyDictionary<string, object?> newParameters)
     {
@@ -415,43 +404,4 @@ public abstract class DataCommandBase<TResult> : DataCommandBase, IDataCommand<T
     {
         return (DataCommandBase<TResult>)base.WithTimeout(timeout);
     }
-}
-
-/// <summary>
-/// Simple adapter to convert IFdwResult to IValidationResult for interface compatibility.
-/// </summary>
-internal sealed class ValidationResultAdapter : IValidationResult
-{
-    private readonly IFdwResult _fdwResult;
-
-    public ValidationResultAdapter(IFdwResult fdwResult)
-    {
-        _fdwResult = fdwResult ?? throw new ArgumentNullException(nameof(fdwResult));
-    }
-
-    public bool IsValid => _fdwResult.IsSuccess;
-
-    public IReadOnlyList<IValidationError> Errors => 
-        _fdwResult.IsSuccess 
-            ? new List<IValidationError>() 
-            : new List<IValidationError> { new ValidationErrorAdapter(_fdwResult.Message ?? "Validation failed") };
-}
-
-/// <summary>
-/// Simple adapter to convert error messages to IValidationError for interface compatibility.
-/// </summary>
-internal sealed class ValidationErrorAdapter : IValidationError
-{
-    public ValidationErrorAdapter(string message)
-    {
-        ErrorMessage = message ?? throw new ArgumentNullException(nameof(message));
-        PropertyName = string.Empty;
-        ErrorCode = "VALIDATION_ERROR";
-        Severity = ValidationSeverity.Error;
-    }
-
-    public string ErrorMessage { get; }
-    public string PropertyName { get; }
-    public string? ErrorCode { get; }
-    public ValidationSeverity Severity { get; }
 }

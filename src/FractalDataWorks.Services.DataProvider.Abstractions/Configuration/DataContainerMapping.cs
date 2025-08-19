@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FractalDataWorks.Services.DataProvider.Abstractions.Models;
-using FluentValidation;
 
 namespace FractalDataWorks.Services.DataProvider.Abstractions.Configuration;
 
@@ -249,117 +248,5 @@ public sealed class DataContainerMapping : IEquatable<DataContainerMapping>
     public static bool operator !=(DataContainerMapping? left, DataContainerMapping? right)
     {
         return !(left == right);
-    }
-}
-
-/// <summary>
-/// Configuration for container access capabilities and constraints.
-/// </summary>
-public sealed class ContainerAccessConfiguration
-{
-    /// <summary>
-    /// Gets or sets a value indicating whether this access type is supported.
-    /// </summary>
-    public bool Supported { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets the maximum number of records that can be processed in a single operation.
-    /// </summary>
-    /// <remarks>
-    /// For reads: maximum result set size before paging is required.
-    /// For writes: maximum batch size for bulk operations.
-    /// Set to 0 for no limit.
-    /// </remarks>
-    public int MaxRecords { get; set; } = 0;
-
-    /// <summary>
-    /// Gets or sets the timeout in seconds for operations of this type.
-    /// </summary>
-    /// <remarks>
-    /// Override for the default timeout specified in DataStoreConfiguration.
-    /// Set to 0 to use the default timeout.
-    /// </remarks>
-    public int TimeoutSeconds { get; set; } = 0;
-
-    /// <summary>
-    /// Gets or sets additional constraints or capabilities for this access type.
-    /// </summary>
-    /// <remarks>
-    /// Provider-specific access configuration:
-    /// - SQL: "AllowDirtyReads", "RequireTransaction", "SupportsCTE"
-    /// - File: "AppendOnly", "RequiresLocking", "SupportsStreaming"
-    /// - API: "RequiresAuth", "SupportsETag", "RateLimit"
-    /// </remarks>
-    public Dictionary<string, object> Properties { get; set; } = new(StringComparer.Ordinal);
-}
-
-/// <summary>
-/// Validator for DataContainerMapping.
-/// </summary>
-internal sealed class DataContainerMappingValidator : AbstractValidator<DataContainerMapping>
-{
-    public DataContainerMappingValidator()
-    {
-        RuleFor(x => x.LogicalName)
-            .NotEmpty()
-            .WithMessage("Logical name is required.")
-            .MaximumLength(100)
-            .WithMessage("Logical name cannot exceed 100 characters.");
-
-        RuleFor(x => x.PhysicalPath)
-            .NotEmpty()
-            .WithMessage("Physical path is required.")
-            .MaximumLength(500)
-            .WithMessage("Physical path cannot exceed 500 characters.");
-
-        // Validate datum mappings have unique logical names
-        RuleFor(x => x.DatumMappings)
-            .Must(HaveUniqueLogicalNames)
-            .WithMessage("Datum mappings must have unique logical names.");
-
-        // Validate each datum mapping
-        RuleForEach(x => x.DatumMappings.Values)
-            .SetValidator(new DatumMappingValidator());
-
-        // Validate access configurations
-        RuleFor(x => x.ReadAccess)
-            .SetValidator(new ContainerAccessConfigurationValidator())
-            .When(x => x.ReadAccess != null);
-
-        RuleFor(x => x.WriteAccess)
-            .SetValidator(new ContainerAccessConfigurationValidator())
-            .When(x => x.WriteAccess != null);
-    }
-
-    private static bool HaveUniqueLogicalNames(Dictionary<string, DatumMapping> mappings)
-    {
-        if (mappings.Count == 0)
-            return true;
-
-        // Keys should already be unique in a dictionary, but check for case-insensitive duplicates
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var key in mappings.Keys)
-        {
-            if (!names.Add(key))
-                return false;
-        }
-        return true;
-    }
-}
-
-/// <summary>
-/// Validator for ContainerAccessConfiguration.
-/// </summary>
-internal sealed class ContainerAccessConfigurationValidator : AbstractValidator<ContainerAccessConfiguration>
-{
-    public ContainerAccessConfigurationValidator()
-    {
-        RuleFor(x => x.MaxRecords)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Maximum records must be non-negative.");
-
-        RuleFor(x => x.TimeoutSeconds)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Timeout seconds must be non-negative.");
     }
 }
