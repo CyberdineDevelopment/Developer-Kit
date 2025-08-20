@@ -1,3 +1,5 @@
+using FluentValidation.Results;
+
 namespace FractalDataWorks;
 
 /// <summary>
@@ -13,6 +15,6 @@ public interface IFdwConfiguration
     /// <summary>
     /// Validates this configuration.
     /// </summary>
-    /// <returns>An IFdwResult indicating success or failure with details.</returns>
-    IFdwResult Validate();
+    /// <returns>A FluentValidation ValidationResult indicating success or failure with details.</returns>
+    ValidationResult Validate();
 }

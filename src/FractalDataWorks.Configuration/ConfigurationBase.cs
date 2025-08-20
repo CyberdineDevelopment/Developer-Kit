@@ -44,7 +44,7 @@ public abstract class ConfigurationBase<TConfiguration> : FdwConfigurationBase
     /// <summary>
     /// Gets the section name for this configuration.
     /// </summary>
-    public abstract string SectionName { get; }
+    public override abstract string SectionName { get; }
 
 
 

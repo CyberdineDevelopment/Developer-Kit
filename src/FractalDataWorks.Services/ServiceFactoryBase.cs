@@ -105,10 +105,14 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
             return FdwResult<TConfiguration>.Failure("Configuration cannot be null");
         }
 
-        if (configuration is TConfiguration config && config.Validate())
+        if (configuration is TConfiguration config)
         {
-            validConfiguration = config;
-            return FdwResult<TConfiguration>.Success(config);
+            var validationResult = config.Validate();
+            if (validationResult.IsValid)
+            {
+                validConfiguration = config;
+                return FdwResult<TConfiguration>.Success(config);
+            }
         }
 
         ServiceBaseLog.InvalidConfigurationWarning(_logger, 
@@ -241,7 +245,8 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
             return FdwResult<TService>.Failure("Configuration cannot be null");
         }
 
-        if (!configuration.Validate())
+        var validationResult = configuration.Validate();
+        if (!validationResult.IsValid)
         {
             ServiceBaseLog.InvalidConfigurationWarning(_logger, 
                 "Configuration validation failed");

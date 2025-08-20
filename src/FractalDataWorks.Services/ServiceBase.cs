@@ -78,10 +78,14 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         IFdwConfiguration configuration,
         out TConfiguration validConfiguration)
     {
-        if (configuration is TConfiguration config && config.Validate())
+        if (configuration is TConfiguration config)
         {
-            validConfiguration = config;
-            return FdwResult<TConfiguration>.Success(config);
+            var validationResult = config.Validate();
+            if (validationResult.IsValid)
+            {
+                validConfiguration = config;
+                return FdwResult<TConfiguration>.Success(config);
+            }
         }
 
         ServiceBaseLog.InvalidConfigurationWarning(_logger, 
@@ -109,7 +113,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         }
 
         // Validate the command itself
-        var validationResult = await cmd.Validate().ConfigureAwait(false);
+        var validationResult = cmd.Validate();
         if (validationResult == null)
         {
             ServiceBaseLog.InvalidConfigurationWarning(_logger,
@@ -121,19 +125,23 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
         
         if (!validationResult.IsValid)
         {
-            var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+            var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage).ToArray());
             return FdwResult<TCommand>.Failure(
                 "Command validation failed.");
         }
 
         // Validate command configuration if present
-        if (cmd.Configuration is TConfiguration config && !config.Validate())
+        if (cmd.Configuration is TConfiguration configToValidate)
         {
-            ServiceBaseLog.InvalidConfigurationWarning(_logger,
-                string.Format(CultureInfo.InvariantCulture, "Invalid configuration: {0} of type {1}", "Command configuration", config.GetType().Name));
+            var configValidationResult = configToValidate.Validate();
+            if (!configValidationResult.IsValid)
+            {
+                ServiceBaseLog.InvalidConfigurationWarning(_logger,
+                    string.Format(CultureInfo.InvariantCulture, "Invalid configuration: {0} of type {1}", "Command configuration", configToValidate.GetType().Name));
 
-            return FdwResult<TCommand>.Failure(
-                "Invalid configuration.");
+                return FdwResult<TCommand>.Failure(
+                    "Invalid configuration.");
+            }
         }
 
         return FdwResult<TCommand>.Success(cmd);
@@ -161,7 +169,7 @@ public abstract class ServiceBase<TCommand,TConfiguration, TService> : IFdwServi
                 return FdwResult<T>.Failure("Invalid command type");
             }
 
-            var validationResult = await ValidateCommand(command).ConfigureAwait(false);
+            var validationResult = await ValidateCommand(command);
             if (validationResult.Error)
             {
                 ServiceBaseLog.CommandValidationFailed(_logger, validationResult.Message!);
