@@ -62,7 +62,7 @@ public sealed class DataContainerMapping : IEquatable<DataContainerMapping>
     /// If a logical field is not found in this dictionary, convention-based mapping
     /// may be applied depending on the categorization strategy.
     /// </remarks>
-    public Dictionary<string, DatumMapping> DatumMappings { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, DatumMapping> DatumMappings { get; set; } = new Dictionary<string, DatumMapping>(StringComparer.Ordinal);
 
     /// <summary>
     /// Gets or sets a value indicating whether to enable automatic discovery of unmapped fields.
@@ -84,7 +84,7 @@ public sealed class DataContainerMapping : IEquatable<DataContainerMapping>
     /// - API: "AuthRequired", "RateLimit", "CachePolicy"
     /// - NoSQL: "ShardKey", "IndexHints", "ConsistencyLevel"
     /// </remarks>
-    public Dictionary<string, object> Metadata { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>(StringComparer.Ordinal);
 
     /// <summary>
     /// Gets or sets the read access configuration for this container.
@@ -145,7 +145,7 @@ public sealed class DataContainerMapping : IEquatable<DataContainerMapping>
 
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {

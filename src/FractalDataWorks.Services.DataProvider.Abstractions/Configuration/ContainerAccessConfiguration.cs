@@ -41,5 +41,5 @@ public sealed class ContainerAccessConfiguration
     /// - File: "AppendOnly", "RequiresLocking", "SupportsStreaming"
     /// - API: "RequiresAuth", "SupportsETag", "RateLimit"
     /// </remarks>
-    public Dictionary<string, object> Properties { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, object> Properties { get; set; } = new Dictionary<string, object>(StringComparer.Ordinal);
 }

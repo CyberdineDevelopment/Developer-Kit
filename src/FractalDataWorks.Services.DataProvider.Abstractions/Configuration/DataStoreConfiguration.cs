@@ -51,7 +51,7 @@ public sealed class DataStoreConfiguration : ConfigurationBase<DataStoreConfigur
     /// - API: BaseUrl, ApiKey, Timeout
     /// - SFTP: Host, Port, Username, PrivateKeyPath
     /// </remarks>
-    public Dictionary<string, object> ConnectionProperties { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, object> ConnectionProperties { get; set; } = new Dictionary<string, object>(StringComparer.Ordinal);
 
     /// <summary>
     /// Gets or sets the list of container mappings from logical to physical structures.
@@ -61,7 +61,7 @@ public sealed class DataStoreConfiguration : ConfigurationBase<DataStoreConfigur
     /// physical storage (e.g., "dbo.Customers" table, "/data/customers.json" file).
     /// Includes column-level datum mappings for each container.
     /// </remarks>
-    public List<DataContainerMapping> ContainerMappings { get; set; } = new();
+    public IList<DataContainerMapping> ContainerMappings { get; set; } = new List<DataContainerMapping>();
 
     /// <summary>
     /// Gets or sets the strategy for categorizing data columns into datum categories.
@@ -137,7 +137,7 @@ public sealed class DataStoreConfiguration : ConfigurationBase<DataStoreConfigur
     /// fit into the standard connection properties. Examples might include
     /// custom retry policies, caching strategies, or authentication methods.
     /// </remarks>
-    public Dictionary<string, object> ExtendedProperties { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, object> ExtendedProperties { get; set; } = new Dictionary<string, object>(StringComparer.Ordinal);
 
     /// <inheritdoc/>
     public override string SectionName => "DataProvider:DataStores";
@@ -179,7 +179,7 @@ public sealed class DataStoreConfiguration : ConfigurationBase<DataStoreConfigur
 
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {
@@ -226,7 +226,7 @@ public sealed class DataStoreConfiguration : ConfigurationBase<DataStoreConfigur
 
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {

@@ -102,7 +102,7 @@ public sealed class SchemaDiscoverySettings
     /// Empty list means include all containers.
     /// Examples: ["dbo.*", "sales.*"] for SQL Server schemas
     /// </remarks>
-    public List<string> IncludePatterns { get; set; } = new();
+    public IList<string> IncludePatterns { get; set; } = new List<string>();
 
     /// <summary>
     /// Gets or sets the exclusion patterns for container discovery.
@@ -113,7 +113,7 @@ public sealed class SchemaDiscoverySettings
     /// Applied after inclusion patterns.
     /// Examples: ["sys.*", "temp*", "*_backup"] for system tables
     /// </remarks>
-    public List<string> ExcludePatterns { get; set; } = new()
+    public IList<string> ExcludePatterns { get; set; } = new List<string>()
     {
         "sys.*",
         "information_schema.*",
@@ -163,7 +163,7 @@ public sealed class SchemaDiscoverySettings
     /// - API: "DiscoverEndpoints", "FollowLinks", "AuthRequired"
     /// - NoSQL: "SampleDocuments", "InferSchema", "AnalyzeTypes"
     /// </remarks>
-    public Dictionary<string, object> ExtendedSettings { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, object> ExtendedSettings { get; set; } = new Dictionary<string, object>(StringComparer.Ordinal);
 
     /// <summary>
     /// Checks if a container name matches the inclusion/exclusion patterns.
@@ -219,7 +219,7 @@ public sealed class SchemaDiscoverySettings
 
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {
@@ -260,7 +260,7 @@ public sealed class SchemaDiscoverySettings
             return false;
 
         // Simple wildcard matching - * matches any sequence of characters
-        if (pattern == "*")
+        if (string.Equals(pattern, "*", StringComparison.Ordinal))
             return true;
 
         if (!pattern.Contains('*'))
@@ -282,11 +282,11 @@ public sealed class SchemaDiscoverySettings
                 return false;
 
             // For the first part, it must start at the beginning if pattern doesn't start with *
-            if (i == 0 && !pattern.StartsWith("*") && foundIndex != 0)
+            if (i == 0 && !pattern.StartsWith("*", StringComparison.Ordinal) && foundIndex != 0)
                 return false;
 
             // For the last part, it must end at the end if pattern doesn't end with *
-            if (i == parts.Length - 1 && !pattern.EndsWith("*") && foundIndex + part.Length != value.Length)
+            if (i == parts.Length - 1 && !pattern.EndsWith("*", StringComparison.Ordinal) && foundIndex + part.Length != value.Length)
                 return false;
 
             currentIndex = foundIndex + part.Length;

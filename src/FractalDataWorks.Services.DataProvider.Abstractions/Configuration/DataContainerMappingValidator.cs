@@ -42,7 +42,7 @@ internal sealed class DataContainerMappingValidator : AbstractValidator<DataCont
             .When(x => x.WriteAccess != null);
     }
 
-    private static bool HaveUniqueLogicalNames(Dictionary<string, DatumMapping> mappings)
+    private static bool HaveUniqueLogicalNames(IDictionary<string, DatumMapping> mappings)
     {
         if (mappings.Count == 0)
             return true;

@@ -356,8 +356,8 @@ public sealed class ExternalDataConnectionProviderTests
         var provider = CreateProvider();
         var expectedContainers = new List<DataContainer>
         {
-            new("customers", ContainerType.Table, DataPath.Create(".", "sales", "customers"), false),
-            new("orders", ContainerType.Table, DataPath.Create(".", "sales", "orders"), false)
+            new(DataPath.Create(".", "sales", "customers"), "customers", ContainerType.Table),
+            new(DataPath.Create(".", "sales", "orders"), "orders", ContainerType.Table)
         };
 
         _connectionMock
@@ -676,7 +676,7 @@ public sealed class ExternalDataConnectionProviderTests
     // Test command that always fails validation
     private sealed class TestCommand : DataCommandBase
     {
-        public TestCommand(string connectionName) : base(connectionName)
+        public TestCommand(string connectionName) : base("test", connectionName, null, typeof(object))
         {
         }
 
