@@ -57,7 +57,7 @@ public sealed class EnumOptionAttribute : Attribute
     /// When the base enum has multiple collections defined, this specifies which collection(s) to include this option in.
     /// </summary>
     public string? CollectionName { get; }
-    
+
     /// <summary>
     /// Gets the return type for this specific enum option.
     /// This overrides the default return type specified in the EnumCollection attribute.

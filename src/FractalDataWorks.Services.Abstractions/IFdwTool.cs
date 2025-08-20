@@ -9,12 +9,12 @@ public interface IFdwTool
     /// Gets the unique identifier for this tool.
     /// </summary>
     string Id { get; }
-    
+
     /// <summary>
     /// Gets the name of this tool.
     /// </summary>
     string Name { get; }
-    
+
     /// <summary>
     /// Gets the version of this tool.
     /// </summary>

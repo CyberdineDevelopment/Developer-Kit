@@ -46,6 +46,6 @@ public interface IFdwServiceProvider<TService>
     /// <param name="configurationId">The ID of the configuration.</param>
     /// <returns>The service instance.</returns>
     IFdwResult<TService> Get(int configurationId);
-    
+
 }
 

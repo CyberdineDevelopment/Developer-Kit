@@ -23,7 +23,7 @@ public interface IFdwService
     /// It should remain constant for the lifetime of the service instance.
     /// </remarks>
     string Id { get; }
-    
+
     /// <summary>
     /// Gets the display name of the service.
     /// </summary>
@@ -33,7 +33,7 @@ public interface IFdwService
     /// It should be descriptive and help identify the service's purpose.
     /// </remarks>
     string ServiceType { get; }
-    
+
     /// <summary>
     /// Gets a value indicating whether the service is currently available for use.
     /// </summary>
@@ -56,7 +56,7 @@ public interface IFdwService
 /// Use this interface for services that require specific configuration objects
 /// to function properly. The configuration should be provided via constructor.
 /// </remarks>
-public interface IFdwService<TCommand> 
+public interface IFdwService<TCommand>
     where TCommand : ICommand
 {
     /// <summary>

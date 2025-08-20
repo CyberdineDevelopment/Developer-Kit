@@ -156,10 +156,10 @@ public abstract class ServiceTypeCollectionBase<TServiceType, TService, TConfigu
         // Try to get the Id property using reflection
         var idProperty = serviceType.GetType().GetProperty("Id");
         var idValue = idProperty?.GetValue(serviceType);
-        
+
         if (idValue is int intId)
             return intId;
-            
+
         return null;
     }
 }

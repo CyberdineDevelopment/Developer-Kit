@@ -24,9 +24,9 @@ public static partial class ConfigurationSourceBaseLog
         Level = LogLevel.Debug,
         Message = "Configuration source '{SourceName}' raised {ChangeType} event for {ConfigurationType}")]
     public static partial void ConfigurationChanged(
-        ILogger logger, 
-        string sourceName, 
-        ConfigurationChangeType changeType, 
+        ILogger logger,
+        string sourceName,
+        ConfigurationChangeType changeType,
         string configurationType);
 
     /// <summary>
@@ -37,7 +37,7 @@ public static partial class ConfigurationSourceBaseLog
         Level = LogLevel.Error,
         Message = "Failed to load configuration from source {SourceName}: {Error}")]
     public static partial void LoadFailed(ILogger logger, string sourceName, string error);
-    
+
     /// <summary>
     /// Logs when a configuration is saved successfully.
     /// </summary>
@@ -46,7 +46,7 @@ public static partial class ConfigurationSourceBaseLog
         Level = LogLevel.Information,
         Message = "Configuration saved to source {SourceName} with ID {ConfigurationId}")]
     public static partial void ConfigurationSaved(ILogger logger, string sourceName, int configurationId);
-    
+
     /// <summary>
     /// Logs when a configuration is deleted successfully.
     /// </summary>

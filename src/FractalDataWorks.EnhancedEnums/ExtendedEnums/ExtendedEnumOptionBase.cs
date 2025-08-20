@@ -8,7 +8,7 @@ namespace FractalDataWorks.EnhancedEnums.ExtendedEnums;
 /// </summary>
 /// <typeparam name="T">The derived extended enum type.</typeparam>
 /// <typeparam name="TEnum">The underlying enum type being extended.</typeparam>
-public abstract class ExtendedEnumOptionBase<T, TEnum> : IEnumOption 
+public abstract class ExtendedEnumOptionBase<T, TEnum> : IEnumOption
     where T : ExtendedEnumOptionBase<T, TEnum>
     where TEnum : struct, Enum
 {

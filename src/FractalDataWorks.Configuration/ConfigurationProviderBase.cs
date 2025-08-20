@@ -14,7 +14,7 @@ namespace FractalDataWorks.Configuration;
 /// Base implementation of a configuration provider.
 /// </summary>
 /// <typeparam name="TConfiguration">The type of configuration managed by this provider.</typeparam>
-public abstract class ConfigurationProviderBase<TConfiguration> : 
+public abstract class ConfigurationProviderBase<TConfiguration> :
     IFdwConfigurationProvider<TConfiguration>, IDisposable
     where TConfiguration : ConfigurationBase<TConfiguration>, IFdwConfiguration, new()
 {
@@ -257,7 +257,7 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
         }
     }
 
-  /// <summary>
+    /// <summary>
     /// Handles source change events.
     /// </summary>
     /// <param name="sender">The event sender.</param>

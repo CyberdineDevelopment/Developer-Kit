@@ -19,7 +19,7 @@ public sealed class ExtendEnumAttribute : Attribute
     public ExtendEnumAttribute(Type enumType)
     {
         EnumType = enumType ?? throw new ArgumentNullException(nameof(enumType));
-        
+
         if (!enumType.IsEnum)
         {
             throw new ArgumentException($"Type {enumType.Name} must be an enum type.", nameof(enumType));

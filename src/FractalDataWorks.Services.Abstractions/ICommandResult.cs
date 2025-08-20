@@ -18,13 +18,13 @@ public interface ICommandResult
     /// </summary>
     /// <value>The command identifier from the original IDataCommand.</value>
     string CommandId { get; }
-    
+
     /// <summary>
     /// Gets the type of the command this result belongs to.
     /// </summary>
     /// <value>The command type from the original IDataCommand.</value>
     string CommandType { get; }
-    
+
     /// <summary>
     /// Gets the position of this command in the original batch.
     /// </summary>
@@ -34,13 +34,13 @@ public interface ICommandResult
     /// especially when batch execution may reorder commands for optimization.
     /// </remarks>
     int BatchPosition { get; }
-    
+
     /// <summary>
     /// Gets a value indicating whether the command executed successfully.
     /// </summary>
     /// <value><c>true</c> if the command succeeded; otherwise, <c>false</c>.</value>
     bool IsSuccessful { get; }
-    
+
     /// <summary>
     /// Gets the result data returned by the command, if any.
     /// </summary>
@@ -50,13 +50,13 @@ public interface ICommandResult
     /// structure of the data depend on the specific command and data provider used.
     /// </remarks>
     object? ResultData { get; }
-    
+
     /// <summary>
     /// Gets the error message if the command failed.
     /// </summary>
     /// <value>The error message describing the failure, or null if the command succeeded.</value>
     string? ErrorMessage { get; }
-    
+
     /// <summary>
     /// Gets additional error details if the command failed.
     /// </summary>
@@ -66,13 +66,13 @@ public interface ICommandResult
     /// constraint violation details, or other diagnostic information useful for troubleshooting.
     /// </remarks>
     IReadOnlyList<string> ErrorDetails { get; }
-    
+
     /// <summary>
     /// Gets the exception that caused the command failure, if any.
     /// </summary>
     /// <value>The exception that occurred during command execution, or null if no exception occurred.</value>
     Exception? Exception { get; }
-    
+
     /// <summary>
     /// Gets the time taken to execute this command.
     /// </summary>
@@ -82,19 +82,19 @@ public interface ICommandResult
     /// time spent waiting in queues or for batch coordination.
     /// </remarks>
     TimeSpan? ExecutionTime { get; }
-    
+
     /// <summary>
     /// Gets the timestamp when this command started executing.
     /// </summary>
     /// <value>The UTC timestamp when command execution began, or null if not available.</value>
     DateTimeOffset? StartedAt { get; }
-    
+
     /// <summary>
     /// Gets the timestamp when this command completed executing.
     /// </summary>
     /// <value>The UTC timestamp when command execution finished, or null if not available.</value>
     DateTimeOffset? CompletedAt { get; }
-    
+
     /// <summary>
     /// Gets additional metadata about this command's execution.
     /// </summary>

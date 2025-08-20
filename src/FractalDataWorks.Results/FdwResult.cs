@@ -123,8 +123,10 @@ public class FdwResult<TResult> : FdwResult, IFdwResult<TResult>
     /// <inheritdoc/>
     public IGenericResult<TNew> Map<TNew>(Func<TResult, TNew> mapper)
     {
+        if (mapper == null)
+            throw new ArgumentNullException(nameof(mapper));
 
-        return IsSuccess 
+        return IsSuccess
             ? (IGenericResult<TNew>)FdwResult<TNew>.Success(mapper(Value))
             : FdwResult<TNew>.Failure(Message);
     }
@@ -132,6 +134,10 @@ public class FdwResult<TResult> : FdwResult, IFdwResult<TResult>
     /// <inheritdoc/>
     public T Match<T>(Func<TResult, T> success, Func<string, T> failure)
     {
+        if (success == null)
+            throw new ArgumentNullException(nameof(success));
+        if (failure == null)
+            throw new ArgumentNullException(nameof(failure));
 
         return IsSuccess ? success(Value) : failure(Message);
     }

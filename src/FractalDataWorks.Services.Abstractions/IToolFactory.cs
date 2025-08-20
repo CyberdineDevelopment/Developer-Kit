@@ -14,7 +14,7 @@ public interface IToolFactory
     /// <param name="configuration">The configuration to use for creating the tool.</param>
     /// <returns>A result containing the created tool or an error.</returns>
     IFdwResult<T> Create<T>(IFdwConfiguration configuration) where T : IFdwTool;
-    
+
     /// <summary>
     /// Creates a tool using the provided configuration.
     /// </summary>
@@ -50,14 +50,14 @@ public interface IToolFactory<TTool, TConfiguration> : IToolFactory<TTool>
     /// <param name="configuration">The typed configuration to use for creating the tool.</param>
     /// <returns>A result containing the created tool or an error.</returns>
     IFdwResult<TTool> Create(TConfiguration configuration);
-    
+
     /// <summary>
     /// Gets a tool by configuration name.
     /// </summary>
     /// <param name="configurationName">The name of the configuration.</param>
     /// <returns>A task containing the tool.</returns>
     Task<TTool> GetTool(string configurationName);
-    
+
     /// <summary>
     /// Gets a tool by configuration ID.
     /// </summary>
