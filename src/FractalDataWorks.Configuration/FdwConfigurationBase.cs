@@ -23,7 +23,7 @@ public abstract class FdwConfigurationBase : IFdwConfiguration
     /// Gets the section name for this configuration.
     /// </summary>
     public abstract string SectionName { get; }
-    
+
     /// <summary>
     /// Validates the configuration settings.
     /// </summary>
@@ -39,7 +39,7 @@ public abstract class FdwConfigurationBase : IFdwConfiguration
         return new ValidationResult();
     }
 
-    
+
     /// <summary>
     /// Initializes the configuration with default values.
     /// </summary>
@@ -51,7 +51,7 @@ public abstract class FdwConfigurationBase : IFdwConfiguration
     {
         // Default implementation does nothing
     }
-    
+
     /// <summary>
     /// Called after the configuration has been loaded and validated.
     /// </summary>

@@ -137,7 +137,7 @@ public abstract class ServiceTypeProviderBase<TService, TServiceType, TConfigura
         // Override this method to provide custom configuration logic
         var configs = _configurationRegistry.GetAll();
         var config = configs.FirstOrDefault();
-        
+
         if (config == null)
         {
             return Task.FromResult(FdwResult<TConfiguration>.Failure($"Configuration not found for service type '{serviceTypeName}'"));

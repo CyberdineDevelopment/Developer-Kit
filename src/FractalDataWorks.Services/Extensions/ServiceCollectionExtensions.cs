@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddServiceTypes(this IServiceCollection services, Assembly? assembly = null)
     {
         assembly ??= Assembly.GetCallingAssembly();
-        
+
         var serviceTypes = assembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract)
             .Where(t => IsServiceType(t))
@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
         {
             // Register the concrete service type
             services.TryAddSingleton(serviceType);
-            
+
             // Register as IServiceFactory interfaces
             RegisterAsServiceFactory(services, serviceType);
         }
@@ -102,7 +102,7 @@ public static class ServiceCollectionExtensions
         var baseType = type.BaseType;
         while (baseType != null)
         {
-            if (baseType.IsGenericType && 
+            if (baseType.IsGenericType &&
                 baseType.GetGenericTypeDefinition().Name.StartsWith("ServiceTypeBase", StringComparison.Ordinal))
             {
                 return true;
@@ -125,15 +125,15 @@ public static class ServiceCollectionExtensions
                 {
                     var serviceInterface = genericArgs[0]; // TService
                     var configType = genericArgs[1]; // TConfiguration
-                    
+
                     // Register as IServiceFactory<TService, TConfiguration>
                     var factoryType = typeof(IServiceFactory<,>).MakeGenericType(serviceInterface, configType);
                     services.TryAddSingleton(factoryType, serviceProvider => serviceProvider.GetRequiredService(serviceType));
-                    
+
                     // Register as IServiceFactory<TService>
                     var genericFactoryType = typeof(IServiceFactory<>).MakeGenericType(serviceInterface);
                     services.TryAddSingleton(genericFactoryType, serviceProvider => serviceProvider.GetRequiredService(serviceType));
-                    
+
                     // Register as IServiceFactory
                     services.TryAddSingleton<IServiceFactory>(serviceProvider => (IServiceFactory)serviceProvider.GetRequiredService(serviceType));
                 }

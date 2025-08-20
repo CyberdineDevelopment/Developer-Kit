@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -494,6 +495,13 @@ internal sealed class MsSqlCommandTranslator
                      .ToArray();
     }
 
+    /// <summary>
+    /// Creates a single entity upsert command from a bulk upsert command.
+    /// </summary>
+    /// <param name="originalCommand">The original bulk command.</param>
+    /// <param name="entity">The single entity.</param>
+    /// <returns>A single entity upsert command.</returns>
+    [ExcludeFromCodeCoverage(Justification = "Placeholder method for bulk operations that throws NotImplementedException. Will be implemented when bulk operations are fully supported.")]
     private static DataCommandBase CreateSingleEntityUpsertCommand(DataCommandBase originalCommand, object entity)
     {
         // This is a simplified approach - in production you'd want more sophisticated command cloning

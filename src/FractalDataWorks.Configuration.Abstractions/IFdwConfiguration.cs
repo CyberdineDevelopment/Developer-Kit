@@ -11,7 +11,7 @@ public interface IFdwConfiguration
     /// Gets the section name for this configuration.
     /// </summary>
     string SectionName { get; }
-    
+
     /// <summary>
     /// Validates this configuration.
     /// </summary>

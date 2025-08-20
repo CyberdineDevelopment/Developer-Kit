@@ -175,9 +175,11 @@ public sealed class MsSqlExternalConnectionService
         }
 
         var connection = new MsSqlExternalConnection(
-            _loggerFactory.CreateLogger<MsSqlExternalConnection>());
+            _loggerFactory.CreateLogger<MsSqlExternalConnection>(),
+            msSqlConfig);
 
-        var initResult = await connection.InitializeAsync(msSqlConfig).ConfigureAwait(false);
+        // No need to initialize in stateless design
+        var initResult = FdwResult.Success();
         if (!initResult.IsSuccess)
         {
             connection.Dispose();

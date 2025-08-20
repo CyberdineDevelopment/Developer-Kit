@@ -26,36 +26,36 @@ public abstract class ServiceTypeFactoryBase<TService, TConfiguration>
         Name = name;
         Description = description;
     }
-    
+
     /// <summary>
     /// Gets the unique identifier for this service type.
     /// </summary>
     public int Id { get; }
-    
+
     /// <summary>
     /// Gets the name of this service type.
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// Gets the description of this service type.
     /// </summary>
     public string Description { get; }
-    
+
     /// <summary>
     /// Creates a service instance with the specified configuration.
     /// </summary>
     /// <param name="configuration">The configuration for the service.</param>
     /// <returns>A result containing the created service or an error message.</returns>
     public abstract object Create(TConfiguration configuration);
-    
+
     /// <summary>
     /// Creates a service instance for the specified configuration name.
     /// </summary>
     /// <param name="configurationName">The name of the configuration to use.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the service instance.</returns>
     public abstract Task<TService> GetService(string configurationName);
-    
+
     /// <summary>
     /// Creates a service instance for the specified configuration ID.
     /// </summary>

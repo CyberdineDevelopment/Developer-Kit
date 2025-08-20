@@ -141,10 +141,10 @@ public static partial class ServiceBaseLog
         Level = LogLevel.Information,
         Message = "Service operation {OperationType} completed in {Duration}ms {@Result} {@Context}")]
     public static partial void ServiceOperationCompleted(
-        ILogger logger, 
-        string operationType, 
-        double duration, 
-        object? result, 
+        ILogger logger,
+        string operationType,
+        double duration,
+        object? result,
         object? context = null);
 
     /// <summary>

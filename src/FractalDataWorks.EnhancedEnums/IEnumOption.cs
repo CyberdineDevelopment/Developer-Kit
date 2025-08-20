@@ -6,7 +6,7 @@ namespace FractalDataWorks.EnhancedEnums;
 /// </summary>
 /// <typeparam name="T">The implementing type, used for self-referencing generics pattern.</typeparam>
 public interface IEnumOption<T> : IEnumOption
-	where T : IEnumOption<T>
+    where T : IEnumOption<T>
 {
 
 }
@@ -17,13 +17,13 @@ public interface IEnumOption<T> : IEnumOption
 /// </summary>
 public interface IEnumOption
 {
-	/// <summary>
-	/// Gets the unique identifier for this enum value.
-	/// </summary>
-	int Id { get; }
+    /// <summary>
+    /// Gets the unique identifier for this enum value.
+    /// </summary>
+    int Id { get; }
 
-	/// <summary>
-	/// Gets the display name or string representation of this enum value.
-	/// </summary>
-	string Name { get; }
+    /// <summary>
+    /// Gets the display name or string representation of this enum value.
+    /// </summary>
+    string Name { get; }
 }

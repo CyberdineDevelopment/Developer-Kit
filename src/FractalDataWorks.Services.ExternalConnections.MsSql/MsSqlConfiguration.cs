@@ -145,6 +145,25 @@ public sealed class MsSqlConfiguration : ConfigurationBase<MsSqlConfiguration>, 
     /// </remarks>
     public int MaxSqlLogLength { get; set; } = 1000;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to use transactions for command execution.
+    /// </summary>
+    /// <remarks>
+    /// When enabled, each Execute call will be wrapped in a transaction.
+    /// Transactions are automatically committed on success or rolled back on failure.
+    /// Default is false for better performance.
+    /// </remarks>
+    public bool UseTransactions { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the transaction isolation level to use when UseTransactions is enabled.
+    /// </summary>
+    /// <remarks>
+    /// Only used when UseTransactions is true.
+    /// Default is ReadCommitted for balanced consistency and performance.
+    /// </remarks>
+    public System.Data.IsolationLevel TransactionIsolationLevel { get; set; } = System.Data.IsolationLevel.ReadCommitted;
+
     /// <inheritdoc/>
     public override string SectionName => "ExternalConnections:MsSql";
 
@@ -224,5 +243,7 @@ public sealed class MsSqlConfiguration : ConfigurationBase<MsSqlConfiguration>, 
         target.RetryDelayMilliseconds = RetryDelayMilliseconds;
         target.EnableSqlLogging = EnableSqlLogging;
         target.MaxSqlLogLength = MaxSqlLogLength;
+        target.UseTransactions = UseTransactions;
+        target.TransactionIsolationLevel = TransactionIsolationLevel;
     }
 }

@@ -13,7 +13,7 @@ public static class ServiceCollectionExtensions
     // - AddConnectionTypes(this IServiceCollection services)
     // - AddNotificationTypes(this IServiceCollection services)
     // - AddAllServiceTypes(this IServiceCollection services)
-    
+
     // These methods will be available at runtime after the Enhanced Enums generator
     // processes the ConnectionTypeBase and NotificationTypeBase classes.
 }

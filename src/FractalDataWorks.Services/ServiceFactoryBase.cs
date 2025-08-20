@@ -15,7 +15,7 @@ namespace FractalDataWorks.Services;
 /// </summary>
 /// <typeparam name="TService">The type of service this factory creates.</typeparam>
 /// <typeparam name="TConfiguration">The configuration type required by the service.</typeparam>
-public abstract class ServiceFactoryBase<TService, TConfiguration> : 
+public abstract class ServiceFactoryBase<TService, TConfiguration> :
     IServiceFactory,
     IServiceFactory<TService>,
     IServiceFactory<TService, TConfiguration>
@@ -23,7 +23,7 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
     where TConfiguration : class, IFdwConfiguration
 {
     private readonly ILogger _logger;
-    
+
     private static readonly Action<ILogger, string, Exception> LogCreateServiceError =
         LoggerMessage.Define<string>(
             LogLevel.Error,
@@ -99,7 +99,7 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
     {
         if (configuration == null)
         {
-            ServiceBaseLog.InvalidConfigurationWarning(_logger, 
+            ServiceBaseLog.InvalidConfigurationWarning(_logger,
                 "Configuration cannot be null");
             validConfiguration = null;
             return FdwResult<TConfiguration>.Failure("Configuration cannot be null");
@@ -115,7 +115,7 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
             }
         }
 
-        ServiceBaseLog.InvalidConfigurationWarning(_logger, 
+        ServiceBaseLog.InvalidConfigurationWarning(_logger,
             string.Format(CultureInfo.InvariantCulture,
                 "Invalid configuration type. Expected {0}, got {1}",
                 typeof(TConfiguration).Name,
@@ -248,7 +248,7 @@ public abstract class ServiceFactoryBase<TService, TConfiguration> :
         var validationResult = configuration.Validate();
         if (!validationResult.IsValid)
         {
-            ServiceBaseLog.InvalidConfigurationWarning(_logger, 
+            ServiceBaseLog.InvalidConfigurationWarning(_logger,
                 "Configuration validation failed");
             return FdwResult<TService>.Failure("Configuration validation failed");
         }

@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-
+    <InternalsVisibleTo Include="FractalDataWorks.Services.ExternalConnections.MsSql.Tests" />
   </ItemGroup>
 
   <ItemGroup>

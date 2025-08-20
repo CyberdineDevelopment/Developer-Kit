@@ -30,7 +30,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// depending on the data provider and command type.
     /// </remarks>
     ICommandBuilder<TCommand> WithTarget(string target);
-    
+
     /// <summary>
     /// Sets the timeout for command execution.
     /// </summary>
@@ -42,7 +42,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// control over execution time limits for specific operations.
     /// </remarks>
     ICommandBuilder<TCommand> WithTimeout(TimeSpan timeout);
-    
+
     /// <summary>
     /// Adds a parameter to the command.
     /// </summary>
@@ -56,7 +56,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// consistent naming conventions and be unique within the command scope.
     /// </remarks>
     ICommandBuilder<TCommand> WithParameter(string name, object? value);
-    
+
     /// <summary>
     /// Adds multiple parameters to the command.
     /// </summary>
@@ -68,7 +68,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// Existing parameters with the same names will be overwritten with new values.
     /// </remarks>
     ICommandBuilder<TCommand> WithParameters(IReadOnlyDictionary<string, object?> parameters);
-    
+
     /// <summary>
     /// Adds metadata to the command.
     /// </summary>
@@ -82,7 +82,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// Common metadata includes caching directives, optimization hints, and execution preferences.
     /// </remarks>
     ICommandBuilder<TCommand> WithMetadata(string key, object value);
-    
+
     /// <summary>
     /// Adds multiple metadata entries to the command.
     /// </summary>
@@ -94,7 +94,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// Existing metadata with the same keys will be overwritten with new values.
     /// </remarks>
     ICommandBuilder<TCommand> WithMetadata(IReadOnlyDictionary<string, object> metadata);
-    
+
     /// <summary>
     /// Specifies the expected result type for the command.
     /// </summary>
@@ -106,7 +106,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// result handling and type conversion logic before executing the command.
     /// </remarks>
     ICommandBuilder<TCommand> WithExpectedResultType(Type resultType);
-    
+
     /// <summary>
     /// Specifies the expected result type for the command using generic type parameter.
     /// </summary>
@@ -117,7 +117,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// without the need for runtime Type objects.
     /// </remarks>
     ICommandBuilder<TCommand> WithExpectedResultType<TResult>();
-    
+
     /// <summary>
     /// Marks the command as data-modifying or read-only.
     /// </summary>
@@ -128,7 +128,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// transaction requirements, and caching behavior for the command.
     /// </remarks>
     ICommandBuilder<TCommand> WithDataModifying(bool isDataModifying);
-    
+
     /// <summary>
     /// Validates the current builder state without building the command.
     /// </summary>
@@ -139,7 +139,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// during interactive command construction.
     /// </remarks>
     IFdwResult ValidateBuilder();
-    
+
     /// <summary>
     /// Builds the command using the current builder configuration.
     /// </summary>
@@ -152,7 +152,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
     /// appropriate error information if the command cannot be constructed.
     /// </remarks>
     IFdwResult<TCommand> Build();
-    
+
     /// <summary>
     /// Resets the builder to its initial state, clearing all configured values.
     /// </summary>
@@ -174,7 +174,7 @@ public interface ICommandBuilder<TCommand> where TCommand : IDataCommand
 /// Typed command builders provide compile-time type safety for both command construction
 /// and result type specification, eliminating runtime type checking and casting.
 /// </remarks>
-public interface ICommandBuilder<TCommand, TResult> : ICommandBuilder<TCommand> 
+public interface ICommandBuilder<TCommand, TResult> : ICommandBuilder<TCommand>
     where TCommand : IDataCommand<TResult>
 {
     /// <summary>

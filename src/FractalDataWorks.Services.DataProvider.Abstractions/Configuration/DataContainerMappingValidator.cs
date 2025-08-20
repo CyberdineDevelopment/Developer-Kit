@@ -34,11 +34,11 @@ internal sealed class DataContainerMappingValidator : AbstractValidator<DataCont
 
         // Validate access configurations
         RuleFor(x => x.ReadAccess)
-            .SetValidator(new ContainerAccessConfigurationValidator())
+            .SetValidator(new ContainerAccessConfigurationValidator()!)
             .When(x => x.ReadAccess != null);
 
         RuleFor(x => x.WriteAccess)
-            .SetValidator(new ContainerAccessConfigurationValidator())
+            .SetValidator(new ContainerAccessConfigurationValidator()!)
             .When(x => x.WriteAccess != null);
     }
 

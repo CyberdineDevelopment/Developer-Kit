@@ -16,7 +16,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
 {
     private readonly string _basePath;
     private readonly JsonSerializerOptions _jsonOptions;
-    
+
     /// <summary>
     /// Gets the logger instance.
     /// </summary>
@@ -27,15 +27,15 @@ public class JsonConfigurationSource : ConfigurationSourceBase
     /// </summary>
     /// <param name="logger">The logger instance.</param>
     /// <param name="basePath">The base path for JSON configuration files.</param>
-    public JsonConfigurationSource(ILogger<JsonConfigurationSource> logger, string basePath) 
+    public JsonConfigurationSource(ILogger<JsonConfigurationSource> logger, string basePath)
         : base(logger, "JSON")
     {
         Logger = logger;
         _basePath = basePath ?? throw new ArgumentNullException(nameof(basePath));
-        
+
         // Ensure the directory exists
         Directory.CreateDirectory(_basePath);
-        
+
         _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
@@ -46,7 +46,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
 
     /// <inheritdoc/>
     public override bool IsWritable => true;
-    
+
     /// <inheritdoc/>
     public override bool SupportsReload => false;
 
@@ -65,7 +65,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
             {
                 var json = await File.ReadAllTextAsync(file).ConfigureAwait(false);
                 var config = JsonSerializer.Deserialize<TConfiguration>(json, _jsonOptions);
-                
+
                 if (config != null)
                 {
                     configurations.Add(config);
@@ -102,7 +102,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
         {
             var json = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
             var config = JsonSerializer.Deserialize<TConfiguration>(json, _jsonOptions);
-            
+
             if (config == null)
             {
                 return FdwResult<TConfiguration>.Failure("Failed to deserialize configuration");
@@ -126,7 +126,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
         {
             var json = JsonSerializer.Serialize(configuration, _jsonOptions);
             await File.WriteAllTextAsync(filePath, json).ConfigureAwait(false);
-            
+
             // Try to get ID if configuration has it
             int configId = 0;
             if (configuration is object obj && obj.GetType().GetProperty("Id") is { } idProperty)
@@ -134,7 +134,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
                 configId = idProperty.GetValue(obj) as int? ?? 0;
             }
             ConfigurationSourceBaseLog.ConfigurationSaved(Logger, Name, configId);
-            
+
             return FdwResult<TConfiguration>.Success(configuration);
         }
         catch (Exception ex)
@@ -157,9 +157,9 @@ public class JsonConfigurationSource : ConfigurationSourceBase
         try
         {
             await Task.Run(() => File.Delete(filePath)).ConfigureAwait(false);
-            
+
             ConfigurationSourceBaseLog.ConfigurationDeleted(Logger, Name, id);
-            
+
             return FdwResult<NonResult>.Success(NonResult.Value);
         }
         catch (Exception ex)
@@ -168,7 +168,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
         }
     }
 
-    private static string GetFileName<TConfiguration>(TConfiguration configuration) 
+    private static string GetFileName<TConfiguration>(TConfiguration configuration)
         where TConfiguration : IFdwConfiguration
     {
         // Try to get ID if configuration has it
@@ -180,7 +180,7 @@ public class JsonConfigurationSource : ConfigurationSourceBase
         return GetFileName<TConfiguration>(configId);
     }
 
-    private static string GetFileName<TConfiguration>(int id) 
+    private static string GetFileName<TConfiguration>(int id)
         where TConfiguration : IFdwConfiguration
     {
         var typeName = typeof(TConfiguration).Name;

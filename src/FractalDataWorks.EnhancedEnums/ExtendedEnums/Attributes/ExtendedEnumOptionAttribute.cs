@@ -59,7 +59,7 @@ public sealed class ExtendedEnumOptionAttribute : Attribute
     /// When the base extended enum has multiple collections defined, this specifies which collection(s) to include this option in.
     /// </summary>
     public string? CollectionName { get; }
-    
+
     /// <summary>
     /// Gets the return type for this specific extended enum option.
     /// This overrides the default return type specified in the ExtendEnum attribute.

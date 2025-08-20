@@ -23,14 +23,14 @@ public abstract class EnumCollectionBase<T> where T : EnumOptionBase<T>
     /// <summary>
     /// Static collection of all enum options. Populated by the source generator.
     /// </summary>
-    #pragma warning disable CA2211, MA0069,CA1707, MA0051
+#pragma warning disable CA2211, MA0069, CA1707, MA0051
     protected static ImmutableArray<T> _all = [];
 
     /// <summary>
     /// Static empty instance. Populated by the source generator.
     /// </summary>
     protected static T _empty = default!;
-    
+
 #if NET8_0_OR_GREATER
     /// <summary>
     /// Lookup dictionary for enum options by name (case-insensitive). Populated when first accessed.
@@ -46,21 +46,21 @@ public abstract class EnumCollectionBase<T> where T : EnumOptionBase<T>
     /// Lookup dictionary for enum options by name (case-insensitive). Populated when first accessed.
     /// </summary>
     private static ReadOnlyDictionary<string, T>? _lookupByName;
-    
+
     /// <summary>
     /// Lookup dictionary for enum options by ID. Populated when first accessed.
     /// </summary>
     private static ReadOnlyDictionary<int, T>? _lookupById;
 #endif
-    #pragma warning restore CA2211, MA0069,CA1707, MA0051
-    
+#pragma warning restore CA2211, MA0069, CA1707, MA0051
+
     /// <summary>
     /// Ensures lookup dictionaries are initialized for fast O(1) lookups.
     /// </summary>
     private static void EnsureLookupsInitialized()
     {
         if (_lookupByName != null) return;
-        
+
 #if NET8_0_OR_GREATER
         _lookupByName = _all.ToFrozenDictionary(x => x.Name, StringComparer.OrdinalIgnoreCase);
         _lookupById = _all.ToFrozenDictionary(x => x.Id);
@@ -71,28 +71,28 @@ public abstract class EnumCollectionBase<T> where T : EnumOptionBase<T>
             _all.ToDictionary(x => x.Id));
 #endif
     }
-    
+
     /// <summary>
     /// Gets all enum options in this collection.
     /// </summary>
     public static ImmutableArray<T> All() => _all;
-    
+
     /// <summary>
     /// Gets an empty instance of the enum option type.
     /// </summary>
     public static T Empty() => _empty;
-    
+
     /// <summary>
     /// Gets an enum option by name (case-insensitive).
     /// </summary>
     public static T? GetByName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return null;
-        
+
         EnsureLookupsInitialized();
         return _lookupByName!.TryGetValue(name, out var value) ? value : null;
     }
-    
+
     /// <summary>
     /// Gets an enum option by ID.
     /// </summary>
@@ -101,7 +101,7 @@ public abstract class EnumCollectionBase<T> where T : EnumOptionBase<T>
         EnsureLookupsInitialized();
         return _lookupById!.TryGetValue(id, out var value) ? value : null;
     }
-    
+
     /// <summary>
     /// Tries to get an enum option by name
     /// </summary>
@@ -110,7 +110,7 @@ public abstract class EnumCollectionBase<T> where T : EnumOptionBase<T>
         value = GetByName(name);
         return value != null;
     }
-    
+
     /// <summary>
     /// Tries to get an enum option by ID
     /// </summary>
@@ -119,22 +119,22 @@ public abstract class EnumCollectionBase<T> where T : EnumOptionBase<T>
         value = GetById(id);
         return value != null;
     }
-    
+
     /// <summary>
     /// Gets all enum options as an enumerable
     /// </summary>
     public static IEnumerable<T> AsEnumerable() => _all;
-    
+
     /// <summary>
     /// Gets the count of enum options
     /// </summary>
     public static int Count => _all.Length;
-    
+
     /// <summary>
     /// Checks if the collection contains any items
     /// </summary>
     public static bool Any() => _all.Length > 0;
-    
+
     /// <summary>
     /// Gets an enum option by index
     /// </summary>
