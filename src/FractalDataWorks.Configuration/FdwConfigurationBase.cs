@@ -17,8 +17,13 @@ namespace FractalDataWorks;
 /// </remarks>
 /// <ExcludeFromTest>Abstract base configuration class with no business logic to test</ExcludeFromTest>
 [ExcludeFromCodeCoverage]
-public abstract class FdwConfigurationBase
+public abstract class FdwConfigurationBase : IFdwConfiguration
 {
+    /// <summary>
+    /// Gets the section name for this configuration.
+    /// </summary>
+    public abstract string SectionName { get; }
+    
     /// <summary>
     /// Validates the configuration settings.
     /// </summary>
