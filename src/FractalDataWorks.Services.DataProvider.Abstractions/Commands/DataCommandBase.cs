@@ -243,7 +243,7 @@ public abstract class DataCommandBase : IDataCommand
         
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {
@@ -290,7 +290,7 @@ public abstract class DataCommandBase : IDataCommand
         
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {

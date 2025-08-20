@@ -34,7 +34,7 @@ public sealed class DataStoreConfigurationRegistry : IConfigurationRegistry<Data
     private readonly ConcurrentDictionary<string, DataStoreConfiguration> _configurationsByName;
     private readonly ConcurrentDictionary<string, List<DataStoreConfiguration>> _configurationsByProvider;
     private readonly object _refreshLock = new object();
-    private readonly IDisposable _changeTokenRegistration;
+    private readonly IDisposable? _changeTokenRegistration;
     private DataStoreConfiguration[] _allConfigurations = Array.Empty<DataStoreConfiguration>();
     private DataStoreConfiguration? _defaultConfiguration;
     private bool _disposed;

@@ -45,7 +45,7 @@ public sealed class DatumMapping : IEquatable<DatumMapping>
     /// - ["first_name", "last_name"] - Composite name field
     /// - [] - Calculated field (computed at runtime)
     /// </remarks>
-    public List<string> PhysicalColumns { get; set; } = new();
+    public IList<string> PhysicalColumns { get; set; } = new List<string>();
 
     /// <summary>
     /// Gets or sets the semantic category of this datum.
@@ -123,7 +123,7 @@ public sealed class DatumMapping : IEquatable<DatumMapping>
     /// - API: "FieldPath", "Format", "Validation"
     /// - NoSQL: "IndexHint", "Shard", "TTL"
     /// </remarks>
-    public Dictionary<string, object> Metadata { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, object> Metadata { get; set; } = new Dictionary<string, object>(StringComparer.Ordinal);
 
     /// <summary>
     /// Gets a value indicating whether this datum maps to multiple physical columns.
@@ -281,7 +281,7 @@ public sealed class DatumMapping : IEquatable<DatumMapping>
 
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {
@@ -361,7 +361,7 @@ public sealed class DatumMapping : IEquatable<DatumMapping>
     public override int GetHashCode()
     {
         var columnsHash = PhysicalColumns.Count > 0 
-            ? PhysicalColumns.Select(c => c.ToLowerInvariant()).OrderBy(c => c).Aggregate(0, (acc, c) => acc ^ c.GetHashCode())
+            ? PhysicalColumns.Select(c => c.ToLowerInvariant()).OrderBy(c => c, StringComparer.Ordinal).Aggregate(0, (acc, c) => acc ^ c.GetHashCode(StringComparison.Ordinal))
             : 0;
 
         return HashCode.Combine(
