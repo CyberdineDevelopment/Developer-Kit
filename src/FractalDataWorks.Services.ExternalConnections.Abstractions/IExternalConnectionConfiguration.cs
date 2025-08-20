@@ -7,6 +7,6 @@ namespace FractalDataWorks.Services.ExternalConnections.Abstractions;
 /// Acts as a marker interface for external connection configurations.
 /// Validation is provided by the source generator extension methods.
 /// </summary>
-public interface IExternalConnectionConfiguration : IExternalConnectionCommand
+public interface IExternalConnectionConfiguration : IFdwConfiguration
 {
 }

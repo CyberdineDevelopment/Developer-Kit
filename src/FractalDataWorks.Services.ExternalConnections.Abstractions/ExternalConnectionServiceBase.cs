@@ -10,7 +10,7 @@ namespace FractalDataWorks.Services.ExternalConnections.Abstractions;
 /// <typeparam name="TExternalConnectionConfiguration">The external connection configuration type.</typeparam>
 /// <typeparam name="TExternalConnectionService">The concrete external connection service type for logging category.</typeparam>
 public abstract class ExternalConnectionServiceBase<TExternalConnectionCommand, TExternalConnectionConfiguration, TExternalConnectionService> 
-    : ServiceBase<TExternalConnectionCommand, TExternalConnectionConfiguration, TExternalConnectionService>, IExternalConnectionService<TExternalConnectionCommand>
+    : ServiceBase<TExternalConnectionCommand, TExternalConnectionConfiguration, TExternalConnectionService>
     where TExternalConnectionCommand : IExternalConnectionCommand
     where TExternalConnectionConfiguration : IExternalConnectionConfiguration
     where TExternalConnectionService : class
