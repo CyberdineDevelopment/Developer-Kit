@@ -95,14 +95,14 @@ public sealed class SchedulingAbstractionsTests
         }
         
         var totalTasksProperty = interfaceType.GetProperty("TotalTasks");
-        totalTasksProperty.PropertyType.ShouldBe(typeof(int));
-        totalTasksProperty.CanRead.ShouldBeTrue();
-        totalTasksProperty.CanWrite.ShouldBeFalse();
+        totalTasksProperty?.PropertyType.ShouldBe(typeof(int));
+        totalTasksProperty?.CanRead.ShouldBeTrue();
+        totalTasksProperty?.CanWrite.ShouldBeFalse();
 
         var runningTasksProperty = interfaceType.GetProperty("RunningTasks");
-        runningTasksProperty.PropertyType.ShouldBe(typeof(int));
-        runningTasksProperty.CanRead.ShouldBeTrue();
-        runningTasksProperty.CanWrite.ShouldBeFalse();
+        runningTasksProperty?.PropertyType.ShouldBe(typeof(int));
+        runningTasksProperty?.CanRead.ShouldBeTrue();
+        runningTasksProperty?.CanWrite.ShouldBeFalse();
     }
 
     #endregion
@@ -278,13 +278,13 @@ public sealed class SchedulingAbstractionsTests
         }
 
         // Verify specific property types
-        interfaceType.GetProperty("ExecutionId").PropertyType.ShouldBe(typeof(string));
-        interfaceType.GetProperty("ScheduledTime").PropertyType.ShouldBe(typeof(DateTimeOffset));
-        interfaceType.GetProperty("StartTime").PropertyType.ShouldBe(typeof(DateTimeOffset));
-        interfaceType.GetProperty("CancellationToken").PropertyType.ShouldBe(typeof(CancellationToken));
-        interfaceType.GetProperty("ServiceProvider").PropertyType.ShouldBe(typeof(IServiceProvider));
-        interfaceType.GetProperty("Metrics").PropertyType.ShouldBe(typeof(ITaskExecutionMetrics));
-        interfaceType.GetProperty("Properties").PropertyType.ShouldBe(typeof(IReadOnlyDictionary<string, object>));
+        interfaceType.GetProperty("ExecutionId")?.PropertyType.ShouldBe(typeof(string));
+        interfaceType.GetProperty("ScheduledTime")?.PropertyType.ShouldBe(typeof(DateTimeOffset));
+        interfaceType.GetProperty("StartTime")?.PropertyType.ShouldBe(typeof(DateTimeOffset));
+        interfaceType.GetProperty("CancellationToken")?.PropertyType.ShouldBe(typeof(CancellationToken));
+        interfaceType.GetProperty("ServiceProvider")?.PropertyType.ShouldBe(typeof(IServiceProvider));
+        interfaceType.GetProperty("Metrics")?.PropertyType.ShouldBe(typeof(ITaskExecutionMetrics));
+        interfaceType.GetProperty("Properties")?.PropertyType.ShouldBe(typeof(IReadOnlyDictionary<string, object>));
     }
 
     [Fact]
@@ -343,16 +343,16 @@ public sealed class SchedulingAbstractionsTests
         }
 
         // Verify specific property types
-        interfaceType.GetProperty("TaskId").PropertyType.ShouldBe(typeof(string));
-        interfaceType.GetProperty("TaskName").PropertyType.ShouldBe(typeof(string));
-        interfaceType.GetProperty("TaskCategory").PropertyType.ShouldBe(typeof(string));
-        interfaceType.GetProperty("Priority").PropertyType.ShouldBe(typeof(int));
-        interfaceType.GetProperty("ExpectedExecutionTime").PropertyType.ShouldBe(typeof(TimeSpan?));
-        interfaceType.GetProperty("MaxExecutionTime").PropertyType.ShouldBe(typeof(TimeSpan?));
-        interfaceType.GetProperty("Dependencies").PropertyType.ShouldBe(typeof(IReadOnlyList<string>));
-        interfaceType.GetProperty("Configuration").PropertyType.ShouldBe(typeof(IReadOnlyDictionary<string, object>));
-        interfaceType.GetProperty("Metadata").PropertyType.ShouldBe(typeof(IReadOnlyDictionary<string, object>));
-        interfaceType.GetProperty("AllowsConcurrentExecution").PropertyType.ShouldBe(typeof(bool));
+        interfaceType.GetProperty("TaskId")?.PropertyType.ShouldBe(typeof(string));
+        interfaceType.GetProperty("TaskName")?.PropertyType.ShouldBe(typeof(string));
+        interfaceType.GetProperty("TaskCategory")?.PropertyType.ShouldBe(typeof(string));
+        interfaceType.GetProperty("Priority")?.PropertyType.ShouldBe(typeof(int));
+        interfaceType.GetProperty("ExpectedExecutionTime")?.PropertyType.ShouldBe(typeof(TimeSpan?));
+        interfaceType.GetProperty("MaxExecutionTime")?.PropertyType.ShouldBe(typeof(TimeSpan?));
+        interfaceType.GetProperty("Dependencies")?.PropertyType.ShouldBe(typeof(IReadOnlyList<string>));
+        interfaceType.GetProperty("Configuration")?.PropertyType.ShouldBe(typeof(IReadOnlyDictionary<string, object>));
+        interfaceType.GetProperty("Metadata")?.PropertyType.ShouldBe(typeof(IReadOnlyDictionary<string, object>));
+        interfaceType.GetProperty("AllowsConcurrentExecution")?.PropertyType.ShouldBe(typeof(bool));
     }
 
     [Fact]
@@ -483,11 +483,11 @@ public sealed class SchedulingAbstractionsTests
         }
 
         // Verify specific property types
-        interfaceType.GetProperty("SupportedSchedulingStrategies").PropertyType.ShouldBe(typeof(IReadOnlyList<string>));
-        interfaceType.GetProperty("SupportedExecutionModes").PropertyType.ShouldBe(typeof(IReadOnlyList<string>));
-        interfaceType.GetProperty("MaxConcurrentTasks").PropertyType.ShouldBe(typeof(int?));
-        interfaceType.GetProperty("ActiveTaskCount").PropertyType.ShouldBe(typeof(int));
-        interfaceType.GetProperty("QueuedTaskCount").PropertyType.ShouldBe(typeof(int));
+        interfaceType.GetProperty("SupportedSchedulingStrategies")?.PropertyType.ShouldBe(typeof(IReadOnlyList<string>));
+        interfaceType.GetProperty("SupportedExecutionModes")?.PropertyType.ShouldBe(typeof(IReadOnlyList<string>));
+        interfaceType.GetProperty("MaxConcurrentTasks")?.PropertyType.ShouldBe(typeof(int?));
+        interfaceType.GetProperty("ActiveTaskCount")?.PropertyType.ShouldBe(typeof(int));
+        interfaceType.GetProperty("QueuedTaskCount")?.PropertyType.ShouldBe(typeof(int));
     }
 
     [Fact]
@@ -516,32 +516,32 @@ public sealed class SchedulingAbstractionsTests
 
         // Verify specific method return types
         var scheduleTaskMethod = interfaceType.GetMethod("ScheduleTask");
-        scheduleTaskMethod.ReturnType.ShouldBe(typeof(Task<IFdwResult<string>>));
-        scheduleTaskMethod.GetParameters().Length.ShouldBe(2);
-        scheduleTaskMethod.GetParameters()[0].ParameterType.ShouldBe(typeof(IScheduledTask));
-        scheduleTaskMethod.GetParameters()[1].ParameterType.ShouldBe(typeof(ITaskSchedule));
+        scheduleTaskMethod?.ReturnType.ShouldBe(typeof(Task<IFdwResult<string>>));
+        scheduleTaskMethod?.GetParameters().Length.ShouldBe(2);
+        scheduleTaskMethod?.GetParameters()[0].ParameterType.ShouldBe(typeof(IScheduledTask));
+        scheduleTaskMethod?.GetParameters()[1].ParameterType.ShouldBe(typeof(ITaskSchedule));
 
         var cancelTaskMethod = interfaceType.GetMethod("CancelTask");
-        cancelTaskMethod.ReturnType.ShouldBe(typeof(Task<IFdwResult>));
-        cancelTaskMethod.GetParameters().Length.ShouldBe(1);
-        cancelTaskMethod.GetParameters()[0].ParameterType.ShouldBe(typeof(string));
+        cancelTaskMethod?.ReturnType.ShouldBe(typeof(Task<IFdwResult>));
+        cancelTaskMethod?.GetParameters().Length.ShouldBe(1);
+        cancelTaskMethod?.GetParameters()[0].ParameterType.ShouldBe(typeof(string));
 
         var executeTaskNowMethod = interfaceType.GetMethod("ExecuteTaskNow");
-        executeTaskNowMethod.ReturnType.ShouldBe(typeof(Task<IFdwResult<ITaskExecutionResult>>));
+        executeTaskNowMethod?.ReturnType.ShouldBe(typeof(Task<IFdwResult<ITaskExecutionResult>>));
         
         var getTaskInfoMethod = interfaceType.GetMethod("GetTaskInfo");
-        getTaskInfoMethod.ReturnType.ShouldBe(typeof(Task<IFdwResult<ITaskInfo>>));
+        getTaskInfoMethod?.ReturnType.ShouldBe(typeof(Task<IFdwResult<ITaskInfo>>));
         
         var getAllTasksMethod = interfaceType.GetMethod("GetAllTasks");
-        getAllTasksMethod.ReturnType.ShouldBe(typeof(Task<IFdwResult<IReadOnlyList<ITaskInfo>>>));
+        getAllTasksMethod?.ReturnType.ShouldBe(typeof(Task<IFdwResult<IReadOnlyList<ITaskInfo>>>));
         
         var getMetricsMethod = interfaceType.GetMethod("GetSchedulerMetricsAsync");
-        getMetricsMethod.ReturnType.ShouldBe(typeof(Task<IFdwResult<ISchedulerMetrics>>));
+        getMetricsMethod?.ReturnType.ShouldBe(typeof(Task<IFdwResult<ISchedulerMetrics>>));
         
         var createContextMethod = interfaceType.GetMethod("CreateExecutionContextAsync");
-        createContextMethod.ReturnType.ShouldBe(typeof(Task<IFdwResult<ITaskExecutor>>));
-        createContextMethod.GetParameters().Length.ShouldBe(1);
-        createContextMethod.GetParameters()[0].ParameterType.ShouldBe(typeof(ITaskExecutorConfiguration));
+        createContextMethod?.ReturnType.ShouldBe(typeof(Task<IFdwResult<ITaskExecutor>>));
+        createContextMethod?.GetParameters().Length.ShouldBe(1);
+        createContextMethod?.GetParameters()[0].ParameterType.ShouldBe(typeof(ITaskExecutorConfiguration));
     }
 
     #endregion
@@ -571,7 +571,7 @@ public sealed class SchedulingAbstractionsTests
         };
 
         // Act
-        var actualTypes = assembly.GetTypes().Where(t => t.IsInterface && t.IsPublic).ToArray();
+        var actualTypes = assembly?.GetTypes().Where(t => t.IsInterface && t.IsPublic).ToArray() ?? [];
 
         // Assert
         actualTypes.Length.ShouldBe(13);
@@ -589,7 +589,7 @@ public sealed class SchedulingAbstractionsTests
         var expectedNamespace = "FractalDataWorks.Services.Scheduling.Abstractions";
 
         // Act
-        var publicInterfaces = assembly.GetTypes().Where(t => t.IsInterface && t.IsPublic).ToArray();
+        var publicInterfaces = assembly?.GetTypes().Where(t => t.IsInterface && t.IsPublic).ToArray() ?? [];
 
         // Assert
         foreach (var interfaceType in publicInterfaces)
@@ -605,7 +605,7 @@ public sealed class SchedulingAbstractionsTests
         var assembly = Assembly.GetAssembly(typeof(ISchedulingConfiguration));
 
         // Act
-        var targetFrameworkAttribute = assembly.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
+        var targetFrameworkAttribute = assembly?.GetCustomAttribute<System.Runtime.Versioning.TargetFrameworkAttribute>();
 
         // Assert
         targetFrameworkAttribute.ShouldNotBeNull();
