@@ -23,5 +23,10 @@ public enum ConnectionManagementOperation
     /// <summary>
     /// Refresh connection status.
     /// </summary>
-    RefreshConnectionStatus
+    RefreshConnectionStatus,
+    
+    /// <summary>
+    /// Test a specific connection.
+    /// </summary>
+    TestConnection
 }

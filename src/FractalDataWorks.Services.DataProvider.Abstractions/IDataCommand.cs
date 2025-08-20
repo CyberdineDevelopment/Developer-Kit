@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FluentValidation.Results;
 
 namespace FractalDataWorks.Services.DataProvider.Abstractions;
 
@@ -90,13 +91,13 @@ public interface IDataCommand : ICommand
     /// <summary>
     /// Validates the command before execution.
     /// </summary>
-    /// <returns>A result indicating whether the command is valid for execution.</returns>
+    /// <returns>A ValidationResult indicating whether the command is valid for execution.</returns>
     /// <remarks>
     /// This method allows commands to perform self-validation before being passed
     /// to data providers. It can check parameter completeness, value ranges,
     /// and other command-specific validation rules.
     /// </remarks>
-    new IFdwResult Validate();
+    new ValidationResult Validate();
     
     /// <summary>
     /// Creates a copy of this command with modified parameters.

@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using FractalDataWorks;
 using FractalDataWorks.Results;
+using FractalDataWorks.Services.DataProvider.Abstractions;
 using FractalDataWorks.Services.DataProvider.Abstractions.Commands;
 using FractalDataWorks.Services.DataProvider.Abstractions.Models;
+using FractalDataWorks.Services.ExternalConnections.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -31,7 +33,7 @@ namespace FractalDataWorks.Services.DataProvider.Services;
 /// </remarks>
 public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProvider
 {
-    private readonly ConcurrentDictionary<string, IExternalDataConnection> _connections;
+    private readonly ConcurrentDictionary<string, object> _connections;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ExternalDataConnectionProvider> _logger;
 
@@ -47,7 +49,7 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _connections = new ConcurrentDictionary<string, IExternalDataConnection>(StringComparer.Ordinal);
+        _connections = new ConcurrentDictionary<string, object>(StringComparer.Ordinal);
 
         _logger.LogInformation("ExternalDataConnectionProvider initialized");
     }
@@ -58,7 +60,7 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
     /// <param name="connectionName">The name of the connection to retrieve.</param>
     /// <returns>The connection instance if found; otherwise, null.</returns>
     /// <exception cref="ArgumentException">Thrown when connectionName is null or empty.</exception>
-    public IExternalDataConnection? GetConnection(string connectionName)
+    private object? GetConnection(string connectionName)
     {
         if (string.IsNullOrWhiteSpace(connectionName))
             throw new ArgumentException("Connection name cannot be null or empty.", nameof(connectionName));
@@ -85,18 +87,18 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
 
         // Validate the command first
         var validationResult = command.Validate();
-        if (!validationResult.IsSuccess)
+        if (!validationResult.IsValid)
         {
             var errorMessage = string.Format(
                 CultureInfo.InvariantCulture,
                 "Command validation failed: {0}",
-                validationResult.Message);
+                string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)));
             
             _logger.LogWarning(
                 "Command validation failed for {CommandType} on connection {ConnectionName}: {ErrorMessage}",
                 command.GetType().Name,
                 command.ConnectionName,
-                validationResult.Message);
+                string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)));
             
             return FdwResult<T>.Failure(errorMessage);
         }
@@ -117,8 +119,8 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
 
             try
             {
-                var connection = GetConnection(command.ConnectionName);
-                if (connection == null)
+                var connectionObj = GetConnection(command.ConnectionName);
+                if (connectionObj == null)
                 {
                     var errorMessage = string.Format(
                         CultureInfo.InvariantCulture,
@@ -129,6 +131,21 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
                         "Connection {ConnectionName} not found for command {CommandType}",
                         command.ConnectionName,
                         command.GetType().Name);
+
+                    return FdwResult<T>.Failure(errorMessage);
+                }
+
+                // Try to cast to the expected interface
+                if (connectionObj is not IExternalDataConnection<IExternalConnectionConfiguration> connection)
+                {
+                    var errorMessage = string.Format(
+                        CultureInfo.InvariantCulture,
+                        "Connection '{0}' does not implement the expected interface",
+                        command.ConnectionName);
+
+                    _logger.LogError(
+                        "Connection {ConnectionName} does not implement IExternalDataConnection interface",
+                        command.ConnectionName);
 
                     return FdwResult<T>.Failure(errorMessage);
                 }
@@ -218,8 +235,8 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
 
             try
             {
-                var connection = GetConnection(connectionName);
-                if (connection == null)
+                var connectionObj = GetConnection(connectionName);
+                if (connectionObj == null)
                 {
                     var errorMessage = string.Format(
                         CultureInfo.InvariantCulture,
@@ -228,6 +245,21 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
 
                     _logger.LogError(
                         "Connection {ConnectionName} not found for schema discovery",
+                        connectionName);
+
+                    return FdwResult<IEnumerable<DataContainer>>.Failure(errorMessage);
+                }
+
+                // Try to cast to the expected interface
+                if (connectionObj is not IExternalDataConnection<IExternalConnectionConfiguration> connection)
+                {
+                    var errorMessage = string.Format(
+                        CultureInfo.InvariantCulture,
+                        "Connection '{0}' does not implement the expected interface",
+                        connectionName);
+
+                    _logger.LogError(
+                        "Connection {ConnectionName} does not implement IExternalDataConnection interface",
                         connectionName);
 
                     return FdwResult<IEnumerable<DataContainer>>.Failure(errorMessage);
@@ -294,12 +326,27 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
                     {
                         try
                         {
-                            var connectionInfo = await connection.GetConnectionInfo(cancellationToken).ConfigureAwait(false);
-                            if (connectionInfo.IsSuccess)
+                            // Try to cast to the expected interface
+                            if (connection is IExternalDataConnection<IExternalConnectionConfiguration> dataConnection)
                             {
-                                lock (metadata)
+                                var connectionInfo = await dataConnection.GetConnectionInfo(cancellationToken).ConfigureAwait(false);
+                                if (connectionInfo.IsSuccess)
                                 {
-                                    metadata[connectionName] = connectionInfo.Value!;
+                                    lock (metadata)
+                                    {
+                                        metadata[connectionName] = connectionInfo.Value!;
+                                    }
+                                }
+                                else
+                                {
+                                    lock (metadata)
+                                    {
+                                        metadata[connectionName] = new Dictionary<string, object>(StringComparer.Ordinal)
+                                        {
+                                            ["Error"] = connectionInfo.Message ?? "Unknown error",
+                                            ["Available"] = false
+                                        };
+                                    }
                                 }
                             }
                             else
@@ -308,7 +355,7 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
                                 {
                                     metadata[connectionName] = new Dictionary<string, object>(StringComparer.Ordinal)
                                     {
-                                        ["Error"] = connectionInfo.Message ?? "Unknown error",
+                                        ["Error"] = "Connection does not implement required interface",
                                         ["Available"] = false
                                     };
                                 }
@@ -374,11 +421,21 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
 
             try
             {
-                var connection = GetConnection(connectionName);
-                if (connection == null)
+                var connectionObj = GetConnection(connectionName);
+                if (connectionObj == null)
                 {
                     _logger.LogDebug(
                         "Connection {ConnectionName} not found in registry",
+                        connectionName);
+
+                    return FdwResult<bool>.Success(false);
+                }
+
+                // Try to cast to the expected interface
+                if (connectionObj is not IExternalDataConnection<IExternalConnectionConfiguration> connection)
+                {
+                    _logger.LogDebug(
+                        "Connection {ConnectionName} does not implement required interface",
                         connectionName);
 
                     return FdwResult<bool>.Success(false);
@@ -420,7 +477,8 @@ public sealed class ExternalDataConnectionProvider : IExternalDataConnectionProv
     /// <returns>True if the connection was registered successfully; false if a connection with the same name already exists.</returns>
     /// <exception cref="ArgumentException">Thrown when name is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when connection is null.</exception>
-    public bool RegisterConnection(string name, IExternalDataConnection connection)
+    public bool RegisterConnection<TConfiguration>(string name, IExternalDataConnection<TConfiguration> connection)
+        where TConfiguration : IExternalConnectionConfiguration
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Connection name cannot be null or empty.", nameof(name));

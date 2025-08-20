@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FluentValidation.Results;
 
 namespace FractalDataWorks.Services.SecretManagement.Abstractions;
 
@@ -109,13 +110,13 @@ public interface ISecretCommand : ICommand
     /// <summary>
     /// Validates the command before execution.
     /// </summary>
-    /// <returns>A result indicating whether the command is valid for execution.</returns>
+    /// <returns>A ValidationResult indicating whether the command is valid for execution.</returns>
     /// <remarks>
     /// This method allows commands to perform self-validation before being passed
     /// to secret providers. It can check parameter completeness, value formats,
     /// security requirements, and other command-specific validation rules.
     /// </remarks>
-    new IFdwResult Validate();
+    new ValidationResult Validate();
     
     /// <summary>
     /// Creates a copy of this command with modified parameters.

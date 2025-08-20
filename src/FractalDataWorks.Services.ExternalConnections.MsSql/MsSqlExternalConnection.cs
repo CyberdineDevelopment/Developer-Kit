@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
@@ -71,15 +72,16 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             _logger.LogDebug("Initializing SQL Server connection {ConnectionId}", ConnectionId);
 
             // Validate configuration
-            var validationResult = await configuration.Validate().ConfigureAwait(false);
+            var validationResult = configuration.Validate();
             if (!validationResult.IsValid)
             {
-                var errorMessage = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                var errorMessage = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage).ToArray());
                 return FdwResult.Failure($"Configuration validation failed: {errorMessage}");
             }
 
             _configuration = configuration;
-            _commandTranslator = new MsSqlCommandTranslator(_configuration, _logger);
+            var translatorLogger = Microsoft.Extensions.Logging.Abstractions.NullLogger<MsSqlCommandTranslator>.Instance;
+            _commandTranslator = new MsSqlCommandTranslator(_configuration, translatorLogger);
 
             // Create connection but don't open it yet
             _connection = new SqlConnection(_configuration.ConnectionString);
@@ -173,7 +175,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             _logger.LogDebug("Testing SQL Server connection {ConnectionId}", ConnectionId);
 
             using var testConnection = new SqlConnection(_configuration.ConnectionString);
-            testConnection.ConnectionTimeout = _configuration.ConnectionTimeoutSeconds;
+            // Note: ConnectionTimeout is read-only, timeout is specified in the connection string
             
             await testConnection.OpenAsync().ConfigureAwait(false);
             
@@ -440,7 +442,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
                 }
             }
 
-            return (TResult)results;
+            return (TResult)(object)results;
         }
 
         // Single result
@@ -559,7 +561,8 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             var tableType = reader.GetString("TableType");
             
             var containerPath = new DataPath(new[] { schemaName, tableName });
-            var container = new DataContainer(containerPath, tableType == "VIEW" ? "View" : "Table");
+            var containerType = tableType == "VIEW" ? ContainerType.View : ContainerType.Table;
+            var container = new DataContainer(containerPath, tableName, containerType, null, null);
             
             containers.Add(container);
         }

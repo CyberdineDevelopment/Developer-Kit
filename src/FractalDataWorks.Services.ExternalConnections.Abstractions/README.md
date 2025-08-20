@@ -11,8 +11,8 @@ This package provides the foundational interfaces for external connection servic
 The external connections abstractions follow the framework's **enhanced service pattern**:
 
 - **Core Interface**: `IExternalConnectionService` extends `IServiceType` 
-- **Command Contract**: `IExternalConnectionsCommand` defines connection command structure
-- **Configuration Base**: `IExternalConnectionsConfiguration` provides configuration contract
+- **Command Contract**: `IExternalConnectionCommand` defines connection command structure
+- **Configuration Base**: `IExternalConnectionConfiguration` provides configuration contract
 - **Base Classes**: Add type constraints without implementation logic
 
 ## Key Interfaces
@@ -42,13 +42,13 @@ public interface IExternalConnectionService : IServiceType
 ### Generic Service Interface
 ```csharp
 public interface IExternalConnectionService<TConfiguration> : IExternalConnectionService
-    where TConfiguration : FdwConfigurationBase
+    where TConfiguration : IExternalConnectionConfiguration, new()
 {
     // Type-safe factory creation
     Task<IFdwResult<IExternalConnectionFactory<TConfiguration, IExternalConnection<TConfiguration>>>> 
         CreateTypedConnectionFactoryAsync(IServiceProvider serviceProvider);
-    
-    // Type-safe configuration validation
+        
+    // Configuration validation
     IFdwResult ValidateConfiguration(TConfiguration configuration);
 }
 ```

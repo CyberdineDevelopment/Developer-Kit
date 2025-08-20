@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FractalDataWorks;
 using FractalDataWorks.Results;
+using FractalDataWorks.Services;
 using FractalDataWorks.Services.DataProvider.Abstractions.Models;
 using FractalDataWorks.Services.ExternalConnections.Abstractions;
 using FractalDataWorks.Services.ExternalConnections.Abstractions.Commands;
@@ -18,10 +19,11 @@ namespace FractalDataWorks.Services.ExternalConnections.MsSql;
 /// This service handles MsSql connection commands and manages connection instances.
 /// </summary>
 public sealed class MsSqlExternalConnectionService 
-    : ExternalConnectionServiceBase<IExternalConnectionCommand, MsSqlConfiguration, MsSqlExternalConnectionService>
+    : ExternalConnectionServiceBase<IExternalConnectionCommand, MsSqlConfiguration, MsSqlExternalConnectionService>, IFdwService
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly Dictionary<string, MsSqlExternalConnection> _connections;
+    private readonly string _serviceId;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MsSqlExternalConnectionService"/> class.
@@ -37,7 +39,17 @@ public sealed class MsSqlExternalConnectionService
     {
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
         _connections = new Dictionary<string, MsSqlExternalConnection>(StringComparer.Ordinal);
+        _serviceId = Guid.NewGuid().ToString("N");
     }
+
+    /// <inheritdoc/>
+    public override string Id => _serviceId;
+
+    /// <inheritdoc/>
+    public override string ServiceType => "MsSql External Connection Service";
+
+    /// <inheritdoc/>
+    public override bool IsAvailable => _connections.Count > 0;
 
     /// <inheritdoc/>
     protected override async Task<IFdwResult<T>> ExecuteCore<T>(IExternalConnectionCommand command)
@@ -117,7 +129,7 @@ public sealed class MsSqlExternalConnectionService
         {
             return command switch
             {
-                IConnectionTestCommand testCommand => await HandleConnectionTestCommand(testCommand, cancellationToken).ConfigureAwait(false),
+                // Note: Test connection functionality is handled via management commands with TestConnection operation
                 IExternalConnectionDiscoveryCommand discoveryCommand => await HandleConnectionDiscoveryCommand(discoveryCommand, cancellationToken).ConfigureAwait(false),
                 IExternalConnectionCreateCommand createCommand => await HandleConnectionCreateCommand(createCommand, cancellationToken).ConfigureAwait(false),
                 IExternalConnectionManagementCommand mgmtCommand => await HandleConnectionManagementCommand(mgmtCommand, cancellationToken).ConfigureAwait(false),
@@ -131,20 +143,7 @@ public sealed class MsSqlExternalConnectionService
         }
     }
 
-    private async Task<IFdwResult<object>> HandleConnectionTestCommand(IConnectionTestCommand command, CancellationToken cancellationToken)
-    {
-        Logger.LogDebug("Testing connection {ConnectionName}", command.ConnectionName);
-        
-        if (!_connections.TryGetValue(command.ConnectionName, out var connection))
-        {
-            return FdwResult<object>.Failure($"Connection '{command.ConnectionName}' not found");
-        }
-
-        var result = await connection.TestConnectionAsync().ConfigureAwait(false);
-        return result.IsSuccess 
-            ? FdwResult<object>.Success(true)
-            : FdwResult<object>.Failure(result.Message ?? "Connection test failed");
-    }
+    // Note: Connection testing is now handled via management commands with TestConnection operation
 
     private async Task<IFdwResult<object>> HandleConnectionDiscoveryCommand(IExternalConnectionDiscoveryCommand command, CancellationToken cancellationToken)
     {
@@ -176,8 +175,7 @@ public sealed class MsSqlExternalConnectionService
         }
 
         var connection = new MsSqlExternalConnection(
-            _loggerFactory.CreateLogger<MsSqlExternalConnection>(), 
-            _loggerFactory);
+            _loggerFactory.CreateLogger<MsSqlExternalConnection>());
 
         var initResult = await connection.InitializeAsync(msSqlConfig).ConfigureAwait(false);
         if (!initResult.IsSuccess)
@@ -200,6 +198,7 @@ public sealed class MsSqlExternalConnectionService
             ConnectionManagementOperation.RemoveConnection => await HandleRemoveConnection(command.ConnectionName!, cancellationToken).ConfigureAwait(false),
             ConnectionManagementOperation.GetConnectionMetadata => await HandleGetConnectionMetadata(command.ConnectionName!, cancellationToken).ConfigureAwait(false),
             ConnectionManagementOperation.RefreshConnectionStatus => await HandleRefreshConnectionStatus(command.ConnectionName!, cancellationToken).ConfigureAwait(false),
+            ConnectionManagementOperation.TestConnection => await HandleTestConnection(command.ConnectionName!, cancellationToken).ConfigureAwait(false),
             _ => FdwResult<object>.Failure($"Unsupported management operation: {command.Operation}")
         };
     }
@@ -263,11 +262,24 @@ public sealed class MsSqlExternalConnectionService
         return FdwResult<object>.Success(status);
     }
 
+    private async Task<IFdwResult<object>> HandleTestConnection(string connectionName, CancellationToken cancellationToken)
+    {
+        if (!_connections.TryGetValue(connectionName, out var connection))
+        {
+            return FdwResult<object>.Failure($"Connection '{connectionName}' not found");
+        }
+
+        var result = await connection.TestConnectionAsync().ConfigureAwait(false);
+        return result.IsSuccess 
+            ? FdwResult<object>.Success(true)
+            : FdwResult<object>.Failure(result.Message ?? "Connection test failed");
+    }
+
     /// <summary>
     /// Releases unmanaged and - optionally - managed resources.
     /// </summary>
     /// <param name="disposing">True to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-    protected void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (disposing)
         {

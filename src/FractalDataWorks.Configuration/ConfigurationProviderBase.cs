@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using FractalDataWorks.Configuration.Abstractions;
 using FractalDataWorks.Results;
-
+using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Configuration;
@@ -166,8 +166,13 @@ public abstract class ConfigurationProviderBase<TConfiguration> :
             return FdwResult<TConfiguration>.Failure<TConfiguration>("Configuration cannot be null");
         }
 
-        // Validation removed during refactoring. Assuming valid configuration.
-        _ = configuration.Validate();
+        // Validate configuration before saving
+        var validationResult = configuration.Validate();
+        if (!validationResult.IsValid)
+        {
+            var errorMessages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+            return FdwResult<TConfiguration>.Failure<TConfiguration>($"Configuration validation failed: {errorMessages}");
+        }
 
         // Mark as modified if updating
         if (configuration.Id > 0)

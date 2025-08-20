@@ -194,6 +194,111 @@ public class SqlServerConnectionType : ConnectionTypeBase<SqlConnection, SqlServ
 }
 ```
 
+## External Connection Service Type Factories
+
+### Base Classes
+
+External connection service types are specialized service types that provide metadata about external data connections and enable the data gateway pattern:
+
+```csharp
+/// <summary>
+/// Base class for external connection service type definitions.
+/// Used by Enhanced Enums to register different external connection providers.
+/// </summary>
+public abstract class ExternalConnectionServiceTypeBase<TService, TConfiguration>
+    : ServiceTypeBase<TService, TConfiguration>
+    where TService : class, IFdwService
+    where TConfiguration : class, IFdwConfiguration
+{
+    protected ExternalConnectionServiceTypeBase(int id, string name, string description)
+        : base(id, name, description)
+    {
+    }
+
+    /// <summary>
+    /// Gets the datastore types supported by this connection provider.
+    /// Examples: ["SqlServer", "MSSQL", "Microsoft SQL Server"] for SQL Server
+    /// </summary>
+    public abstract string[] SupportedDataStores { get; }
+
+    /// <summary>
+    /// Gets the provider name for this connection type.
+    /// Examples: "Microsoft.Data.SqlClient", "Npgsql"
+    /// </summary>
+    public abstract string ProviderName { get; }
+
+    /// <summary>
+    /// Gets the connection modes supported by this provider.
+    /// Common modes: "ReadWrite", "ReadOnly", "Bulk", "Streaming", "Transactional"
+    /// </summary>
+    public abstract IReadOnlyList<string> SupportedConnectionModes { get; }
+
+    /// <summary>
+    /// Gets the priority of this connection provider (higher values = higher priority).
+    /// Used when multiple providers support the same datastore.
+    /// </summary>
+    public abstract int Priority { get; }
+}
+```
+
+### Implementation Example
+
+```csharp
+[EnumOption]
+public sealed class MsSqlConnectionType : ExternalConnectionServiceTypeBase<MsSqlExternalConnectionService, MsSqlConfiguration>
+{
+    public MsSqlConnectionType() : base(1, "MsSql", "Microsoft SQL Server external connection service")
+    {
+    }
+    
+    public override string[] SupportedDataStores => new[] { "SqlServer", "MSSQL", "Microsoft SQL Server" };
+    
+    public override string ProviderName => "Microsoft.Data.SqlClient";
+    
+    public override IReadOnlyList<string> SupportedConnectionModes => new[]
+    {
+        "ReadWrite", 
+        "ReadOnly", 
+        "Bulk", 
+        "Streaming"
+    };
+    
+    public override int Priority => 100;
+
+    public override IServiceFactory<MsSqlExternalConnectionService, MsSqlConfiguration> CreateTypedFactory()
+    {
+        return new MsSqlConnectionFactory();
+    }
+}
+```
+
+### Data Gateway Pattern Usage
+
+The external connection types enable the data gateway pattern where the DataProvider can discover and route commands to appropriate connection types:
+
+```csharp
+public class ExternalDataConnectionProvider : IExternalDataConnectionProvider
+{
+    private readonly IEnumerable<ExternalConnectionServiceTypeBase> _connectionTypes;
+    
+    public async Task<IExternalConnection> GetConnection(DataStoreConfiguration dataStoreConfig)
+    {
+        // Find connection types that support this datastore
+        var supportedTypes = _connectionTypes
+            .Where(ct => ct.SupportedDataStores.Contains(dataStoreConfig.DataStoreType))
+            .OrderByDescending(ct => ct.Priority)
+            .ToList();
+            
+        if (!supportedTypes.Any())
+            throw new NotSupportedException($"No connection provider found for datastore type: {dataStoreConfig.DataStoreType}");
+            
+        var connectionType = supportedTypes.First();
+        var factory = connectionType.CreateTypedFactory();
+        return await factory.CreateConnection(dataStoreConfig);
+    }
+}
+```
+
 ## Tool Type Factories
 
 ### Base Classes
