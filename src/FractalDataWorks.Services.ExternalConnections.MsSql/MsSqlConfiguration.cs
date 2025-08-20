@@ -62,7 +62,7 @@ public sealed class MsSqlConfiguration : ConfigurationBase<MsSqlConfiguration>, 
     /// Key is the container name, value is schema.table or just table name.
     /// If not found in mappings, will use DefaultSchema + container name.
     /// </remarks>
-    public Dictionary<string, string> SchemaMappings { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, string> SchemaMappings { get; set; } = new Dictionary<string, string>(StringComparer.Ordinal);
 
     /// <summary>
     /// Gets or sets a value indicating whether to enable connection pooling.

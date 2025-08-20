@@ -12,10 +12,10 @@ namespace FractalDataWorks.Services.ExternalConnections.MsSql;
 internal sealed class ExpressionTranslator : ExpressionVisitor
 {
     private readonly StringBuilder _sql = new();
-    private readonly List<SqlParameter> _parameters;
+    private readonly IList<SqlParameter> _parameters;
     private int _parameterCounter;
 
-    public ExpressionTranslator(ref int parameterCounter, List<SqlParameter> parameters)
+    public ExpressionTranslator(ref int parameterCounter, IList<SqlParameter> parameters)
     {
         _parameterCounter = parameterCounter;
         _parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));

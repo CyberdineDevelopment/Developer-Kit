@@ -508,7 +508,7 @@ internal sealed class MsSqlCommandTranslator
         throw new NotImplementedException("Single entity upsert command creation not implemented for bulk operations.");
     }
 
-    private string BuildWhereClause(Expression predicate, ref int parameterCounter, List<SqlParameter> parameters)
+    private string BuildWhereClause(Expression predicate, ref int parameterCounter, IList<SqlParameter> parameters)
     {
         return new ExpressionTranslator(ref parameterCounter, parameters).Translate(predicate);
     }

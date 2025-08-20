@@ -25,6 +25,7 @@ env:
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   NuGetPackageSourceCredentials_github: Username=${{ github.actor }};Password=${{ secrets.PACKAGE_READ_PAT }}
+  NBGV_CloudBuildNumber: ${{ github.run_number }}
 
 jobs:
   validate:
