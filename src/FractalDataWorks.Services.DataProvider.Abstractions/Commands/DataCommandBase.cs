@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FractalDataWorks;
 using FractalDataWorks.Results;
 using FractalDataWorks.Services.DataProvider.Abstractions.Models;
+using FluentValidation.Results;
 
 
 namespace FractalDataWorks.Services.DataProvider.Abstractions.Commands;
@@ -150,28 +151,28 @@ public abstract class DataCommandBase : IDataCommand
     }
 
     /// <inheritdoc/>
-    public virtual IFdwResult Validate()
+    public virtual ValidationResult Validate()
     {
-        var errors = new List<string>();
+        var errors = new List<ValidationFailure>();
 
         if (string.IsNullOrWhiteSpace(CommandType))
         {
-            errors.Add("Command type cannot be null or empty.");
+            errors.Add(new ValidationFailure(nameof(CommandType), "Command type cannot be null or empty."));
         }
 
         if (string.IsNullOrWhiteSpace(ConnectionName))
         {
-            errors.Add("Connection name cannot be null or empty.");
+            errors.Add(new ValidationFailure(nameof(ConnectionName), "Connection name cannot be null or empty."));
         }
 
         if (ExpectedResultType == null)
         {
-            errors.Add("Expected result type cannot be null.");
+            errors.Add(new ValidationFailure(nameof(ExpectedResultType), "Expected result type cannot be null."));
         }
 
         if (Timeout.HasValue && Timeout.Value <= TimeSpan.Zero)
         {
-            errors.Add("Timeout must be positive if specified.");
+            errors.Add(new ValidationFailure(nameof(Timeout), "Timeout must be positive if specified."));
         }
 
         // Validate parameters don't contain null keys
@@ -179,14 +180,12 @@ public abstract class DataCommandBase : IDataCommand
         {
             if (string.IsNullOrWhiteSpace(parameter.Key))
             {
-                errors.Add("Parameter keys cannot be null or empty.");
+                errors.Add(new ValidationFailure(nameof(Parameters), "Parameter keys cannot be null or empty."));
                 break;
             }
         }
 
-        return errors.Count > 0 
-            ? FdwResult.Failure(string.Join("; ", errors))
-            : FdwResult.Success();
+        return new ValidationResult(errors);
     }
     
     /// <inheritdoc/>

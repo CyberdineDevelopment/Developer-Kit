@@ -46,6 +46,22 @@ public abstract class ConfigurationBase<TConfiguration> : FdwConfigurationBase
     /// </summary>
     public override abstract string SectionName { get; }
 
+    /// <summary>
+    /// Validates the configuration using FluentValidation.
+    /// </summary>
+    /// <returns>A FluentValidation ValidationResult indicating success or failure with details.</returns>
+    public override ValidationResult Validate()
+    {
+        var validator = GetValidator();
+        if (validator == null)
+        {
+            // No validator configured, return success
+            return new ValidationResult();
+        }
+
+        return validator.Validate((TConfiguration)this);
+    }
+
 
 
     /// <summary>

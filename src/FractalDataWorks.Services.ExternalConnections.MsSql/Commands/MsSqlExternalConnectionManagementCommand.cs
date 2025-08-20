@@ -1,9 +1,6 @@
 using System;
-using System.Linq;
-using System.Collections.Generic;
 using FluentValidation.Results;
 using FractalDataWorks.Services.ExternalConnections.Abstractions.Commands;
-
 using FractalDataWorks;
 using FractalDataWorks.Services.ExternalConnections.Abstractions;
 
@@ -32,10 +29,13 @@ public sealed class MsSqlExternalConnectionManagementCommand : IExternalConnecti
     public string? ConnectionName { get; }
 
 
-    /// <inheritdoc/>
-    protected override IReadOnlyList<IValidationError> ValidateCore()
+    /// <summary>
+    /// Validates this command using FluentValidation.
+    /// </summary>
+    /// <returns>The validation result.</returns>
+    public ValidationResult Validate()
     {
-        var errors = base.ValidateCore().ToList();
+        var result = new ValidationResult();
 
         // Operations that require connection name
         if ((Operation == ConnectionManagementOperation.RemoveConnection ||
@@ -43,42 +43,29 @@ public sealed class MsSqlExternalConnectionManagementCommand : IExternalConnecti
              Operation == ConnectionManagementOperation.RefreshConnectionStatus) &&
             string.IsNullOrWhiteSpace(ConnectionName))
         {
-            errors.Add(new SimpleValidationError($"Connection name is required for {Operation} operation.", nameof(ConnectionName)));
+            result.Errors.Add(new FluentValidation.Results.ValidationFailure(nameof(ConnectionName), $"Connection name is required for {Operation} operation."));
         }
 
-        return errors;
+        return result;
     }
-
-    #region Implementation of ICommand
 
     /// <summary>
     /// Gets the unique identifier for this command instance.
     /// </summary>
-    public Guid CommandId { get; }
+    public Guid CommandId { get; } = Guid.NewGuid();
 
     /// <summary>
     /// Gets the correlation identifier for tracking related operations.
     /// </summary>
-    public Guid CorrelationId { get; }
+    public Guid CorrelationId { get; } = Guid.NewGuid();
 
     /// <summary>
     /// Gets the timestamp when this command was created.
     /// </summary>
-    public DateTimeOffset Timestamp { get; }
+    public DateTimeOffset Timestamp { get; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// Gets the configuration associated with this command.
     /// </summary>
-    public IFdwConfiguration? Configuration { get; }
-
-    /// <summary>
-    /// Validates this command.
-    /// </summary>
-    /// <returns>A task containing the validation result.</returns>
-    public ValidationResult Validate()
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion
+    public IFdwConfiguration? Configuration => null; // Management commands don't have associated configuration
 }

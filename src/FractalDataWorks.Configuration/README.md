@@ -5,21 +5,21 @@ Configuration management patterns and providers for the FractalDataWorks framewo
 ## Overview
 
 FractalDataWorks.Configuration provides:
-- Self-validating configuration base class
+- Self-validating configuration base classes (ConfigurationBase<T> and FdwConfigurationBase<T>)
 - Configuration provider pattern for loading from various sources
 - Configuration source abstractions
-- Built-in validation using FluentValidation
+- Built-in validation using FluentValidation with FluentValidation.Results.ValidationResult
 - Integration with Microsoft.Extensions.Configuration
 
 ## Key Components
 
-### ConfigurationBase<T>
+### FdwConfigurationBase<T> (Recommended)
 
-Base class for creating self-validating configurations:
+New base class for creating self-validating configurations using FluentValidation.Results.ValidationResult:
 
 ```csharp
-public abstract class ConfigurationBase<T> : IFdwConfiguration
-    where T : ConfigurationBase<T>, new()
+public abstract class FdwConfigurationBase<T> : IFdwConfiguration
+    where T : FdwConfigurationBase<T>, new()
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -27,10 +27,28 @@ public abstract class ConfigurationBase<T> : IFdwConfiguration
     public bool IsEnabled { get; set; } = true;
     public bool IsDefault { get; set; }
     
-    // Override to provide custom validation
-    protected abstract ValidationResult ValidateCore();
+    // Override to provide FluentValidation validator
+    protected abstract IValidator<T>? GetValidator();
     
-    // Validates and caches the result
+    // Returns standard FluentValidation result
+    public FluentValidation.Results.ValidationResult Validate()
+    {
+        var validator = GetValidator();
+        return validator?.Validate((T)this) ?? new FluentValidation.Results.ValidationResult();
+    }
+}
+```
+
+### ConfigurationBase<T> (Legacy)
+
+Legacy base class that returns IFdwResult (deprecated, use FdwConfigurationBase<T>):
+
+```csharp
+public abstract class ConfigurationBase<T> : IFdwConfiguration
+    where T : ConfigurationBase<T>, new()
+{
+    // Returns IFdwResult for backward compatibility
+    protected abstract ValidationResult ValidateCore();
     public bool IsValid { get; }
     public ValidationResult? ValidationResult { get; }
 }
@@ -74,20 +92,21 @@ public abstract class ConfigurationSourceBase : IConfigurationSource
 
 ## Usage Examples
 
-### Creating a Configuration
+### Creating a Configuration (Recommended Approach)
+
+Using FdwConfigurationBase<T> with FluentValidation.Results.ValidationResult:
 
 ```csharp
-public class DatabaseConfiguration : ConfigurationBase<DatabaseConfiguration>
+public class DatabaseConfiguration : FdwConfigurationBase<DatabaseConfiguration>
 {
     public string ConnectionString { get; set; } = string.Empty;
     public int CommandTimeout { get; set; } = 30;
     public int MaxRetries { get; set; } = 3;
     public bool EnableLogging { get; set; } = true;
     
-    protected override ValidationResult ValidateCore()
+    protected override IValidator<DatabaseConfiguration>? GetValidator()
     {
-        var validator = new DatabaseConfigurationValidator();
-        return validator.Validate(this);
+        return new DatabaseConfigurationValidator();
     }
 }
 
@@ -117,6 +136,20 @@ public class DatabaseConfigurationValidator : AbstractValidator<DatabaseConfigur
         {
             return false;
         }
+    }
+}
+```
+
+### Legacy Configuration (Using ConfigurationBase<T>)
+
+```csharp
+// Deprecated - use FdwConfigurationBase<T> instead
+public class LegacyDatabaseConfiguration : ConfigurationBase<LegacyDatabaseConfiguration>
+{
+    protected override ValidationResult ValidateCore()
+    {
+        var validator = new DatabaseConfigurationValidator();
+        return validator.Validate(this);
     }
 }
 ```
@@ -210,6 +243,8 @@ public void ConfigureServices(IServiceCollection services)
 
 ### Validation Examples
 
+Using FdwConfigurationBase<T> with FluentValidation.Results.ValidationResult:
+
 ```csharp
 var config = new DatabaseConfiguration
 {
@@ -218,15 +253,36 @@ var config = new DatabaseConfiguration
     MaxRetries = 3
 };
 
-// Automatic validation on IsValid check
-if (config.IsValid)
+// Validate using FluentValidation result
+var validationResult = config.Validate();
+if (validationResult.IsValid)
 {
     Console.WriteLine("Configuration is valid");
 }
 else
 {
     Console.WriteLine("Configuration errors:");
-    foreach (var error in config.ValidationResult.Errors)
+    foreach (var error in validationResult.Errors)
+    {
+        Console.WriteLine($"- {error.PropertyName}: {error.ErrorMessage}");
+    }
+}
+```
+
+Legacy validation (ConfigurationBase<T>):
+
+```csharp
+var legacyConfig = new LegacyDatabaseConfiguration();
+
+// Legacy approach using IsValid property
+if (legacyConfig.IsValid)
+{
+    Console.WriteLine("Configuration is valid");
+}
+else
+{
+    Console.WriteLine("Configuration errors:");
+    foreach (var error in legacyConfig.ValidationResult.Errors)
     {
         Console.WriteLine($"- {error.PropertyName}: {error.ErrorMessage}");
     }
@@ -235,7 +291,7 @@ else
 
 ## Integration with Services
 
-Configurations work seamlessly with the service pattern:
+Configurations work seamlessly with the service pattern. The recommended approach is to use FdwConfigurationBase<T>:
 
 ```csharp
 public class MyService : ServiceBase<MyCommand, DatabaseConfiguration, MyService>
@@ -243,8 +299,33 @@ public class MyService : ServiceBase<MyCommand, DatabaseConfiguration, MyService
     public MyService(ILogger<MyService> logger, DatabaseConfiguration configuration)
         : base(logger, configuration)
     {
-        // Configuration is automatically validated
+        // Configuration validation using FluentValidation.Results.ValidationResult
+        var validationResult = configuration.Validate();
+        if (!validationResult.IsValid)
+        {
+            // Handle validation errors appropriately
+            var errors = string.Join("; ", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
+            throw new ArgumentException($"Invalid configuration: {errors}");
+        }
+        
         // Access via this.Configuration
+    }
+}
+```
+
+Legacy approach (ConfigurationBase<T>):
+
+```csharp
+public class LegacyService : ServiceBase<MyCommand, LegacyDatabaseConfiguration, LegacyService>
+{
+    public LegacyService(ILogger<LegacyService> logger, LegacyDatabaseConfiguration configuration)
+        : base(logger, configuration)
+    {
+        // Legacy validation approach
+        if (!configuration.IsValid)
+        {
+            // Handle validation errors
+        }
     }
 }
 ```
@@ -327,7 +408,8 @@ public class ReloadableConfigurationProvider : ConfigurationProviderBase
 
 ## Dependencies
 
-- FractalDataWorks.Services (core abstractions)
+- FractalDataWorks.Configuration.Abstractions (configuration interfaces)
+- FractalDataWorks.Results (result patterns)
 - Microsoft.Extensions.Configuration
 - Microsoft.Extensions.Configuration.Binder
 - Microsoft.Extensions.Logging.Abstractions
@@ -337,11 +419,13 @@ public class ReloadableConfigurationProvider : ConfigurationProviderBase
 
 ## Best Practices
 
-1. **Always Validate**: Use FluentValidation for comprehensive validation rules
-2. **Cache Validation Results**: The base class caches validation for performance
-3. **Use Immutable Defaults**: Set sensible defaults in property initializers
-4. **Version Configurations**: Use the Version property for migration scenarios
-5. **Enable/Disable Logic**: Use IsEnabled for feature flags and gradual rollouts
+1. **Use FdwConfigurationBase<T>**: Prefer the new base class with FluentValidation.Results.ValidationResult
+2. **Always Validate**: Use FluentValidation for comprehensive validation rules
+3. **Handle Validation Results**: Check validation results before using configurations
+4. **Use Immutable Defaults**: Set sensible defaults in property initializers
+5. **Version Configurations**: Use the Version property for migration scenarios
+6. **Enable/Disable Logic**: Use IsEnabled for feature flags and gradual rollouts
+7. **Avoid ConfigurationBase<T>**: The legacy base class is deprecated
 
 ## Testing
 

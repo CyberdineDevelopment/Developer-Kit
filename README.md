@@ -31,58 +31,98 @@ The framework follows a progressive layered architecture with clear separation b
 4. **Service Factory Pattern**: Services use factories to obtain and manage connections internally
 
 ### Layer 0.5 - Core Foundation (No Dependencies)
-- **FractalDataWorks.net** - Core abstractions and base types (targets netstandard2.0 for maximum compatibility)
-  - `IFdwService` - Base service abstraction
-  - `IFdwConfiguration` - Configuration abstraction
-  - `IFdwResult` & `FdwResult<T>` - Consistent result pattern
-  - `ServiceMessage` - Enhanced enum-based messaging system
-  - `IFdwValidator<T>` - Validation abstractions
-  - `IServiceFactory` - Service factory abstraction
-  - `IConfigurationRegistry` - Configuration registry abstraction
-  - `IExternalConnection` - External connection boundary interface
-  - `IFdwConnection` - Framework connection wrapper
-  - `IDataConnection` - Universal data service abstraction
-  - `IFdwDataCommand` - Universal data command interface (Query/Insert/Update/Upsert/Delete)
+
+#### FractalDataWorks.Configuration.Abstractions
+- `IFdwConfiguration` - Configuration abstraction
+- `IFdwConfigurationProvider` - Configuration provider interface
+- `IFdwConfigurationSource` - Configuration source interface
+- `IConfigurationRegistry` - Configuration registry abstraction
+
+#### FractalDataWorks.Services.Abstractions
+- `IFdwService` - Base service abstraction
+- `ICommand` - Universal command interface
+- `ICommandBuilder` - Command builder abstraction
+- `ICommandResult` - Command result interface
+- `IFdwValidator<T>` - Validation abstractions
+- `IServiceFactory` - Service factory abstraction
+- `IToolFactory` - Tool factory abstraction
+- `IDataCommand` - Data command interface
+
+#### FractalDataWorks.Results
+- `IFdwResult` & `FdwResult<T>` - Consistent result pattern
+- `IGenericResult` - Generic result interface
+
+#### FractalDataWorks.Messages
+- `IFdwMessage` - Message interface with severity levels
 
 ### Layer 1 - Domain-Specific Implementations
-- **FractalDataWorks.Services** - Service patterns, base implementations, and service/message infrastructure
-  - `ServiceBase<TCommand, TConfiguration, TService>` - Base service with validation and Serilog structured logging
-  - `ServiceTypeBase<T>` - Base class for service type definitions with Enhanced Enum support
-  - `MessageBase<T>` - Base class for result messages (moved from separate Messages project) with Enhanced Enum support
-  - `ServiceTypeAttribute` - Attribute for marking service types for discovery
-  - `MessageAttribute` - Attribute for marking messages for discovery
-  - `DataConnection<TDataCommand, TConnection>` - Universal data service implementation
-  - Built-in command validation and error handling
-  - Comprehensive logging with ServiceBaseLog using source generators and Serilog destructuring
-  - All service-related infrastructure consolidated in one package
-  
-- **FractalDataWorks.Configuration** - Configuration providers and patterns
-  - `ConfigurationBase<T>` - Self-validating configuration base class
-  - `ConfigurationProviderBase` - Provider pattern implementation
-  - `ConfigurationSourceBase` - Configuration source abstractions
-  
-- **FractalDataWorks.Connections** - External connection implementations
-  - `ExternalConnectionBase<TCommandBuilder, TCommand, TConnection, TFactory, TConfig>` - Base for provider-specific connections
-  - `ExternalConnectionProvider` - Selects appropriate connection factory
-  - Provider implementations (e.g., `MsSqlConnection`, `PostgresConnection`)
-  - Command builders that transform universal commands to provider-specific commands
-  
-- **FractalDataWorks.DependencyInjection** - DI container abstractions
-  - Container-agnostic dependency injection patterns
-  - Service registration extensions
-  
-- **FractalDataWorks.Tools** - Common utilities and helpers
-  - Extension methods and utility classes
-  - Common helper functions
-  
-- **FractalDataWorks.Hosts** - Web and worker host abstractions
-  - Host service abstractions
-  - Background service patterns
-  
-- **FractalDataWorks.Data** - Entity base classes and data patterns
-  - Entity base classes with audit fields
-  - Soft delete and versioning support
-  - Entity validation patterns
+
+#### FractalDataWorks.Services
+Service patterns, base implementations, and service/message infrastructure:
+- `ServiceBase<TCommand, TConfiguration, TService>` - Base service with validation and structured logging
+- `ServiceTypeBase<T>` - Base class for service type definitions with Enhanced Enum support
+- `ServiceFactoryBase` - Base factory for service creation
+- `ServiceTypeProviderBase` - Provider for service type management
+- Built-in command validation and error handling
+- Comprehensive logging with ServiceBaseLog using source generators
+
+#### FractalDataWorks.Configuration
+Configuration providers and patterns:
+- `ConfigurationBase<T>` - Self-validating configuration base class (deprecated, use FdwConfigurationBase)
+- `FdwConfigurationBase<T>` - New configuration base with FluentValidation.Results.ValidationResult
+- `ConfigurationProviderBase` - Provider pattern implementation
+- `ConfigurationSourceBase` - Configuration source abstractions
+- JsonConfigurationSource for JSON-based configuration
+
+#### FractalDataWorks.Services.DataProvider.Abstractions
+Data provider abstractions for universal data operations:
+- `DataCommandBase` - Base class for data commands
+- `QueryCommand`, `InsertCommand`, `UpdateCommand`, `DeleteCommand`, `UpsertCommand` - Specific command types
+- `BulkInsertCommand`, `BulkUpsertCommand`, `CountCommand`, `ExistsCommand` - Additional command types
+- `DataStoreConfiguration` - Configuration for external data sources
+- `IExternalDataConnection` - Interface for external data connections
+
+#### FractalDataWorks.Services.DataProvider  
+Data provider service implementations:
+- `DataProviderService` - Universal data service implementation
+- `ExternalDataConnectionProvider` - Provider for external data connections
+- Enhanced enum support for data commands
+
+#### FractalDataWorks.Services.ExternalConnections.Abstractions
+External connection abstractions:
+- `IExternalConnection` - Interface for external connections
+- `IExternalConnectionFactory` - Factory interface for connections
+- `IExternalConnectionService` - Service interface for connection management
+- `ExternalConnectionServiceBase` - Base implementation for connection services
+- Command interfaces for connection discovery and management
+
+#### FractalDataWorks.Services.ExternalConnections.MsSql
+SQL Server external connection implementation:
+- `MsSqlExternalConnection` - SQL Server connection implementation
+- `MsSqlConfiguration` - SQL Server configuration
+- `MsSqlConnectionFactory` - Factory for SQL Server connections
+- `MsSqlCommandTranslator` - Translates universal commands to SQL
+#### FractalDataWorks.DependencyInjection
+DI container abstractions:
+- Container-agnostic dependency injection patterns
+- Service registration extensions
+
+#### FractalDataWorks.Tools
+Common utilities and helpers:
+- Extension methods and utility classes
+- Tool type factories and base classes
+
+#### FractalDataWorks.Hosts  
+Web and worker host abstractions:
+- Host service abstractions
+- Background service patterns
+
+#### FractalDataWorks.Data
+Entity base classes and data patterns:
+- `EntityBase` - Base class for entities with audit fields
+- `GuidEntityBase` - Entity base with GUID primary keys
+- `DataOperation` - Enumeration for data operations
+- Query parser interfaces
 
 ## Service and Message Architecture
 
@@ -161,17 +201,28 @@ This separation ensures:
 
 Each package has its own detailed README with usage examples and API documentation:
 
-### Core Foundation
-- [FractalDataWorks.net](src/FractalDataWorks.net/README.md) - Core abstractions and base types
+### Core Foundation (Layer 0.5)
+- [FractalDataWorks.Configuration.Abstractions](src/FractalDataWorks.Configuration.Abstractions/) - Configuration abstractions
+- [FractalDataWorks.Services.Abstractions](src/FractalDataWorks.Services.Abstractions/) - Service abstractions
+- [FractalDataWorks.Results](src/FractalDataWorks.Results/) - Result pattern implementations
+- [FractalDataWorks.Messages](src/FractalDataWorks.Messages/) - Message abstractions
 
 ### Layer 1 Packages
 - [FractalDataWorks.Services](src/FractalDataWorks.Services/README.md) - Service patterns and base implementations
 - [FractalDataWorks.Configuration](src/FractalDataWorks.Configuration/README.md) - Configuration management system
-- [FractalDataWorks.Connections](src/FractalDataWorks.Connections/README.md) - Connection abstractions and base implementations
+- [FractalDataWorks.Services.DataProvider.Abstractions](src/FractalDataWorks.Services.DataProvider.Abstractions/README.md) - Data provider abstractions
+- [FractalDataWorks.Services.DataProvider](src/FractalDataWorks.Services.DataProvider/) - Data provider implementations
+- [FractalDataWorks.Services.ExternalConnections.Abstractions](src/FractalDataWorks.Services.ExternalConnections.Abstractions/README.md) - External connection abstractions
+- [FractalDataWorks.Services.ExternalConnections.MsSql](src/FractalDataWorks.Services.ExternalConnections.MsSql/) - SQL Server external connections
 - [FractalDataWorks.Data](src/FractalDataWorks.Data/README.md) - Data access abstractions and entity base classes
-- [FractalDataWorks.DependencyInjection](src/FractalDataWorks.DependencyInjection/README.md) - DI container abstractions *(planning phase)*
-- [FractalDataWorks.Hosts](src/FractalDataWorks.Hosts/README.md) - Host service abstractions *(planning phase)*
-- [FractalDataWorks.Tools](src/FractalDataWorks.Tools/README.md) - Common utilities and helpers *(planning phase)*
+- [FractalDataWorks.DependencyInjection](src/FractalDataWorks.DependencyInjection/README.md) - DI container abstractions
+- [FractalDataWorks.Hosts](src/FractalDataWorks.Hosts/README.md) - Host service abstractions
+- [FractalDataWorks.Tools](src/FractalDataWorks.Tools/README.md) - Common utilities and helpers
+
+### Additional Services
+- [FractalDataWorks.Services.Scheduling.Abstractions](src/FractalDataWorks.Services.Scheduling.Abstractions/README.md) - Scheduling service abstractions
+- [FractalDataWorks.Services.SecretManagement.Abstractions](src/FractalDataWorks.Services.SecretManagement.Abstractions/README.md) - Secret management abstractions
+- [FractalDataWorks.Services.Transformations.Abstractions](src/FractalDataWorks.Services.Transformations.Abstractions/README.md) - Data transformation abstractions
 
 ## Git Workflow
 
@@ -297,7 +348,8 @@ public class MyService : ServiceBase<MyCommand, MyConfiguration, MyService>
 
 ### Configuration Management
 ```csharp
-public class MyConfiguration : ConfigurationBase<MyConfiguration>
+// Recommended approach using FdwConfigurationBase with FluentValidation.Results.ValidationResult
+public class MyConfiguration : FdwConfigurationBase<MyConfiguration>
 {
     public string ConnectionString { get; set; } = string.Empty;
     public int Timeout { get; set; } = 30;
@@ -325,18 +377,13 @@ internal sealed class MyConfigurationValidator : AbstractValidator<MyConfigurati
 
 ### Configuration Validation
 
-Configuration classes use FluentValidation for validation logic with automatic IFdwResult extension method generation:
+Configuration classes use FluentValidation with `FluentValidation.Results.ValidationResult` for consistent validation:
 
-#### With Source Generator (Recommended)
-Add the validation source generator package:
-```xml
-<PackageReference Include="FractalDataWorks.Validation.SourceGenerator" />
-```
-
-The source generator automatically creates `IFdwResult Validate()` extension methods for any configuration class that has a corresponding `AbstractValidator<T>`:
+#### Built-in Validation with FdwConfigurationBase
+The `FdwConfigurationBase<T>` class provides built-in validation support using FluentValidation:
 
 ```csharp
-public class MyConfiguration : ConfigurationBase<MyConfiguration>
+public class MyConfiguration : FdwConfigurationBase<MyConfiguration>
 {
     public string ConnectionString { get; set; } = string.Empty;
     public int Timeout { get; set; } = 30;
@@ -361,30 +408,25 @@ internal sealed class MyConfigurationValidator : AbstractValidator<MyConfigurati
     }
 }
 
-// Usage - extension method generated automatically
+// Usage - validation is built into the base class
 var config = new MyConfiguration();
-IFdwResult result = config.Validate(); // Generated extension method
-```
-
-#### Without Source Generator (Manual)
-If not using the source generator, you must manually create validation extension methods:
-
-```csharp
-public static class ConfigurationValidationExtensions
+FluentValidation.Results.ValidationResult result = config.Validate();
+if (result.IsValid)
 {
-    public static IFdwResult Validate(this MyConfiguration config)
+    // Configuration is valid
+}
+else
+{
+    // Handle validation errors
+    foreach (var error in result.Errors)
     {
-        var validator = new MyConfigurationValidator();
-        var result = validator.Validate(config);
-        
-        if (result.IsValid)
-            return FdwResult.Success();
-        
-        var errors = string.Join("; ", result.Errors.Select(e => e.ErrorMessage));
-        return FdwResult.Failure($"Validation failed: {errors}");
+        Console.WriteLine($"Property: {error.PropertyName}, Error: {error.ErrorMessage}");
     }
 }
 ```
+
+#### Legacy ConfigurationBase (Deprecated)
+The older `ConfigurationBase<T>` returned `IFdwResult` but is now deprecated in favor of `FdwConfigurationBase<T>` which uses the standard FluentValidation result type for better interoperability.
 
 ### Enhanced Messaging
 ```csharp
@@ -418,34 +460,47 @@ else
 ### Universal Data Service Pattern
 ```csharp
 // Universal data service that works with any data source
-public class DataConnection<TCommand, TConnection, TConfiguration> : DataConnectionBase<TCommand, TConnection, TConfiguration>
-    where TCommand : IDataCommand
-    where TConfiguration : ConfigurationBase<TConfiguration>, new()
-    where TConnection : class
+public class DataProviderService : IDataProvider
 {
-    private readonly IExternalConnectionProvider _connectionProvider;
+    private readonly IExternalDataConnectionProvider _connectionProvider;
+    private readonly ILogger<DataProviderService> _logger;
     
-    public DataConnection(ILogger<DataConnectionBase<TCommand, TConnection, TConfiguration>> logger, TConfiguration configuration)
-        : base(logger, configuration)
+    public DataProviderService(
+        IExternalDataConnectionProvider connectionProvider,
+        ILogger<DataProviderService> logger)
     {
-        _connectionProvider = /* injected provider */;
+        _connectionProvider = connectionProvider;
+        _logger = logger;
     }
     
-    protected override async Task<IFdwResult<TResult>> ExecuteCore<TResult>(TCommand command)
+    public async Task<IFdwResult<TResult>> Execute<TResult>(DataCommandBase command)
     {
-        // Provider selects appropriate connection based on configuration
-        var connection = await _connectionProvider.GetConnection(command.ConnectionId);
+        // Provider selects appropriate connection based on command configuration
+        var connection = await _connectionProvider.GetConnection(command.DataStoreConfiguration);
         return await connection.Execute<TResult>(command);
     }
 }
 
-// SQL Server provider implementation
-public class MsSqlConnection : ExternalConnectionBase<SqlCommandBuilder, SqlCommand, SqlConnection, SqlConnectionFactory, SqlConfiguration>
+// SQL Server external connection implementation
+public class MsSqlExternalConnection : IExternalConnection
 {
-    protected override SqlCommand BuildCommand(IFdwDataCommand dataCommand)
+    private readonly MsSqlConfiguration _configuration;
+    private readonly MsSqlCommandTranslator _translator;
+    
+    public MsSqlExternalConnection(
+        MsSqlConfiguration configuration,
+        MsSqlCommandTranslator translator)
     {
-        // SqlCommandBuilder transforms universal command to SQL
-        return CommandBuilder.Build(dataCommand);
+        _configuration = configuration;
+        _translator = translator;
+    }
+    
+    public async Task<IFdwResult<TResult>> Execute<TResult>(DataCommandBase command)
+    {
+        // Translate universal command to SQL Server specific implementation
+        var sqlCommand = _translator.Translate(command);
+        // Execute against SQL Server
+        return await ExecuteSqlCommand<TResult>(sqlCommand);
     }
 }
 ```
@@ -495,6 +550,36 @@ var service = ServiceTypes.GetByName("EmailNotification");
 
 // Automatic DI registration
 services.AddServiceTypes(Assembly.GetExecutingAssembly());
+```
+
+### External Connection Service Types
+
+The framework includes specialized Enhanced Enum types for external connection services that enable the data gateway pattern:
+
+```csharp
+[EnumOption]
+public sealed class MsSqlConnectionType : ExternalConnectionServiceTypeBase<MsSqlExternalConnectionService, MsSqlConfiguration>
+{
+    public MsSqlConnectionType() : base(1, "MsSql", "Microsoft SQL Server external connection service")
+    {
+    }
+    
+    public override string[] SupportedDataStores => new[] { "SqlServer", "MSSQL", "Microsoft SQL Server" };
+    public override string ProviderName => "Microsoft.Data.SqlClient";
+    public override IReadOnlyList<string> SupportedConnectionModes => new[] { "ReadWrite", "ReadOnly", "Bulk", "Streaming" };
+    public override int Priority => 100;
+
+    public override IServiceFactory<MsSqlExternalConnectionService, MsSqlConfiguration> CreateTypedFactory()
+    {
+        return new MsSqlConnectionFactory();
+    }
+}
+
+// The DataProvider uses these types to route commands to appropriate connections
+var supportedTypes = connectionTypes
+    .Where(ct => ct.SupportedDataStores.Contains(dataStoreConfig.DataStoreType))
+    .OrderByDescending(ct => ct.Priority)
+    .First();
 ```
 
 For detailed documentation, see [Enhanced Enum Type Factories Documentation](docs/EnhancedEnumTypeFactories.md).

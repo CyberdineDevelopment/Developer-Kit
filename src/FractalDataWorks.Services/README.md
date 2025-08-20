@@ -80,31 +80,30 @@ public abstract class ServiceBase<TCommand, TConfiguration, TService> : IFdwServ
 - **Error Handling**: Consistent error handling and logging
 - **Health Checks**: Built-in health status based on configuration validity
 
-### DataConnectionBase<TCommand, TConnection, TConfiguration>
+### Universal Data Service Pattern
 
-Universal data service implementation that works with any data source:
+The framework uses a universal data service pattern through the DataProvider abstractions:
 
 ```csharp
-public class DataConnection<TCommand, TConnection, TConfiguration> : DataConnectionBase<TCommand, TConnection, TConfiguration>
-    where TCommand : IDataCommand
-    where TConfiguration : ConfigurationBase<TConfiguration>, new()
-    where TConnection : class
+// DataProvider service handles all data operations
+public class DataProviderService : IDataProvider
 {
-    private readonly IExternalConnectionProvider _connectionProvider;
+    private readonly IExternalDataConnectionProvider _connectionProvider;
+    private readonly ILogger<DataProviderService> _logger;
     
-    public DataConnection(ILogger<DataConnectionBase<TCommand, TConnection, TConfiguration>> logger, TConfiguration configuration)
-        : base(logger, configuration)
+    public DataProviderService(
+        IExternalDataConnectionProvider connectionProvider,
+        ILogger<DataProviderService> logger)
     {
-        _connectionProvider = /* injected provider */;
+        _connectionProvider = connectionProvider;
+        _logger = logger;
     }
     
-    protected override async Task<IFdwResult<T>> ExecuteCore<T>(TCommand command)
+    public async Task<IFdwResult<TResult>> Execute<TResult>(DataCommandBase command)
     {
-        // Get the appropriate external connection based on command
-        var connection = await _connectionProvider.GetConnection<TConnection>(command.ConnectionId);
-        
-        // External connection's command builder transforms universal command to provider-specific
-        return await connection.Execute<T>(command);
+        // Provider selects appropriate connection based on command configuration
+        var connection = await _connectionProvider.GetConnection(command.DataStoreConfiguration);
+        return await connection.Execute<TResult>(command);
     }
 }
 ```
@@ -165,19 +164,22 @@ public class CustomerService : ServiceBase<CustomerCommand, CustomerConfiguratio
 
 ```csharp
 // Configure data service with multiple providers
-services.AddSingleton<IExternalConnectionProvider, ExternalConnectionProvider>();
-services.AddScoped<DataConnection<IFdwDataCommand, IExternalConnection>>();
+services.AddScoped<IDataProvider, DataProviderService>();
+services.AddScoped<IExternalDataConnectionProvider, ExternalDataConnectionProvider>();
 
 // Query example - works with any data source
-var queryCommand = new FdwDataCommand
+var queryCommand = new QueryCommand<Customer>
 {
-    Operation = DataOperation.Query,
-    EntityType = "Customer",
-    QueryExpression = customers => customers.Where(c => c.City == "Seattle"),
-    ConnectionId = "sql-primary" // Could be "mongo-primary", "api-customers", etc.
+    DataStoreConfiguration = new DataStoreConfiguration
+    {
+        DataStoreType = "SqlServer",
+        ConnectionString = "...",
+        ContainerName = "Customers"
+    },
+    WhereClause = customer => customer.City == "Seattle"
 };
 
-var result = await dataConnection.Execute<IEnumerable<Customer>>(queryCommand);
+var result = await dataProvider.Execute<IEnumerable<Customer>>(queryCommand);
 ```
 
 ### Configuration Management

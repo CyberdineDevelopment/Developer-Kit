@@ -27,13 +27,17 @@ public abstract class FdwConfigurationBase : IFdwConfiguration
     /// <summary>
     /// Validates the configuration settings.
     /// </summary>
-    /// <returns>A collection of validation error messages. Empty if configuration is valid.</returns>
+    /// <returns>A FluentValidation ValidationResult indicating success or failure with details.</returns>
     /// <remarks>
     /// Override this method in derived classes to implement custom validation logic.
     /// The framework will call this method before using the configuration to ensure
     /// all required settings are properly configured.
     /// </remarks>
-    public abstract ValidationResult Validate();
+    public virtual ValidationResult Validate()
+    {
+        // Default implementation returns success - derived classes should override
+        return new ValidationResult();
+    }
 
     
     /// <summary>

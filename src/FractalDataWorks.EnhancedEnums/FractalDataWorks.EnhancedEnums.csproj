@@ -1,0 +1,83 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Target Framework -->
+    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+    <Configurations>Debug;Release;Experimental;Alpha;Beta;Preview</Configurations>
+    
+    <!-- Language and Compiler Settings -->
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);SA1202;SA1201;SA1208;MA0048;MA0016;MA0051;</NoWarn>
+    
+    <!-- Code Analysis -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    
+    <!-- Shared Library Configuration -->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    
+    <!-- Build Settings -->
+    <Deterministic>true</Deterministic>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <!-- Package Management -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <EnablePackageValidation>false</EnablePackageValidation>
+    <EnableCrossAssemblyDiscovery>true</EnableCrossAssemblyDiscovery>
+    
+    <!-- NuGet Package Properties -->
+    <PackageProjectUrl>https://github.com/FractalDataWorks/FractalDataWorks</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/FractalDataWorks/FractalDataWorks.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>enhanced-enums;enumeration;source-generator;roslyn</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageDescription>Core models, services, and builders for Enhanced Enums. Shared library used by FractalDataWorks.EnhancedEnums.SourceGenerator and FractalDataWorks.EnhancedEnums.CrossAssembly packages.</PackageDescription>
+    
+    <!-- Strong Naming -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile Condition="Exists('$(MSBuildThisFileDirectory)..\..\FractalDataWorks.snk')">$(MSBuildThisFileDirectory)..\..\FractalDataWorks.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  
+  <!-- Configuration Specific Settings -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <RunAnalyzers>false</RunAnalyzers>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>TRACE;RELEASE</DefineConstants>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RunAnalyzers>true</RunAnalyzers>
+  </PropertyGroup>
+  
+  
+  <ItemGroup>
+    <!-- Include build props and targets files for cross-assembly discovery -->
+    <None Include="build\FractalDataWorks.EnhancedEnums.props" Pack="true" PackagePath="build" />
+    <None Include="build\FractalDataWorks.EnhancedEnums.targets" Pack="true" PackagePath="build" />
+    <!-- Also include in buildTransitive for development dependency packages -->
+    <None Include="buildTransitive\FractalDataWorks.EnhancedEnums.props" Pack="true" PackagePath="buildTransitive" />
+    <None Include="buildTransitive\FractalDataWorks.EnhancedEnums.targets" Pack="true" PackagePath="buildTransitive" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" />
+  </ItemGroup>
+
+</Project>
+
