@@ -207,7 +207,7 @@ public sealed class MsSqlExternalConnectionService
 
     private async Task<IFdwResult<object>> HandleListConnections(CancellationToken cancellationToken)
     {
-        await Task.CompletedTask; // Make async
+        await Task.CompletedTask.ConfigureAwait(false); // Make async
         
         var connectionList = _connections.Keys.ToArray();
         Logger.LogDebug("Listed {ConnectionCount} connections", connectionList.Length);
@@ -217,7 +217,7 @@ public sealed class MsSqlExternalConnectionService
 
     private async Task<IFdwResult<object>> HandleRemoveConnection(string connectionName, CancellationToken cancellationToken)
     {
-        await Task.CompletedTask; // Make async
+        await Task.CompletedTask.ConfigureAwait(false); // Make async
         
         if (!_connections.TryGetValue(connectionName, out var connection))
         {
