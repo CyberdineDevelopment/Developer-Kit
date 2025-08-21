@@ -11,7 +11,6 @@
     <ProjectReference Include="..\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Services.DataProvider.Abstractions\FractalDataWorks.Services.DataProvider.Abstractions.csproj" />
     <ProjectReference Include="..\FractalDataWorks.Services.ExternalConnections.Abstractions\FractalDataWorks.Services.ExternalConnections.Abstractions.csproj" />
-    <ProjectReference Include="..\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" />
   </ItemGroup>
 
   <ItemGroup>

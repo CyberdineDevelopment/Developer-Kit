@@ -251,7 +251,7 @@ public abstract class AggregateRoot<TKey> : EntityBase<TKey>
 ## Installation
 
 ```xml
-<PackageReference Include="FractalDataWorks.Data" Version="*" />
+<PackageReference Include="FractalDataWorks.Data" />
 ```
 
 ## Dependencies
