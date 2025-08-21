@@ -59,7 +59,7 @@ public sealed class MsSqlConnectionTestCommand : IExternalConnectionCommand
     /// <returns>A task containing the validation result.</returns>
     public ValidationResult Validate()
     {
-        throw new NotImplementedException();
+        throw new NotSupportedException("Validation functionality is not yet implemented for MsSqlConnectionTestCommand.");
     }
 
     #endregion
