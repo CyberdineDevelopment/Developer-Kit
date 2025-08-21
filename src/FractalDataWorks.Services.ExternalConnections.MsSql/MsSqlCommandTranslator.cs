@@ -432,13 +432,13 @@ internal sealed class MsSqlCommandTranslator
 
     private static bool TryGetPredicate(DataCommandBase command, out Expression predicate)
     {
-        predicate = null!;
+        predicate = Expression.Constant(0); // Temporary assignment
         
         // Try to get predicate from different command types using reflection
         var predicateProperty = command.GetType().GetProperty("Predicate");
         if (predicateProperty != null)
         {
-            predicate = predicateProperty.GetValue(command) as Expression;
+            predicate = (predicateProperty.GetValue(command) as Expression) ?? Expression.Constant(0);
             return predicate != null;
         }
 
@@ -447,12 +447,12 @@ internal sealed class MsSqlCommandTranslator
 
     private static bool TryGetOrderBy(DataCommandBase command, out Expression orderBy)
     {
-        orderBy = null!;
+        orderBy = Expression.Constant(0); // Temporary assignment
         
         var orderByProperty = command.GetType().GetProperty("OrderBy");
         if (orderByProperty != null)
         {
-            orderBy = orderByProperty.GetValue(command) as Expression;
+            orderBy = (orderByProperty.GetValue(command) as Expression) ?? Expression.Constant(0);
             return orderBy != null;
         }
 

@@ -160,18 +160,18 @@ public sealed class MsSqlExternalConnectionService
             : FdwResult<object>.Failure(result.Message ?? "Schema discovery failed");
     }
 
-    private async Task<IFdwResult<object>> HandleConnectionCreateCommand(IExternalConnectionCreateCommand command, CancellationToken cancellationToken)
+    private Task<IFdwResult<object>> HandleConnectionCreateCommand(IExternalConnectionCreateCommand command, CancellationToken cancellationToken)
     {
         Logger.LogDebug("Creating connection {ConnectionName}", command.ConnectionName);
         
         if (_connections.ContainsKey(command.ConnectionName))
         {
-            return FdwResult<object>.Failure($"Connection '{command.ConnectionName}' already exists");
+            return Task.FromResult(FdwResult<object>.Failure($"Connection '{command.ConnectionName}' already exists"));
         }
 
         if (command.ConnectionConfiguration is not MsSqlConfiguration msSqlConfig)
         {
-            return FdwResult<object>.Failure("Invalid configuration type for MsSql connection");
+            return Task.FromResult(FdwResult<object>.Failure("Invalid configuration type for MsSql connection"));
         }
 
         var connection = new MsSqlExternalConnection(
@@ -183,13 +183,13 @@ public sealed class MsSqlExternalConnectionService
         if (!initResult.IsSuccess)
         {
             connection.Dispose();
-            return FdwResult<object>.Failure($"Failed to initialize connection: {initResult.Message}");
+            return Task.FromResult(FdwResult<object>.Failure($"Failed to initialize connection: {initResult.Message}"));
         }
 
         _connections[command.ConnectionName] = connection;
         Logger.LogInformation("Successfully created connection {ConnectionName}", command.ConnectionName);
         
-        return FdwResult<object>.Success($"Connection '{command.ConnectionName}' created successfully");
+        return Task.FromResult(FdwResult<object>.Success($"Connection '{command.ConnectionName}' created successfully"));
     }
 
     private async Task<IFdwResult<object>> HandleConnectionManagementCommand(IExternalConnectionManagementCommand command, CancellationToken cancellationToken)
