@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/master/src/NerdBank.GitVersioning/version.schema.json",
   "version": "0.3.1-alpha.{height}",
-  "buildNumberOffset": 1000,
+  "versionHeightOffset": 1000,
   "publicReleaseRefSpec": [
     "^refs/heads/master$",
     "^refs/heads/develop$",
@@ -14,11 +14,11 @@
         "when": "never"
       }
     },
-    "setAllVariables": true
+    "setAllVariables": true,
+    "setVersionVariables": true
   },
   "nuGetPackageVersion": {
-    "semVer": 2,
-    "precision": "revision"
+    "semVer": 2
   },
   "release": {
     "branchName": "release/v{version}",
@@ -35,7 +35,6 @@
       "tag": ""
     },
     "develop": {
-      "tag": "alpha"
     },
     "release/.*": {
       "tag": "rc"
