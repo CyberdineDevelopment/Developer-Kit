@@ -1,6 +1,6 @@
 # FractalDataWorks.Tools
 
-🚧 **IN PROGRESS** - Enhanced Enum Type Factories implementation in progress
+✅ **STABLE** - Complete Enhanced Enum Type Factories implementation with tool discovery and registration
 
 Common utilities, helpers, and extension methods for the FractalDataWorks framework.
 
@@ -454,7 +454,7 @@ using (new DisposableStopwatch(time => _logger.LogDebug($"Query took {time.Total
 ## Installation
 
 ```xml
-<PackageReference Include="FractalDataWorks.Tools" Version="*" />
+<PackageReference Include="FractalDataWorks.Tools" />
 ```
 
 ## Dependencies
@@ -468,7 +468,7 @@ This package is currently in planning phase. The utilities described above repre
 
 ## Enhanced Enum Type Factories
 
-🚧 **IN PROGRESS** - New pattern for tool type registration using Enhanced Enums
+✅ **IMPLEMENTED** - Enhanced Enum Type Factories provide complete tool type registration with compile-time safety
 
 ### Overview
 
