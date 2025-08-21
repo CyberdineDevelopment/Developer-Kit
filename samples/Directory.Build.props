@@ -2,6 +2,8 @@
   <!-- Don't import parent Directory.Build.props to avoid being included in main build -->
   
   <PropertyGroup>
+    <!-- Disable centralized package management for samples to keep them independent -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <!-- Mark these as sample projects that shouldn't be packaged or tested -->
     <IsPackable>false</IsPackable>
     <IsTestProject>false</IsTestProject>
@@ -24,7 +26,6 @@
 
   <ItemGroup>
     <!-- Reference the local projects -->
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\FractalDataWorks.net\FractalDataWorks.net.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\FractalDataWorks.Configuration\FractalDataWorks.Configuration.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\FractalDataWorks.Services\FractalDataWorks.Services.csproj" />
   </ItemGroup>

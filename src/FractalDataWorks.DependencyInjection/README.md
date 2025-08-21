@@ -273,7 +273,7 @@ services.Decorate<ICustomerService, LoggingCustomerService>();
 ## Installation
 
 ```xml
-<PackageReference Include="FractalDataWorks.DependencyInjection" Version="*" />
+<PackageReference Include="FractalDataWorks.DependencyInjection" />
 ```
 
 ## Dependencies

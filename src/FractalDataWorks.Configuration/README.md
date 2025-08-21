@@ -403,7 +403,7 @@ public class ReloadableConfigurationProvider : ConfigurationProviderBase
 ## Installation
 
 ```xml
-<PackageReference Include="FractalDataWorks.Configuration" Version="*" />
+<PackageReference Include="FractalDataWorks.Configuration" />
 ```
 
 ## Dependencies

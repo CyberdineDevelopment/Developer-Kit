@@ -21,6 +21,8 @@ on:
       - develop
 
 env:
+  CI: true
+  GITHUB_ACTIONS: true
   DOTNET_VERSION: '10.0'
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
@@ -78,6 +80,14 @@ jobs:
         uses: dotnet/nbgv@master
         with:
           setAllVars: true
+          
+      - name: Display version information
+        run: |
+          echo "NBGV_SemVer2: ${{ env.NBGV_SemVer2 }}"
+          echo "NBGV_NuGetPackageVersion: ${{ env.NBGV_NuGetPackageVersion }}"
+          echo "NBGV_CloudBuildNumber: ${{ env.NBGV_CloudBuildNumber }}"
+          echo "GitHub Run Number: ${{ github.run_number }}"
+          nbgv get-version --format json
           
       - name: Cache .NET tools
         uses: actions/cache@v4
