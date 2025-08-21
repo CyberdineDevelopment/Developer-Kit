@@ -1,6 +1,6 @@
 # FractalDataWorks.Services
 
-🚧 **IN PROGRESS** - Enhanced Enum Type Factories implementation in progress
+✅ **STABLE** - Complete Enhanced Enum Type Factories implementation with service discovery and registration
 
 Service patterns and base implementations for the FractalDataWorks framework. This package provides the consolidated service and message infrastructure, including service abstractions, base classes, and message types that simplify service development with built-in validation, logging, and error handling.
 
@@ -371,10 +371,10 @@ public static class MyMessages
 
 ```xml
 <!-- Basic services -->
-<PackageReference Include="FractalDataWorks.Services" Version="*" />
+<PackageReference Include="FractalDataWorks.Services" />
 
 <!-- Optional: Add cross-assembly discovery -->
-<PackageReference Include="FractalDataWorks.ServiceTypes.CrossAssembly" Version="*" />
+<PackageReference Include="FractalDataWorks.ServiceTypes.CrossAssembly" />
 ```
 
 ## Dependencies
@@ -398,7 +398,7 @@ public static class MyMessages
 
 ## Enhanced Enum Type Factories
 
-🚧 **IN PROGRESS** - New pattern for service type registration using Enhanced Enums
+✅ **IMPLEMENTED** - Enhanced Enum Type Factories provide complete service type registration with compile-time safety
 
 ### Overview
 
