@@ -176,21 +176,46 @@ public sealed class MsSqlConfiguration : ConfigurationBase<MsSqlConfiguration>, 
         if (string.IsNullOrWhiteSpace(ConnectionString))
             return "(empty)";
 
-        // Simple sanitization - remove password and other sensitive keywords
+        // Simple sanitization - remove password and other sensitive keywords using manual string processing
         var sanitized = ConnectionString;
         var sensitiveKeywords = new[] { "password", "pwd", "user id", "uid" };
 
         foreach (var keyword in sensitiveKeywords)
         {
-            var pattern = $@"{keyword}\s*=\s*[^;]*";
-            sanitized = System.Text.RegularExpressions.Regex.Replace(
-                sanitized, 
-                pattern, 
-                $"{keyword}=***", 
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            sanitized = SanitizeConnectionStringKeyword(sanitized, keyword);
         }
 
         return sanitized;
+    }
+
+    private static string SanitizeConnectionStringKeyword(string connectionString, string keyword)
+    {
+        var comparison = StringComparison.OrdinalIgnoreCase;
+        var keywordWithEquals = keyword + "=";
+        var startIndex = 0;
+
+        while (startIndex < connectionString.Length)
+        {
+            var keywordIndex = connectionString.IndexOf(keywordWithEquals, startIndex, comparison);
+            if (keywordIndex == -1)
+                break;
+
+            // Find the end of the value (next semicolon or end of string)
+            var valueStartIndex = keywordIndex + keywordWithEquals.Length;
+            var valueEndIndex = connectionString.IndexOf(';', valueStartIndex);
+            if (valueEndIndex == -1)
+                valueEndIndex = connectionString.Length;
+
+            // Replace the value with ***
+            var beforeKeyword = connectionString[..keywordIndex];
+            var keywordPart = connectionString.Substring(keywordIndex, keywordWithEquals.Length);
+            var afterValue = connectionString[valueEndIndex..];
+            
+            connectionString = beforeKeyword + keywordPart + "***" + afterValue;
+            startIndex = keywordIndex + keywordPart.Length + 3; // 3 is length of "***"
+        }
+
+        return connectionString;
     }
 
     /// <summary>
