@@ -71,7 +71,7 @@ internal sealed class ExpressionTranslator : ExpressionVisitor
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
-        if (node.Method.Name == "Contains" && node.Method.DeclaringType == typeof(string))
+        if (string.Equals(node.Method.Name, "Contains", StringComparison.Ordinal) && node.Method.DeclaringType == typeof(string))
         {
             Visit(node.Object);
             _sql.Append(" LIKE ");
@@ -88,7 +88,7 @@ internal sealed class ExpressionTranslator : ExpressionVisitor
                 Visit(node.Arguments[0]);
             }
         }
-        else if (node.Method.Name == "StartsWith" && node.Method.DeclaringType == typeof(string))
+        else if (string.Equals(node.Method.Name, "StartsWith", StringComparison.Ordinal) && node.Method.DeclaringType == typeof(string))
         {
             Visit(node.Object);
             _sql.Append(" LIKE ");
@@ -104,7 +104,7 @@ internal sealed class ExpressionTranslator : ExpressionVisitor
                 Visit(node.Arguments[0]);
             }
         }
-        else if (node.Method.Name == "EndsWith" && node.Method.DeclaringType == typeof(string))
+        else if (string.Equals(node.Method.Name, "EndsWith", StringComparison.Ordinal) && node.Method.DeclaringType == typeof(string))
         {
             Visit(node.Object);
             _sql.Append(" LIKE ");
