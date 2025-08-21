@@ -365,7 +365,7 @@ public class GracefulShutdownWorker : FdwWorkerBase<ICleanupService, CleanupConf
 ## Installation
 
 ```xml
-<PackageReference Include="FractalDataWorks.Hosts" Version="*" />
+<PackageReference Include="FractalDataWorks.Hosts" />
 ```
 
 ## Dependencies
