@@ -1,0 +1,94 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Services.Scheduling.Abstractions.Tests\FractalDataWorks.Services.Scheduling.Abstractions.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Configuration.Abstractions.Tests\FractalDataWorks.Configuration.Abstractions.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Results.Tests\FractalDataWorks.Results.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.EnhancedEnums.Tests\FractalDataWorks.EnhancedEnums.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj::TargetFramework=net10.0]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj::TargetFramework=netstandard2.0]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Services.Transformations.Abstractions.Tests\FractalDataWorks.Services.Transformations.Abstractions.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Messages\FractalDataWorks.Messages.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Configuration.Abstractions\FractalDataWorks.Configuration.Abstractions.csproj]
+C:\Program Files\dotnet\sdk\10.0.100-preview.7.25380.108\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(345,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Results\FractalDataWorks.Results.csproj]
+  FractalDataWorks.EnhancedEnums -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.EnhancedEnums\bin\Debug\netstandard2.0\FractalDataWorks.EnhancedEnums.dll
+  FractalDataWorks.EnhancedEnums -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.EnhancedEnums\bin\Debug\net10.0\FractalDataWorks.EnhancedEnums.dll
+  FractalDataWorks.EnhancedEnums.Tests -> C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.EnhancedEnums.Tests\bin\Debug\net10.0\FractalDataWorks.EnhancedEnums.Tests.dll
+  FractalDataWorks.Messages -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Messages\bin\Debug\netstandard2.0\FractalDataWorks.Messages.dll
+Test run for C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.EnhancedEnums.Tests\bin\Debug\net10.0\FractalDataWorks.EnhancedEnums.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.0-preview-25380-108 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.EnhancedEnums.Tests\bin\Debug\net10.0\FractalDataWorks.EnhancedEnums.Tests.dll
+  FractalDataWorks.Results -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Results\bin\Debug\netstandard2.0\FractalDataWorks.Results.dll
+  FractalDataWorks.Results.Tests -> C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Results.Tests\bin\Debug\net10.0\FractalDataWorks.Results.Tests.dll
+  FractalDataWorks.Configuration.Abstractions -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Configuration.Abstractions\bin\Debug\net10.0\FractalDataWorks.Configuration.Abstractions.dll
+  [coverlet] _mapping file name: 'CoverletSourceRootsMapping_FractalDataWorks.Results.Tests'
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.3+b1b99bdeb3 (64-bit .NET 10.0.0-preview.7.25380.108)
+[xUnit.net 00:00:00.81] FractalDataWorks.EnhancedEnums.Tests: Catastrophic failure: System.InvalidOperationException: Test process did not return valid JSON (non-object).
+   at Xunit.v3.TestProcessLauncherAdapter.GetAssemblyInfo(ITestProcessLauncher launcher, XunitProjectAssembly projectAssembly)
+   at Xunit.v3.TestProcessLauncherAdapter.GetAssemblyInfo(XunitProjectAssembly projectAssembly)
+   at Xunit.Runner.v3.Xunit3..ctor(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.Runner.v3.Xunit3.ForDiscoveryAndExecution(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.XunitFrontController.Create(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.Runner.VisualStudio.VsTestRunner.RunTestsInAssembly(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, TestPlatformContext testPlatformContext, RunSettings runSettings, IMessageSink reporterMessageHandler, AssemblyRunInfo runInfo)
+   at Xunit.Runner.VisualStudio.VsTestRunner.RunTestsInAssembly(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, TestPlatformContext testPlatformContext, RunSettings runSettings, IMessageSink reporterMessageHandler, AssemblyRunInfo runInfo)
+No test is available in C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.EnhancedEnums.Tests\bin\Debug\net10.0\FractalDataWorks.EnhancedEnums.Tests.dll. Make sure that test discoverer & executors are registered and platform & framework version settings are appropriate and try again.
+  FractalDataWorks.Services.Abstractions -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services.Abstractions\bin\Debug\net10.0\FractalDataWorks.Services.Abstractions.dll
+  FractalDataWorks.Configuration -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Configuration\bin\Debug\net10.0\FractalDataWorks.Configuration.dll
+  FractalDataWorks.Configuration.Abstractions.Tests -> C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Configuration.Abstractions.Tests\bin\Debug\net10.0\FractalDataWorks.Configuration.Abstractions.Tests.dll
+
+Test Run Failed.
+  [coverlet] _mapping file name: 'CoverletSourceRootsMapping_FractalDataWorks.Configuration.Abstractions.Tests'
+Test run for C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Results.Tests\bin\Debug\net10.0\FractalDataWorks.Results.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.0-preview-25380-108 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Results.Tests\bin\Debug\net10.0\FractalDataWorks.Results.Tests.dll
+Test run for C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Configuration.Abstractions.Tests\bin\Debug\net10.0\FractalDataWorks.Configuration.Abstractions.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.0-preview-25380-108 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Configuration.Abstractions.Tests\bin\Debug\net10.0\FractalDataWorks.Configuration.Abstractions.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.3+b1b99bdeb3 (64-bit .NET 10.0.0-preview.7.25380.108)
+[xUnit.net 00:00:00.98] FractalDataWorks.Results.Tests: Catastrophic failure: System.InvalidOperationException: Test process did not return valid JSON (non-object).
+   at Xunit.v3.TestProcessLauncherAdapter.GetAssemblyInfo(ITestProcessLauncher launcher, XunitProjectAssembly projectAssembly)
+   at Xunit.v3.TestProcessLauncherAdapter.GetAssemblyInfo(XunitProjectAssembly projectAssembly)
+   at Xunit.Runner.v3.Xunit3..ctor(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.Runner.v3.Xunit3.ForDiscoveryAndExecution(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.XunitFrontController.Create(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.Runner.VisualStudio.VsTestRunner.RunTestsInAssembly(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, TestPlatformContext testPlatformContext, RunSettings runSettings, IMessageSink reporterMessageHandler, AssemblyRunInfo runInfo)
+   at Xunit.Runner.VisualStudio.VsTestRunner.RunTestsInAssembly(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, TestPlatformContext testPlatformContext, RunSettings runSettings, IMessageSink reporterMessageHandler, AssemblyRunInfo runInfo)
+No test is available in C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Results.Tests\bin\Debug\net10.0\FractalDataWorks.Results.Tests.dll. Make sure that test discoverer & executors are registered and platform & framework version settings are appropriate and try again.
+
+Test Run Failed.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.3+b1b99bdeb3 (64-bit .NET 10.0.0-preview.7.25380.108)
+[xUnit.net 00:00:00.69] FractalDataWorks.Configuration.Abstractions.Tests: Catastrophic failure: System.InvalidOperationException: Test process did not return valid JSON (non-object).
+   at Xunit.v3.TestProcessLauncherAdapter.GetAssemblyInfo(ITestProcessLauncher launcher, XunitProjectAssembly projectAssembly)
+   at Xunit.v3.TestProcessLauncherAdapter.GetAssemblyInfo(XunitProjectAssembly projectAssembly)
+   at Xunit.Runner.v3.Xunit3..ctor(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.Runner.v3.Xunit3.ForDiscoveryAndExecution(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.XunitFrontController.Create(XunitProjectAssembly projectAssembly, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink, ITestProcessLauncher testProcessLauncher)
+   at Xunit.Runner.VisualStudio.VsTestRunner.RunTestsInAssembly(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, TestPlatformContext testPlatformContext, RunSettings runSettings, IMessageSink reporterMessageHandler, AssemblyRunInfo runInfo)
+   at Xunit.Runner.VisualStudio.VsTestRunner.RunTestsInAssembly(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, TestPlatformContext testPlatformContext, RunSettings runSettings, IMessageSink reporterMessageHandler, AssemblyRunInfo runInfo)
+No test is available in C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Configuration.Abstractions.Tests\bin\Debug\net10.0\FractalDataWorks.Configuration.Abstractions.Tests.dll. Make sure that test discoverer & executors are registered and platform & framework version settings are appropriate and try again.
+  FractalDataWorks.Services -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services\bin\Debug\net10.0\FractalDataWorks.Services.dll
+
+Test Run Failed.
+  FractalDataWorks.Services.Transformations.Abstractions -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services.Transformations.Abstractions\bin\Debug\net10.0\FractalDataWorks.Services.Transformations.Abstractions.dll
+  FractalDataWorks.Services.Scheduling.Abstractions -> C:\development\fractaldataworks\Developer-Kit\src\FractalDataWorks.Services.Scheduling.Abstractions\bin\Debug\net10.0\FractalDataWorks.Services.Scheduling.Abstractions.dll
+  FractalDataWorks.Services.Transformations.Abstractions.Tests -> C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Services.Transformations.Abstractions.Tests\bin\Debug\net10.0\FractalDataWorks.Services.Transformations.Abstractions.Tests.dll
+Test run for C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Services.Transformations.Abstractions.Tests\bin\Debug\net10.0\FractalDataWorks.Services.Transformations.Abstractions.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.0-preview-25380-108 (x64)
+
+The Settings file 'C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Services.Transformations.Abstractions.Tests\bin\Debug\net10.0\fine-code-coverage\coverage-tool-output\FractalDataWorks.Services.Transformations.Abstractions.Tests-fcc-mscodecoverage-generated.runsettings' could not be found.
+  FractalDataWorks.Services.Scheduling.Abstractions.Tests -> C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Services.Scheduling.Abstractions.Tests\bin\Debug\net10.0\FractalDataWorks.Services.Scheduling.Abstractions.Tests.dll
+Test run for C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Services.Scheduling.Abstractions.Tests\bin\Debug\net10.0\FractalDataWorks.Services.Scheduling.Abstractions.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.0-preview-25380-108 (x64)
+
+The Settings file 'C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Services.Scheduling.Abstractions.Tests\bin\Debug\net10.0\fine-code-coverage\coverage-tool-output\FractalDataWorks.Services.Scheduling.Abstractions.Tests-fcc-mscodecoverage-generated.runsettings' could not be found.
+
+Attachments:
+  C:\development\fractaldataworks\Developer-Kit\tests\FractalDataWorks.Results.Tests\bin\Debug\net10.0\fine-code-coverage\coverage-tool-output\7e5556a1-5367-4c56-8676-c51cb2eaac70\MBlair_IA-A-MBLAI-LP_2025-08-21.13_41_52.cobertura.xml
