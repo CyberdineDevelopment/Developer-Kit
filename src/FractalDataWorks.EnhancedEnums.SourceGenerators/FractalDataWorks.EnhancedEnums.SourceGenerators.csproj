@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    
+    <!-- Source Generator Specific -->
+    <IsPackable>true</IsPackable>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    
+    <!-- Package Properties -->
+    <PackageDescription>Source generators for Enhanced Enums including cross-assembly discovery. Enables enum options to be distributed across multiple NuGet packages.</PackageDescription>
+    <PackageTags>enhanced-enums;enumeration;source-generator;roslyn;cross-assembly</PackageTags>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    
+    <!-- Copy dependencies to output -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FractalDataWorks.CodeBuilder.Abstractions" />
+    <PackageReference Include="FractalDataWorks.CodeBuilder.CSharp" PrivateAssets="none" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" PrivateAssets="all" />
+    <PackageReference Include="FractalDataWorks.EnhancedEnums" PrivateAssets="all" />
+    <ProjectReference Include="../FractalDataWorks.EnhancedEnums.Analyzers/FractalDataWorks.EnhancedEnums.Analyzers.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\FractalDataWorks.CodeBuilder.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\FractalDataWorks.CodeBuilder.CSharp.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\FractalDataWorks.EnhancedEnums.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\FractalDataWorks.EnhancedEnums.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <!-- Include build props in the package -->
+    <None Include="build\FractalDataWorks.EnhancedEnums.SourceGenerators.props" Pack="true" PackagePath="build\" />
+  </ItemGroup>
+
+</Project>
