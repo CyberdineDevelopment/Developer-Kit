@@ -24,12 +24,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Data\" />
   </ItemGroup>
 
+  <!-- Temporarily exclude files causing build issues in test workspaces -->
+  <ItemGroup>
+    <Compile Remove="EnhancedEnums\ServiceTypeBase.cs" />
+    <Compile Remove="EnhancedEnums\ServiceTypeOptionBase.cs" />
+  </ItemGroup>
 
 </Project>

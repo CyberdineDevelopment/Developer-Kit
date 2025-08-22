@@ -17,7 +17,7 @@ public sealed class ISchedulerTests
         var schedulerType = typeof(IScheduler);
         
         // Assert
-        schedulerType.IsAssignableFrom(typeof(IFdwService)).ShouldBeTrue();
+        typeof(IFdwService).IsAssignableFrom(schedulerType).ShouldBeTrue();
         schedulerType.IsInterface.ShouldBeTrue();
         schedulerType.Name.ShouldBe("IScheduler");
         schedulerType.Namespace.ShouldBe("FractalDataWorks.Services.Scheduling.Abstractions");
