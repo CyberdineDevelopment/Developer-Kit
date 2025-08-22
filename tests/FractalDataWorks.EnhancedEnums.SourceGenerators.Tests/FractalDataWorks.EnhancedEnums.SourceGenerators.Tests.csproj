@@ -76,7 +76,7 @@
   <ItemGroup>
     <!-- Reference the source generators and core projects -->
     <ProjectReference Include="..\..\src\FractalDataWorks.EnhancedEnums.SourceGenerators\FractalDataWorks.EnhancedEnums.SourceGenerators.csproj" />
-    <PackageReference Include="FractalDataWorks.EnhancedEnums" />
+    <ProjectReference Include="..\..\src\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" />
   </ItemGroup>
 
 </Project>

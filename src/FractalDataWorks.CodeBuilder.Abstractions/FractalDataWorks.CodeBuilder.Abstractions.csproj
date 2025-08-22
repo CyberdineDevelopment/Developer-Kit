@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FractalDataWorks.Results" />
+    <ProjectReference Include="..\FractalDataWorks.Results\FractalDataWorks.Results.csproj" />
   </ItemGroup>
 
 </Project>

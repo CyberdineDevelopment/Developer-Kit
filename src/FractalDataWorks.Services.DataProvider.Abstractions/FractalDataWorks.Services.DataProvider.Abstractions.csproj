@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FractalDataWorks.EnhancedEnums.SourceGenerator" />
+    <ProjectReference Include="..\FractalDataWorks.EnhancedEnums.SourceGenerators\FractalDataWorks.EnhancedEnums.SourceGenerators.csproj" />
   </ItemGroup>
 
   <ItemGroup>

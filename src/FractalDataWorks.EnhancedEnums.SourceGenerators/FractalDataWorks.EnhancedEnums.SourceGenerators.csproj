@@ -22,12 +22,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FractalDataWorks.CodeBuilder.Abstractions" />
-    <PackageReference Include="FractalDataWorks.CodeBuilder.CSharp" PrivateAssets="none" />
+    <ProjectReference Include="..\FractalDataWorks.CodeBuilder.Abstractions\FractalDataWorks.CodeBuilder.Abstractions.csproj" />
+    <ProjectReference Include="..\FractalDataWorks.CodeBuilder.CSharp\FractalDataWorks.CodeBuilder.CSharp.csproj" PrivateAssets="none" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Bcl.HashCode" PrivateAssets="all" />
-    <PackageReference Include="FractalDataWorks.EnhancedEnums" PrivateAssets="all" />
+    <ProjectReference Include="..\FractalDataWorks.EnhancedEnums\FractalDataWorks.EnhancedEnums.csproj" PrivateAssets="all" />
     <ProjectReference Include="../FractalDataWorks.EnhancedEnums.Analyzers/FractalDataWorks.EnhancedEnums.Analyzers.csproj" PrivateAssets="all" />
   </ItemGroup>
 
