@@ -185,7 +185,7 @@ public sealed class Datum : IEquatable<Datum>
         
         try
         {
-            return (T)Convert.ChangeType(Value, typeof(T));
+            return (T)Convert.ChangeType(Value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {

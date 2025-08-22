@@ -16,7 +16,7 @@ public sealed class ConventionSettings
     /// Supports case-insensitive matching with wildcards.
     /// Default patterns: "*id", "*key", "*guid", "*uuid", "*identifier"
     /// </remarks>
-    public List<string> IdentifierPatterns { get; set; } = new()
+    public IList<string> IdentifierPatterns { get; set; } = new List<string>()
     {
         "*id",
         "*_id", 
@@ -37,7 +37,7 @@ public sealed class ConventionSettings
     /// Patterns for numeric fields that can be aggregated (sums, counts, amounts).
     /// Default patterns: "*amount", "*total", "*count", "*qty", "*quantity", "*price", "*cost", "*value"
     /// </remarks>
-    public List<string> MeasurePatterns { get; set; } = new()
+    public IList<string> MeasurePatterns { get; set; } = new List<string>()
     {
         "*amount",
         "*_amount",
@@ -68,7 +68,7 @@ public sealed class ConventionSettings
     /// Patterns for system fields like timestamps, audit trails, version numbers.
     /// Default patterns: "*created*", "*updated*", "*modified*", "*deleted*", "*version*", "*status*"
     /// </remarks>
-    public List<string> MetadataPatterns { get; set; } = new()
+    public IList<string> MetadataPatterns { get; set; } = new List<string>()
     {
         "*created*",
         "*_created*",
@@ -100,7 +100,7 @@ public sealed class ConventionSettings
     /// Case-insensitive matching. Provider-specific type names.
     /// SQL examples: "decimal", "money", "float", "real", "numeric"
     /// </remarks>
-    public List<string> MeasureDataTypes { get; set; } = new()
+    public IList<string> MeasureDataTypes { get; set; } = new List<string>()
     {
         "decimal",
         "money",
@@ -119,7 +119,7 @@ public sealed class ConventionSettings
     /// Data types commonly used for system/audit fields.
     /// SQL examples: "timestamp", "rowversion", "datetime", "datetime2"
     /// </remarks>
-    public List<string> MetadataDataTypes { get; set; } = new()
+    public IList<string> MetadataDataTypes { get; set; } = new List<string>()
     {
         "timestamp",
         "rowversion",
@@ -216,7 +216,7 @@ public sealed class ConventionSettings
     /// <param name="value">The value to check.</param>
     /// <param name="patterns">The patterns to match against.</param>
     /// <returns>True if the value matches any pattern.</returns>
-    private bool MatchesAnyPattern(string value, List<string> patterns)
+    private bool MatchesAnyPattern(string value, IList<string> patterns)
     {
         if (string.IsNullOrWhiteSpace(value) || patterns.Count == 0)
             return false;
@@ -245,7 +245,7 @@ public sealed class ConventionSettings
     private static bool MatchesWildcardPattern(string value, string pattern, StringComparison comparison)
     {
         // Simple wildcard matching - * matches any sequence of characters
-        if (pattern == "*")
+        if (string.Equals(pattern, "*", StringComparison.Ordinal))
             return true;
 
         if (!pattern.Contains('*'))
@@ -267,11 +267,11 @@ public sealed class ConventionSettings
                 return false;
 
             // For the first part, it must start at the beginning if pattern doesn't start with *
-            if (i == 0 && !pattern.StartsWith("*") && foundIndex != 0)
+            if (i == 0 && !pattern.StartsWith("*", StringComparison.Ordinal) && foundIndex != 0)
                 return false;
 
             // For the last part, it must end at the end if pattern doesn't end with *
-            if (i == parts.Length - 1 && !pattern.EndsWith("*") && foundIndex + part.Length != value.Length)
+            if (i == parts.Length - 1 && !pattern.EndsWith("*", StringComparison.Ordinal) && foundIndex + part.Length != value.Length)
                 return false;
 
             currentIndex = foundIndex + part.Length;

@@ -41,7 +41,7 @@ internal sealed class DatumMappingValidator : AbstractValidator<DatumMapping>
             .WithMessage("Default value type must be compatible with the specified data type.");
     }
 
-    private static bool HavePhysicalColumnsOrTransform(DatumMapping mapping, List<string> physicalColumns)
+    private static bool HavePhysicalColumnsOrTransform(DatumMapping mapping, IList<string> physicalColumns)
     {
         return physicalColumns.Count > 0 || !string.IsNullOrWhiteSpace(mapping.TransformExpression);
     }
@@ -58,7 +58,7 @@ internal sealed class DatumMappingValidator : AbstractValidator<DatumMapping>
         try
         {
             // Try to convert the default value to the target type
-            Convert.ChangeType(defaultValue, mapping.DataType);
+            Convert.ChangeType(defaultValue, mapping.DataType, System.Globalization.CultureInfo.InvariantCulture);
             return true;
         }
         catch

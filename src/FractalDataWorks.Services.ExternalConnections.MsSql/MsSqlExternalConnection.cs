@@ -85,7 +85,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
     /// <returns>The execution result.</returns>
     public async Task<IFdwResult> Execute(IDataCommand command, CancellationToken cancellationToken = default)
     {
-        var result = await Execute<int>(command, cancellationToken);
+        var result = await Execute<int>(command, cancellationToken).ConfigureAwait(false);
         if (result.IsSuccess)
             return FdwResult.Success();
         
@@ -115,7 +115,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
 
             // Create new connection for this execution - stateless approach
             using var connection = new SqlConnection(_configuration.ConnectionString);
-            await connection.OpenAsync(cancellationToken);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
             // Handle transactions based on configuration
             if (_configuration.UseTransactions)
@@ -123,7 +123,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
                 using var transaction = connection.BeginTransaction(_configuration.TransactionIsolationLevel);
                 try
                 {
-                    var result = await ExecuteWithConnection<T>(connection, transaction, dataCommand, cancellationToken);
+                    var result = await ExecuteWithConnection<T>(connection, transaction, dataCommand, cancellationToken).ConfigureAwait(false);
                     if (result.IsSuccess)
                     {
                         transaction.Commit();
@@ -146,7 +146,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             }
             else
             {
-                return await ExecuteWithConnection<T>(connection, null, dataCommand, cancellationToken);
+                return await ExecuteWithConnection<T>(connection, null, dataCommand, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -170,9 +170,9 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             _logger.LogDebug("Discovering schema for SQL Server connection {ConnectionId}", ConnectionId);
 
             using var connection = new SqlConnection(_configuration.ConnectionString);
-            await connection.OpenAsync(cancellationToken);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-            var containers = await DiscoverTablesAndViewsAsync(connection, cancellationToken);
+            var containers = await DiscoverTablesAndViewsAsync(connection, cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("Successfully discovered {ContainerCount} containers for SQL Server connection {ConnectionId}",
                 containers.Count(), ConnectionId);
@@ -194,13 +194,13 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             _logger.LogDebug("Testing SQL Server connection {ConnectionId}", ConnectionId);
 
             using var connection = new SqlConnection(_configuration.ConnectionString);
-            await connection.OpenAsync(cancellationToken);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             
             // Execute a simple test query
             using var command = new SqlCommand("SELECT 1", connection);
             command.CommandTimeout = _configuration.CommandTimeoutSeconds;
             
-            var result = await command.ExecuteScalarAsync(cancellationToken);
+            var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("SQL Server connection {ConnectionId} test successful", ConnectionId);
             return FdwResult<bool>.Success(true);
@@ -220,9 +220,9 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             _logger.LogDebug("Retrieving connection info for SQL Server connection {ConnectionId}", ConnectionId);
 
             using var connection = new SqlConnection(_configuration.ConnectionString);
-            await connection.OpenAsync(cancellationToken);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-            var metadata = await CollectMetadataAsync(connection, cancellationToken);
+            var metadata = await CollectMetadataAsync(connection, cancellationToken).ConfigureAwait(false);
             var connectionInfo = new Dictionary<string, object>(StringComparer.Ordinal)
             {
                 ["SystemName"] = metadata.SystemName,
@@ -281,20 +281,20 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             // Execute based on expected result type
             if (typeof(T) == typeof(int))
             {
-                var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+                var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 return FdwResult<T>.Success((T)(object)rowsAffected);
             }
             
             if (typeof(T) == typeof(bool))
             {
-                var scalar = await command.ExecuteScalarAsync(cancellationToken);
+                var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
                 var boolResult = Convert.ToBoolean(scalar);
                 return FdwResult<T>.Success((T)(object)boolResult);
             }
 
             // For other types, assume it's a collection query
-            using var reader = await command.ExecuteReaderAsync(cancellationToken);
-            var results = await MapDataReaderToResults<T>(reader, cancellationToken);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var results = await MapDataReaderToResults<T>(reader, cancellationToken).ConfigureAwait(false);
             return FdwResult<T>.Success(results);
         }
         catch (SqlException ex)
@@ -325,12 +325,12 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             using var command = new SqlCommand("SELECT @@VERSION, @@SERVERNAME, DB_NAME()", connection);
             command.CommandTimeout = _configuration.CommandTimeoutSeconds;
             
-            using var reader = await command.ExecuteReaderAsync(cancellationToken);
-            if (await reader.ReadAsync(cancellationToken))
+            using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 version = reader.GetString(0);
-                serverInfo = await reader.IsDBNullAsync(1) ? null : reader.GetString(1);
-                databaseName = await reader.IsDBNullAsync(2) ? null : reader.GetString(2);
+                serverInfo = await reader.IsDBNullAsync(1).ConfigureAwait(false) ? null : reader.GetString(1);
+                databaseName = await reader.IsDBNullAsync(2).ConfigureAwait(false) ? null : reader.GetString(2);
             }
         }
         catch (Exception ex)
@@ -385,7 +385,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
             var elementType = typeof(T).GetGenericArguments()[0];
             var results = new List<object>();
 
-            while (await reader.ReadAsync(cancellationToken))
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (elementType == typeof(DataRecord))
                 {
@@ -407,7 +407,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
         }
 
         // Single result
-        if (await reader.ReadAsync(cancellationToken))
+        if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
             if (typeof(T) == typeof(DataRecord))
             {
@@ -529,7 +529,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
         using var command = new SqlCommand(sql, connection);
         command.CommandTimeout = _configuration.CommandTimeoutSeconds;
         
-        using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -571,7 +571,7 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
     /// <remarks>Redirects to the stateless TestConnection method.</remarks>
     public async Task<IFdwResult> TestConnectionAsync()
     {
-        var testResult = await TestConnection();
+        var testResult = await TestConnection().ConfigureAwait(false);
         return testResult.IsSuccess 
             ? FdwResult.Success() 
             : FdwResult.Failure(testResult.Message);
@@ -584,8 +584,8 @@ public sealed class MsSqlExternalConnection : IExternalDataConnection<MsSqlConfi
         try
         {
             using var connection = new SqlConnection(_configuration.ConnectionString);
-            await connection.OpenAsync();
-            var metadata = await CollectMetadataAsync(connection, CancellationToken.None);
+            await connection.OpenAsync().ConfigureAwait(false);
+            var metadata = await CollectMetadataAsync(connection, CancellationToken.None).ConfigureAwait(false);
             return FdwResult<IConnectionMetadata>.Success(metadata);
         }
         catch (Exception ex)

@@ -1,4 +1,4 @@
-﻿namespace FractalDataWorks.Services.DataProvider.Tests;
+﻿namespace FractalDataWorks.Services.Transformations.Abstractions.Tests;
 
 public class UnitTest1
 {

@@ -11,6 +11,14 @@ internal sealed class DataStoreConfigurationValidator : AbstractValidator<DataSt
 {
     public DataStoreConfigurationValidator()
     {
+        ConfigureBasicValidation();
+        ConfigureConnectionPoolingValidation();
+        ConfigureHealthCheckValidation();
+        ConfigureContainerMappingValidation();
+    }
+
+    private void ConfigureBasicValidation()
+    {
         RuleFor(x => x.StoreName)
             .NotEmpty()
             .WithMessage("Store name is required.")
@@ -30,8 +38,10 @@ internal sealed class DataStoreConfigurationValidator : AbstractValidator<DataSt
         RuleFor(x => x.DefaultTimeoutSeconds)
             .GreaterThan(0)
             .WithMessage("Default timeout must be positive.");
+    }
 
-        // Validate connection pooling settings
+    private void ConfigureConnectionPoolingValidation()
+    {
         RuleFor(x => x.ConnectionPooling.MinPoolSize)
             .GreaterThanOrEqualTo(0)
             .WithMessage("Minimum pool size must be non-negative.");
@@ -54,8 +64,10 @@ internal sealed class DataStoreConfigurationValidator : AbstractValidator<DataSt
             .GreaterThan(0)
             .When(x => x.ConnectionPooling.Enabled)
             .WithMessage("Max lifetime must be positive when connection pooling is enabled.");
+    }
 
-        // Validate health check settings
+    private void ConfigureHealthCheckValidation()
+    {
         RuleFor(x => x.HealthCheck.IntervalSeconds)
             .GreaterThan(0)
             .When(x => x.HealthCheck.Enabled)
@@ -70,18 +82,19 @@ internal sealed class DataStoreConfigurationValidator : AbstractValidator<DataSt
             .GreaterThan(0)
             .When(x => x.HealthCheck.Enabled)
             .WithMessage("Max failures must be positive when health checks are enabled.");
+    }
 
-        // Validate container mappings have unique logical names
+    private void ConfigureContainerMappingValidation()
+    {
         RuleFor(x => x.ContainerMappings)
             .Must(HaveUniqueLogicalNames)
             .WithMessage("Container mappings must have unique logical names.");
 
-        // Validate each container mapping
         RuleForEach(x => x.ContainerMappings)
             .SetValidator(new DataContainerMappingValidator());
     }
 
-    private static bool HaveUniqueLogicalNames(List<DataContainerMapping> mappings)
+    private static bool HaveUniqueLogicalNames(IList<DataContainerMapping> mappings)
     {
         if (mappings.Count == 0)
             return true;

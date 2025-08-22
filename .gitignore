@@ -329,3 +329,4 @@ Help/
 
 # GitVersion
 GitVersion.yml.bak
+/.claude/tasks

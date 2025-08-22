@@ -45,7 +45,7 @@ public sealed class DataContainer : IEquatable<DataContainer>
         
         Name = name;
         Type = type;
-        Metadata = metadata ?? new Dictionary<string, object>();
+        Metadata = metadata ?? new Dictionary<string, object>(StringComparer.Ordinal);
         
         _children = children != null ? new List<DataContainer>(children) : new List<DataContainer>();
     }
@@ -315,7 +315,7 @@ public sealed class DataContainer : IEquatable<DataContainer>
         
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {
