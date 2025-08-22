@@ -14,7 +14,7 @@ public sealed class IScheduleCommandTests
         var scheduleCommandType = typeof(IScheduleCommand);
         
         // Assert
-        scheduleCommandType.IsAssignableFrom(typeof(ICommand)).ShouldBeTrue();
+        typeof(ICommand).IsAssignableFrom(scheduleCommandType).ShouldBeTrue();
         scheduleCommandType.IsInterface.ShouldBeTrue();
         scheduleCommandType.Name.ShouldBe("IScheduleCommand");
         scheduleCommandType.Namespace.ShouldBe("FractalDataWorks.Services.Scheduling.Abstractions");

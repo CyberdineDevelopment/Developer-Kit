@@ -255,8 +255,8 @@ public sealed class IScheduledTaskTests
         mockTask.Setup(x => x.ExpectedExecutionTime).Returns(TimeSpan.FromMinutes(10));
         mockTask.Setup(x => x.MaxExecutionTime).Returns(TimeSpan.FromMinutes(30));
         mockTask.Setup(x => x.Dependencies).Returns(new List<string> { "dependency-1" }.AsReadOnly());
-        mockTask.Setup(x => x.Configuration).Returns(new Dictionary<string, object> { ["key"] = "value" } as IReadOnlyDictionary<string, object>);
-        mockTask.Setup(x => x.Metadata).Returns(new Dictionary<string, object> { ["meta"] = "data" } as IReadOnlyDictionary<string, object>);
+        mockTask.Setup(x => x.Configuration).Returns(new Dictionary<string, object> { ["key"] = "value" }.AsReadOnly());
+        mockTask.Setup(x => x.Metadata).Returns(new Dictionary<string, object> { ["meta"] = "data" }.AsReadOnly());
         mockTask.Setup(x => x.AllowsConcurrentExecution).Returns(true);
         
         return mockTask;
