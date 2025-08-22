@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FractalDataWorks.Services.SecretManagement.Abstractions;
 
 namespace FractalDataWorks.Services.SecretManagement.AzureKeyVault;
@@ -108,7 +109,7 @@ internal sealed class AzureKeyVaultSecretMetadata : ISecretMetadata
     public long SizeInBytes { get; private set; } = 0; // Would need actual size calculation
 
     /// <inheritdoc/>
-    IReadOnlyCollection<string> ISecretMetadata.Tags => Tags.Keys;
+    IReadOnlyCollection<string> ISecretMetadata.Tags => Tags.Keys.ToList().AsReadOnly();
 
     /// <inheritdoc/>
     public IReadOnlyCollection<string> AvailableVersions { get; private set; } = Array.Empty<string>();

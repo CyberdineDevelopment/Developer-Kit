@@ -146,18 +146,12 @@ public abstract class SecretCommandBase : ISecretCommand
     /// <inheritdoc/>
     public virtual ISecretCommand WithParameters(IReadOnlyDictionary<string, object?> newParameters)
     {
-        if (newParameters == null)
-            throw new ArgumentNullException(nameof(newParameters));
-
         return CreateCopyWithParameters(newParameters);
     }
 
     /// <inheritdoc/>
     public virtual ISecretCommand WithMetadata(IReadOnlyDictionary<string, object> newMetadata)
     {
-        if (newMetadata == null)
-            throw new ArgumentNullException(nameof(newMetadata));
-
         return CreateCopyWithMetadata(newMetadata);
     }
 

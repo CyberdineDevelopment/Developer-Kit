@@ -35,9 +35,6 @@ public sealed class SetSecretCommand : SecretCommandBase, ISecretCommand<SecretV
     {
         if (string.IsNullOrWhiteSpace(secretKey))
             throw new ArgumentException("Secret key cannot be null or empty for SetSecret operation.", nameof(secretKey));
-
-        if (secretValue == null)
-            throw new ArgumentNullException(nameof(secretValue));
     }
 
     /// <inheritdoc/>
@@ -163,18 +160,12 @@ public sealed class SetSecretCommand : SecretCommandBase, ISecretCommand<SecretV
     /// <inheritdoc/>
     ISecretCommand<SecretValue> ISecretCommand<SecretValue>.WithParameters(IReadOnlyDictionary<string, object?> newParameters)
     {
-        if (newParameters == null)
-            throw new ArgumentNullException(nameof(newParameters));
-
         return new SetSecretCommand(Container, SecretKey!, SecretValue, newParameters, Metadata, Timeout);
     }
 
     /// <inheritdoc/>
     ISecretCommand<SecretValue> ISecretCommand<SecretValue>.WithMetadata(IReadOnlyDictionary<string, object> newMetadata)
     {
-        if (newMetadata == null)
-            throw new ArgumentNullException(nameof(newMetadata));
-
         return new SetSecretCommand(Container, SecretKey!, SecretValue, Parameters, newMetadata, Timeout);
     }
 
