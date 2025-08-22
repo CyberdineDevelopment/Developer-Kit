@@ -430,7 +430,7 @@ internal sealed class MsSqlCommandTranslator
         return "Unknown";
     }
 
-    private static bool TryGetPredicate(DataCommandBase command, out Expression predicate)
+    private static bool TryGetPredicate(DataCommandBase command, [NotNullWhen(true)] out Expression? predicate)
     {
         predicate = null;
         
@@ -445,7 +445,7 @@ internal sealed class MsSqlCommandTranslator
         return false;
     }
 
-    private static bool TryGetOrderBy(DataCommandBase command, out Expression orderBy)
+    private static bool TryGetOrderBy(DataCommandBase command, [NotNullWhen(true)] out Expression? orderBy)
     {
         orderBy = null;
         
