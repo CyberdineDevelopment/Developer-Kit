@@ -18,12 +18,12 @@ public sealed class ConnectionDiscoveryOptions
     /// <summary>
     /// Gets or sets whether to include relationship information.
     /// </summary>
-    public bool IncludeRelationships { get; set; } = false;
+    public bool IncludeRelationships { get; set; }
     
     /// <summary>
     /// Gets or sets whether to include index information.
     /// </summary>
-    public bool IncludeIndexes { get; set; } = false;
+    public bool IncludeIndexes { get; set; }
     
     /// <summary>
     /// Gets or sets the maximum depth for recursive discovery.

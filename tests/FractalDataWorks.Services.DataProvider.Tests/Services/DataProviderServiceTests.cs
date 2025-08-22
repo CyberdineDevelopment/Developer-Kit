@@ -301,8 +301,8 @@ public sealed class DataProviderServiceTests
         var service = CreateService();
         var expectedContainers = new List<DataContainer>
         {
-            new("customers", ContainerType.Table, DataPath.Create(".", "sales", "customers"), false),
-            new("orders", ContainerType.Table, DataPath.Create(".", "sales", "orders"), false)
+            new(DataPath.Create(".", "sales", "customers"), "customers", ContainerType.Table),
+            new(DataPath.Create(".", "sales", "orders"), "orders", ContainerType.Table)
         };
 
         _connectionProviderMock

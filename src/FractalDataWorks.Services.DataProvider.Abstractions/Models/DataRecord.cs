@@ -241,7 +241,7 @@ public sealed class DataRecord : IEquatable<DataRecord>
     /// Converts this DataRecord to a dictionary with datum names as keys and values as values.
     /// </summary>
     /// <returns>A dictionary representation of this record.</returns>
-    public Dictionary<string, object?> ToDictionary()
+    public IDictionary<string, object?> ToDictionary()
     {
         return _data.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Value, StringComparer.OrdinalIgnoreCase);
     }
@@ -252,7 +252,7 @@ public sealed class DataRecord : IEquatable<DataRecord>
     /// <param name="values">The dictionary of values.</param>
     /// <param name="category">The default category for all values.</param>
     /// <returns>A new DataRecord instance.</returns>
-    public static DataRecord FromDictionary(Dictionary<string, object?> values, DatumCategory category = DatumCategory.Property)
+    public static DataRecord FromDictionary(IDictionary<string, object?> values, DatumCategory category = DatumCategory.Property)
     {
         var data = values.Select(kvp => new Datum(kvp.Key, category, kvp.Value?.GetType() ?? typeof(object), kvp.Value));
         return new DataRecord(data);

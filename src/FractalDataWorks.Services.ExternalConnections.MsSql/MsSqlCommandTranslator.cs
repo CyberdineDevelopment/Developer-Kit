@@ -113,8 +113,8 @@ internal sealed class MsSqlCommandTranslator
             if (command.Metadata.TryGetValue("Offset", out var offsetObj) && 
                 command.Metadata.TryGetValue("Limit", out var limitObj))
             {
-                var offset = Convert.ToInt32(offsetObj);
-                var limit = Convert.ToInt32(limitObj);
+                var offset = Convert.ToInt32(offsetObj, CultureInfo.InvariantCulture);
+                var limit = Convert.ToInt32(limitObj, CultureInfo.InvariantCulture);
                 
                 // SQL Server requires ORDER BY for OFFSET/FETCH
                 if (!sql.ToString().Contains("ORDER BY"))
@@ -122,7 +122,7 @@ internal sealed class MsSqlCommandTranslator
                     sql.Append(" ORDER BY (SELECT NULL)");
                 }
                 
-                sql.Append($" OFFSET {offset} ROWS FETCH NEXT {limit} ROWS ONLY");
+                sql.Append(CultureInfo.InvariantCulture, $" OFFSET {offset} ROWS FETCH NEXT {limit} ROWS ONLY");
             }
         }
         else if (command.Metadata.TryGetValue("SingleResult", out var isSingle) && isSingle is true)
@@ -332,7 +332,19 @@ internal sealed class MsSqlCommandTranslator
         var properties = GetEntityProperties(entity);
         var conflictFields = GetConflictFieldsFromCommand(command);
 
-        // Use MERGE statement for upsert
+        // Build MERGE statement with source values
+        BuildMergeStatement(sql, fullTableName, properties, conflictFields, entity, ref parameterCounter, parameters);
+
+        // Handle conflict behavior
+        AppendUpsertConflictHandling(sql, command, properties, conflictFields);
+
+        sql.Append(";");
+        return new SqlTranslationResult(sql.ToString(), parameters);
+    }
+
+    private static void BuildMergeStatement(StringBuilder sql, string fullTableName, PropertyInfo[] properties, 
+        List<string> conflictFields, object entity, ref int parameterCounter, List<SqlParameter> parameters)
+    {
         sql.Append("MERGE ").Append(fullTableName).Append(" AS target USING (VALUES (");
 
         var sourceValues = new List<string>();
@@ -352,8 +364,11 @@ internal sealed class MsSqlCommandTranslator
         // Build ON clause using conflict fields
         var onConditions = conflictFields.Select(field => $"target.[{field}] = source.[{field}]");
         sql.Append(string.Join(" AND ", onConditions));
+    }
 
-        // Handle conflict behavior
+    private static void AppendUpsertConflictHandling(StringBuilder sql, DataCommandBase command, 
+        PropertyInfo[] properties, List<string> conflictFields)
+    {
         if (command.Metadata.TryGetValue("OnConflictIgnore", out var ignoreConflict) && ignoreConflict is true)
         {
             // Just insert when not matched
@@ -365,30 +380,32 @@ internal sealed class MsSqlCommandTranslator
         }
         else
         {
-            // Update when matched
-            sql.Append(" WHEN MATCHED THEN UPDATE SET ");
-            
-            var updateFields = properties.Where(p => !conflictFields.Contains(p.Name));
-            if (command.Metadata.TryGetValue("OnConflictUpdate", out var specificUpdateFields) && 
-                specificUpdateFields is List<string> updateFieldList)
-            {
-                updateFields = properties.Where(p => updateFieldList.Contains(p.Name));
-            }
+            AppendUpdateAndInsertClauses(sql, command, properties, conflictFields);
+        }
+    }
 
-            var updateClauses = updateFields.Select(p => $"[{p.Name}] = source.[{p.Name}]");
-            sql.Append(string.Join(", ", updateClauses));
-
-            // Insert when not matched
-            sql.Append(" WHEN NOT MATCHED THEN INSERT (");
-            sql.Append(string.Join(", ", properties.Select(p => $"[{p.Name}]")));
-            sql.Append(") VALUES (");
-            sql.Append(string.Join(", ", properties.Select(p => $"source.[{p.Name}]")));
-            sql.Append(")");
+    private static void AppendUpdateAndInsertClauses(StringBuilder sql, DataCommandBase command, 
+        PropertyInfo[] properties, List<string> conflictFields)
+    {
+        // Update when matched
+        sql.Append(" WHEN MATCHED THEN UPDATE SET ");
+        
+        var updateFields = properties.Where(p => !conflictFields.Contains(p.Name, StringComparer.Ordinal));
+        if (command.Metadata.TryGetValue("OnConflictUpdate", out var specificUpdateFields) && 
+            specificUpdateFields is List<string> updateFieldList)
+        {
+            updateFields = properties.Where(p => updateFieldList.Contains(p.Name, StringComparer.Ordinal));
         }
 
-        sql.Append(";");
+        var updateClauses = updateFields.Select(p => $"[{p.Name}] = source.[{p.Name}]");
+        sql.Append(string.Join(", ", updateClauses));
 
-        return new SqlTranslationResult(sql.ToString(), parameters);
+        // Insert when not matched
+        sql.Append(" WHEN NOT MATCHED THEN INSERT (");
+        sql.Append(string.Join(", ", properties.Select(p => $"[{p.Name}]")));
+        sql.Append(") VALUES (");
+        sql.Append(string.Join(", ", properties.Select(p => $"source.[{p.Name}]")));
+        sql.Append(")");
     }
 
     private SqlTranslationResult TranslateBulkUpsert(DataCommandBase command)
@@ -430,9 +447,9 @@ internal sealed class MsSqlCommandTranslator
         return "Unknown";
     }
 
-    private static bool TryGetPredicate(DataCommandBase command, out Expression predicate)
+    private static bool TryGetPredicate(DataCommandBase command, [NotNullWhen(true)] out Expression? predicate)
     {
-        predicate = null!;
+        predicate = null;
         
         // Try to get predicate from different command types using reflection
         var predicateProperty = command.GetType().GetProperty("Predicate");
@@ -445,9 +462,9 @@ internal sealed class MsSqlCommandTranslator
         return false;
     }
 
-    private static bool TryGetOrderBy(DataCommandBase command, out Expression orderBy)
+    private static bool TryGetOrderBy(DataCommandBase command, [NotNullWhen(true)] out Expression? orderBy)
     {
-        orderBy = null!;
+        orderBy = null;
         
         var orderByProperty = command.GetType().GetProperty("OrderBy");
         if (orderByProperty != null)
@@ -501,14 +518,14 @@ internal sealed class MsSqlCommandTranslator
     /// <param name="originalCommand">The original bulk command.</param>
     /// <param name="entity">The single entity.</param>
     /// <returns>A single entity upsert command.</returns>
-    [ExcludeFromCodeCoverage(Justification = "Placeholder method for bulk operations that throws NotImplementedException. Will be implemented when bulk operations are fully supported.")]
+    [ExcludeFromCodeCoverage(Justification = "Placeholder method for bulk operations that throws NotSupportedException. Will be implemented when bulk operations are fully supported.")]
     private static DataCommandBase CreateSingleEntityUpsertCommand(DataCommandBase originalCommand, object entity)
     {
         // This is a simplified approach - in production you'd want more sophisticated command cloning
-        throw new NotImplementedException("Single entity upsert command creation not implemented for bulk operations.");
+        throw new NotSupportedException("Single entity upsert command creation is not supported for bulk operations in the current implementation.");
     }
 
-    private string BuildWhereClause(Expression predicate, ref int parameterCounter, List<SqlParameter> parameters)
+    private string BuildWhereClause(Expression predicate, ref int parameterCounter, IList<SqlParameter> parameters)
     {
         return new ExpressionTranslator(ref parameterCounter, parameters).Translate(predicate);
     }

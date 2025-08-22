@@ -78,7 +78,7 @@ public sealed class DatumCategorizationStrategy
     /// - "DataTypeOverrides": Custom type-to-category mappings
     /// - "BusinessRules": Domain-specific categorization logic
     /// </remarks>
-    public Dictionary<string, object> CustomRules { get; set; } = new(StringComparer.Ordinal);
+    public IDictionary<string, object> CustomRules { get; set; } = new Dictionary<string, object>(StringComparer.Ordinal);
 
     /// <summary>
     /// Categorizes a column based on the configured strategy.
@@ -178,7 +178,7 @@ public sealed class DatumCategorizationStrategy
 
         try
         {
-            return (T)Convert.ChangeType(value, typeof(T));
+            return (T)Convert.ChangeType(value, typeof(T), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception ex)
         {
