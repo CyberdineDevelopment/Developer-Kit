@@ -120,7 +120,7 @@ internal sealed class AzureKeyVaultServiceFactory : IServiceFactory<AzureKeyVaul
             // For example, trying to list secrets or get a test secret
             // For now, we'll assume successful creation means the connection can be established
 
-            return Task.FromResult(FdwResult.Success("Azure Key Vault connection test passed."));
+            return Task.FromResult(FdwResult.Success());
         }
         catch (Exception ex)
         {
@@ -153,7 +153,7 @@ internal sealed class AzureKeyVaultServiceFactory : IServiceFactory<AzureKeyVaul
         }
         catch (Exception ex)
         {
-            return FdwResult<T>.Failure($"Failed to create service: {ex.Message}", ex);
+            return FdwResult<T>.Failure($"Failed to create service: {ex.Message}");
         }
     }
 
@@ -180,7 +180,7 @@ internal sealed class AzureKeyVaultServiceFactory : IServiceFactory<AzureKeyVaul
         }
         catch (Exception ex)
         {
-            return FdwResult<IFdwService>.Failure($"Failed to create service: {ex.Message}", ex);
+            return FdwResult<IFdwService>.Failure($"Failed to create service: {ex.Message}");
         }
     }
 
@@ -201,7 +201,7 @@ internal sealed class AzureKeyVaultServiceFactory : IServiceFactory<AzureKeyVaul
         }
         catch (Exception ex)
         {
-            return FdwResult<AzureKeyVaultService>.Failure($"Failed to create service: {ex.Message}", ex);
+            return FdwResult<AzureKeyVaultService>.Failure($"Failed to create service: {ex.Message}");
         }
     }
 

@@ -163,18 +163,12 @@ public sealed class ListSecretsCommand : SecretCommandBase, ISecretCommand<IRead
     /// <inheritdoc/>
     ISecretCommand<IReadOnlyList<ISecretMetadata>> ISecretCommand<IReadOnlyList<ISecretMetadata>>.WithParameters(IReadOnlyDictionary<string, object?> newParameters)
     {
-        if (newParameters == null)
-            throw new ArgumentNullException(nameof(newParameters));
-
         return new ListSecretsCommand(Container, newParameters, Metadata, Timeout);
     }
 
     /// <inheritdoc/>
     ISecretCommand<IReadOnlyList<ISecretMetadata>> ISecretCommand<IReadOnlyList<ISecretMetadata>>.WithMetadata(IReadOnlyDictionary<string, object> newMetadata)
     {
-        if (newMetadata == null)
-            throw new ArgumentNullException(nameof(newMetadata));
-
         return new ListSecretsCommand(Container, Parameters, newMetadata, Timeout);
     }
 }

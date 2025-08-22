@@ -75,19 +75,19 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
             Logger.LogError(ex, "Azure Key Vault request failed for command {CommandId}: {ErrorCode} - {ErrorMessage}", 
                 command.CommandId, ex.ErrorCode, ex.Message);
             
-            return FdwResult.Failure($"Azure Key Vault error: {ex.Message}", ex);
+            return FdwResult.Failure($"Azure Key Vault error: {ex.Message}");
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Unexpected error executing command {CommandId}", command.CommandId);
-            return FdwResult.Failure($"Unexpected error: {ex.Message}", ex);
+            return FdwResult.Failure($"Unexpected error: {ex.Message}");
         }
     }
 
     /// <inheritdoc/>
     public override async Task<IFdwResult<TOut>> Execute<TOut>(ISecretCommand command, CancellationToken cancellationToken)
     {
-        var result = await ExecuteCore<TOut>(command);
+        var result = await ExecuteCore<TOut>(command).ConfigureAwait(false);
         return result;
     }
 
@@ -106,7 +106,7 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
 
         try
         {
-            var basicResult = await ExecuteCommandInternal(command, CancellationToken.None);
+            var basicResult = await ExecuteCommandInternal(command, CancellationToken.None).ConfigureAwait(false);
             
             if (!basicResult.IsSuccess)
             {
@@ -131,11 +131,11 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
     {
         return command.CommandType switch
         {
-            SecretCommandType.GetSecret => await ExecuteGetSecret(command, cancellationToken),
-            SecretCommandType.SetSecret => await ExecuteSetSecret(command, cancellationToken),
-            SecretCommandType.DeleteSecret => await ExecuteDeleteSecret(command, cancellationToken),
-            SecretCommandType.ListSecrets => await ExecuteListSecrets(command, cancellationToken),
-            SecretCommandType.SecretExists => await ExecuteSecretExists(command, cancellationToken),
+            "GetSecret" => await ExecuteGetSecret(command, cancellationToken),
+            "SetSecret" => await ExecuteSetSecret(command, cancellationToken),
+            "DeleteSecret" => await ExecuteDeleteSecret(command, cancellationToken),
+            "ListSecrets" => await ExecuteListSecrets(command, cancellationToken),
+            "GetSecretVersions" => await ExecuteGetSecretVersions(command, cancellationToken),
             _ => FdwResult.Failure($"Unknown command type: {command.CommandType}")
         };
     }
@@ -160,7 +160,7 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
             }
             else
             {
-                secret = await _secretClient.GetSecretAsync(secretName, cancellationToken);
+                secret = await _secretClient.GetSecretAsync(secretName, null, cancellationToken);
             }
 
             var includeMetadata = command.Parameters.TryGetValue("IncludeMetadata", out var includeObj) && 
@@ -171,7 +171,7 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
             Logger.LogDebug("Successfully retrieved secret {SecretName} with version {Version}", 
                 secretName, secret.Properties.Version);
 
-            return FdwResult.Success(secretValue);
+            return FdwResult.Success();
         }
         catch (RequestFailedException ex) when (ex.Status == 404)
         {
@@ -194,19 +194,19 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
         try
         {
             var secretName = SanitizeSecretName(command.SecretKey);
-            var secretOptions = new SetSecretOptions(secretName, secretValue);
+            var secretOptions = new KeyVaultSecret(secretName, secretValue);
 
             // Apply optional parameters
             if (command.Parameters.TryGetValue("Description", out var descObj) && 
                 descObj?.ToString() is string description)
             {
-                secretOptions.ContentType = description;
+                secretOptions.Properties.ContentType = description;
             }
 
             if (command.Parameters.TryGetValue("ExpirationDate", out var expiryObj) && 
                 expiryObj is DateTimeOffset expirationDate)
             {
-                secretOptions.ExpiresOn = expirationDate;
+                secretOptions.Properties.ExpiresOn = expirationDate;
             }
 
             if (command.Parameters.TryGetValue("Tags", out var tagsObj) && 
@@ -214,7 +214,7 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
             {
                 foreach (var tag in tags)
                 {
-                    secretOptions.Tags[tag.Key] = tag.Value;
+                    secretOptions.Properties.Tags[tag.Key] = tag.Value;
                 }
             }
 
@@ -224,7 +224,7 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
             Logger.LogInformation("Successfully set secret {SecretName} with version {Version}", 
                 secretName, response.Value.Properties.Version);
 
-            return FdwResult.Success(resultValue);
+            return FdwResult.Success();
         }
         catch (RequestFailedException ex) when (ex.Status == 403)
         {
@@ -312,7 +312,7 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
 
             Logger.LogDebug("Retrieved {Count} secrets", secretMetadataList.Count);
 
-            return FdwResult.Success<IReadOnlyList<ISecretMetadata>>(secretMetadataList.AsReadOnly());
+            return FdwResult<IReadOnlyList<ISecretMetadata>>.Success(secretMetadataList.AsReadOnly());
         }
         catch (RequestFailedException ex) when (ex.Status == 403)
         {
@@ -340,7 +340,7 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
             Logger.LogDebug("Retrieved {Count} versions for secret {SecretName}", 
                 versionMetadataList.Count, secretName);
 
-            return FdwResult.Success<IReadOnlyList<ISecretMetadata>>(versionMetadataList.AsReadOnly());
+            return FdwResult<IReadOnlyList<ISecretMetadata>>.Success(versionMetadataList.AsReadOnly());
         }
         catch (RequestFailedException ex) when (ex.Status == 404)
         {
@@ -379,14 +379,12 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
 
     private TokenCredential CreateManagedIdentityCredential()
     {
-        var options = new ManagedIdentityCredentialOptions();
-        
         if (!string.IsNullOrWhiteSpace(Configuration.ManagedIdentityId))
         {
-            options.ClientId = Configuration.ManagedIdentityId;
+            return new ManagedIdentityCredential(Configuration.ManagedIdentityId);
         }
 
-        return new ManagedIdentityCredential(options);
+        return new ManagedIdentityCredential();
     }
 
     private TokenCredential CreateServicePrincipalCredential()
@@ -447,11 +445,18 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
     {
         var metadata = includeMetadata ? CreateSecretMetadata(secret.Properties) : null;
         
+        var metadataDict = includeMetadata 
+            ? new Dictionary<string, object>(StringComparer.Ordinal) { ["Metadata"] = metadata! }
+            : null;
+
         return new SecretValue(
             secret.Name,
             secret.Value,
             secret.Properties.Version,
-            metadata);
+            secret.Properties.CreatedOn,
+            secret.Properties.UpdatedOn,
+            secret.Properties.ExpiresOn,
+            metadataDict);
     }
 
     private static ISecretMetadata CreateSecretMetadata(SecretProperties properties)
@@ -463,6 +468,6 @@ public sealed class AzureKeyVaultService : SecretManagementServiceBase<ISecretCo
             properties.UpdatedOn,
             properties.ExpiresOn,
             properties.Enabled ?? true,
-            properties.Tags);
+            properties.Tags as IReadOnlyDictionary<string, string>);
     }
 }

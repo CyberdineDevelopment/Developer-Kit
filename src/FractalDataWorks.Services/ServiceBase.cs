@@ -32,6 +32,11 @@ public abstract class ServiceBase<TCommand, TConfiguration, TService> : IFdwServ
     /// </summary>
     protected ILogger<TService> Logger => _logger;
 
+    /// <summary>
+    /// Gets the configuration instance for derived classes.
+    /// </summary>
+    protected TConfiguration Configuration => _configuration;
+
     /// <inheritdoc/>
     public string Name => typeof(TService).Name;
 

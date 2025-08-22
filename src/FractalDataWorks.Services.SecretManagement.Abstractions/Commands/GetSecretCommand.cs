@@ -111,18 +111,12 @@ public sealed class GetSecretCommand : SecretCommandBase, ISecretCommand<SecretV
     /// <inheritdoc/>
     ISecretCommand<SecretValue> ISecretCommand<SecretValue>.WithParameters(IReadOnlyDictionary<string, object?> newParameters)
     {
-        if (newParameters == null)
-            throw new ArgumentNullException(nameof(newParameters));
-
         return new GetSecretCommand(Container, SecretKey!, newParameters, Metadata, Timeout);
     }
 
     /// <inheritdoc/>
     ISecretCommand<SecretValue> ISecretCommand<SecretValue>.WithMetadata(IReadOnlyDictionary<string, object> newMetadata)
     {
-        if (newMetadata == null)
-            throw new ArgumentNullException(nameof(newMetadata));
-
         return new GetSecretCommand(Container, SecretKey!, Parameters, newMetadata, Timeout);
     }
 }

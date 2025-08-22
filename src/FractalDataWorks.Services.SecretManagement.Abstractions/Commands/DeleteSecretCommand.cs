@@ -124,18 +124,12 @@ public sealed class DeleteSecretCommand : SecretCommandBase, ISecretCommand<IFdw
     /// <inheritdoc/>
     ISecretCommand<IFdwResult> ISecretCommand<IFdwResult>.WithParameters(IReadOnlyDictionary<string, object?> newParameters)
     {
-        if (newParameters == null)
-            throw new ArgumentNullException(nameof(newParameters));
-
         return new DeleteSecretCommand(Container, SecretKey!, newParameters, Metadata, Timeout);
     }
 
     /// <inheritdoc/>
     ISecretCommand<IFdwResult> ISecretCommand<IFdwResult>.WithMetadata(IReadOnlyDictionary<string, object> newMetadata)
     {
-        if (newMetadata == null)
-            throw new ArgumentNullException(nameof(newMetadata));
-
         return new DeleteSecretCommand(Container, SecretKey!, Parameters, newMetadata, Timeout);
     }
 }
