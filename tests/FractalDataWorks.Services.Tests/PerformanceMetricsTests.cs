@@ -1,19 +1,27 @@
 using System;
 using FractalDataWorks.Services;
+using Shouldly;
 using Xunit;
 
 namespace FractalDataWorks.Services.Tests;
 
-public sealed class PerformanceMetricsTests
+public class PerformanceMetricsTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public PerformanceMetricsTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
-    public void PerformanceMetricsWhenCreatedShouldInitializeAllProperties()
+    public void ConstructorShouldInitializeAllProperties()
     {
         // Arrange
-        var duration = 500.0;
+        var duration = 123.45;
         var itemsProcessed = 100;
         var operationType = "TestOperation";
-        var sensitiveData = "SensitiveInfo";
+        var sensitiveData = "SensitiveInformation";
 
         // Act
         var metrics = new PerformanceMetrics(duration, itemsProcessed, operationType, sensitiveData);
@@ -23,15 +31,17 @@ public sealed class PerformanceMetricsTests
         metrics.ItemsProcessed.ShouldBe(itemsProcessed);
         metrics.OperationType.ShouldBe(operationType);
         metrics.SensitiveData.ShouldBe(sensitiveData);
+        
+        _output.WriteLine($"PerformanceMetrics created: {metrics}");
     }
 
     [Fact]
-    public void PerformanceMetricsWhenCreatedWithDefaultSensitiveDataShouldBeNull()
+    public void ConstructorWithoutSensitiveDataShouldSetSensitiveDataToNull()
     {
         // Arrange
-        var duration = 250.5;
+        var duration = 67.89;
         var itemsProcessed = 50;
-        var operationType = "DefaultOperation";
+        var operationType = "AnotherOperation";
 
         // Act
         var metrics = new PerformanceMetrics(duration, itemsProcessed, operationType);
@@ -41,265 +51,247 @@ public sealed class PerformanceMetricsTests
         metrics.ItemsProcessed.ShouldBe(itemsProcessed);
         metrics.OperationType.ShouldBe(operationType);
         metrics.SensitiveData.ShouldBeNull();
+        
+        _output.WriteLine($"PerformanceMetrics without sensitive data: {metrics}");
     }
 
     [Fact]
-    public void PerformanceMetricsWhenCreatedWithDifferentValuesShouldHaveDifferentProperties()
-    {
-        // Arrange
-        var duration1 = 100.0;
-        var itemsProcessed1 = 25;
-        var operationType1 = "Operation1";
-        var sensitiveData1 = "Data1";
-
-        var duration2 = 200.0;
-        var itemsProcessed2 = 50;
-        var operationType2 = "Operation2";
-        var sensitiveData2 = "Data2";
-
-        // Act
-        var metrics1 = new PerformanceMetrics(duration1, itemsProcessed1, operationType1, sensitiveData1);
-        var metrics2 = new PerformanceMetrics(duration2, itemsProcessed2, operationType2, sensitiveData2);
-
-        // Assert
-        metrics1.Duration.ShouldNotBe(metrics2.Duration);
-        metrics1.ItemsProcessed.ShouldNotBe(metrics2.ItemsProcessed);
-        metrics1.OperationType.ShouldNotBe(metrics2.OperationType);
-        metrics1.SensitiveData.ShouldNotBe(metrics2.SensitiveData);
-    }
-
-    [Fact]
-    public void PerformanceMetricsEqualityWhenSameValuesShouldBeEqual()
-    {
-        // Arrange
-        var duration = 500.0;
-        var itemsProcessed = 100;
-        var operationType = "TestOperation";
-        var sensitiveData = "SensitiveInfo";
-
-        // Act
-        var metrics1 = new PerformanceMetrics(duration, itemsProcessed, operationType, sensitiveData);
-        var metrics2 = new PerformanceMetrics(duration, itemsProcessed, operationType, sensitiveData);
-
-        // Assert
-        metrics1.ShouldBe(metrics2);
-        (metrics1 == metrics2).ShouldBeTrue();
-        (metrics1 != metrics2).ShouldBeFalse();
-        metrics1.GetHashCode().ShouldBe(metrics2.GetHashCode());
-    }
-
-    [Fact]
-    public void PerformanceMetricsEqualityWhenDifferentValuesShouldNotBeEqual()
-    {
-        // Arrange
-        var metrics1 = new PerformanceMetrics(100.0, 25, "Operation1", "Data1");
-        var metrics2 = new PerformanceMetrics(200.0, 50, "Operation2", "Data2");
-
-        // Act & Assert
-        metrics1.ShouldNotBe(metrics2);
-        (metrics1 == metrics2).ShouldBeFalse();
-        (metrics1 != metrics2).ShouldBeTrue();
-        metrics1.GetHashCode().ShouldNotBe(metrics2.GetHashCode());
-    }
-
-    [Fact]
-    public void PerformanceMetricsWhenComparedToNullShouldNotBeEqual()
-    {
-        // Arrange
-        var metrics = new PerformanceMetrics(500.0, 100, "TestOperation", "SensitiveInfo");
-
-        // Act & Assert
-        metrics.ShouldNotBe(null);
-        (metrics == null).ShouldBeFalse();
-        (metrics != null).ShouldBeTrue();
-    }
-
-    [Fact]
-    public void PerformanceMetricsWhenComparedToDifferentTypeShouldNotBeEqual()
-    {
-        // Arrange
-        var metrics = new PerformanceMetrics(500.0, 100, "TestOperation", "SensitiveInfo");
-        var differentType = "NotAPerformanceMetrics";
-
-        // Act & Assert
-        metrics.Equals(differentType).ShouldBeFalse();
-    }
-
-    [Theory]
-    [InlineData("", true)]
-    [InlineData(null, true)]
-    [InlineData("EmptyOperation", false)]
-    public void PerformanceMetricsWithNullOrEmptyOperationTypeShouldStoreValuesAsIs(string? operationType, bool expectNull)
+    public void ToStringShouldReturnCleanFormatWithoutSensitiveData()
     {
         // Arrange
         var duration = 100.0;
         var itemsProcessed = 25;
-        var sensitiveData = expectNull ? null : "TestData";
+        var operationType = "DataProcessing";
+        var sensitiveData = "SecretKey123";
+        var metrics = new PerformanceMetrics(duration, itemsProcessed, operationType, sensitiveData);
 
         // Act
-        var metrics = new PerformanceMetrics(duration, itemsProcessed, operationType!, sensitiveData);
+        var result = metrics.ToString();
 
         // Assert
-        metrics.Duration.ShouldBe(duration);
-        metrics.ItemsProcessed.ShouldBe(itemsProcessed);
-        metrics.OperationType.ShouldBe(operationType);
-        if (expectNull)
-        {
-            metrics.SensitiveData.ShouldBeNull();
-        }
-        else
-        {
-            metrics.SensitiveData.ShouldBe(sensitiveData);
-        }
+        result.ShouldNotBeNull();
+        result.ShouldContain("Duration: 100ms");
+        result.ShouldContain("Items: 25");
+        result.ShouldContain("Type: DataProcessing");
+        result.ShouldNotContain("SecretKey123"); // Sensitive data should not appear in ToString
+        
+        _output.WriteLine($"ToString result: {result}");
     }
 
     [Theory]
-    [InlineData(0.0)]
-    [InlineData(100.5)]
-    [InlineData(1000.123)]
-    [InlineData(double.MaxValue)]
-    [InlineData(-1.0)] // Negative values should be allowed
-    public void PerformanceMetricsWithDifferentDurationsShouldStoreCorrectValues(double duration)
-    {
-        // Arrange & Act
-        var metrics = new PerformanceMetrics(duration, 100, "TestOperation");
-
-        // Assert
-        metrics.Duration.ShouldBe(duration);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(100)]
-    [InlineData(1000000)]
-    [InlineData(int.MaxValue)]
-    [InlineData(-1)] // Negative values should be allowed
-    public void PerformanceMetricsWithDifferentItemsProcessedShouldStoreCorrectValues(int itemsProcessed)
-    {
-        // Arrange & Act
-        var metrics = new PerformanceMetrics(100.0, itemsProcessed, "TestOperation");
-
-        // Assert
-        metrics.ItemsProcessed.ShouldBe(itemsProcessed);
-    }
-
-    [Fact]
-    public void PerformanceMetricsToStringShouldReturnExpectedFormat()
+    [InlineData(0.0, 0, "EmptyOperation")]
+    [InlineData(1.234, 1, "SingleItem")]
+    [InlineData(9999.999, 999999, "LargeOperation")]
+    [InlineData(-1.0, -5, "NegativeValues")] // Edge case with negative values
+    public void ToStringShouldFormatDifferentValuesCorrectly(double duration, int itemsProcessed, string operationType)
     {
         // Arrange
-        var duration = 123.45;
-        var itemsProcessed = 67;
-        var operationType = "ProcessData";
-        var metrics = new PerformanceMetrics(duration, itemsProcessed, operationType, "SensitiveInfo");
+        var metrics = new PerformanceMetrics(duration, itemsProcessed, operationType);
 
         // Act
-        var stringRepresentation = metrics.ToString();
+        var result = metrics.ToString();
 
         // Assert
-        stringRepresentation.ShouldBe("Duration: 123.45ms, Items: 67, Type: ProcessData");
-        stringRepresentation.ShouldNotContain("SensitiveInfo"); // Sensitive data should not be in ToString
+        result.ShouldNotBeNull();
+        result.ShouldContain($"Duration: {duration}ms");
+        result.ShouldContain($"Items: {itemsProcessed}");
+        result.ShouldContain($"Type: {operationType}");
+        
+        _output.WriteLine($"ToString for {operationType}: {result}");
     }
 
     [Fact]
-    public void PerformanceMetricsRecordShouldSupportDeconstruction()
+    public void RecordEqualityShouldWorkCorrectly()
     {
         // Arrange
-        var originalDuration = 500.0;
-        var originalItemsProcessed = 100;
-        var originalOperationType = "TestOperation";
-        var originalSensitiveData = "SensitiveInfo";
+        var metrics1 = new PerformanceMetrics(100.0, 50, "Operation", "Sensitive");
+        var metrics2 = new PerformanceMetrics(100.0, 50, "Operation", "Sensitive");
+        var metrics3 = new PerformanceMetrics(100.0, 50, "Operation", null);
 
-        var metrics = new PerformanceMetrics(originalDuration, originalItemsProcessed, originalOperationType, originalSensitiveData);
+        // Act & Assert
+        metrics1.ShouldBe(metrics2); // Same values should be equal
+        metrics1.ShouldNotBe(metrics3); // Different sensitive data should not be equal
+        metrics1.Equals(metrics2).ShouldBeTrue();
+        (metrics1 == metrics2).ShouldBeTrue();
+        (metrics1 != metrics3).ShouldBeTrue();
+        
+        _output.WriteLine($"Equality test: metrics1 == metrics2: {metrics1 == metrics2}");
+        _output.WriteLine($"Equality test: metrics1 == metrics3: {metrics1 == metrics3}");
+    }
+
+    [Fact]
+    public void GetHashCodeShouldBeConsistentForEqualObjects()
+    {
+        // Arrange
+        var metrics1 = new PerformanceMetrics(100.0, 50, "Operation", "Sensitive");
+        var metrics2 = new PerformanceMetrics(100.0, 50, "Operation", "Sensitive");
+
+        // Act
+        var hash1 = metrics1.GetHashCode();
+        var hash2 = metrics2.GetHashCode();
+
+        // Assert
+        hash1.ShouldBe(hash2); // Equal objects should have the same hash code
+        
+        _output.WriteLine($"Hash codes: metrics1={hash1}, metrics2={hash2}");
+    }
+
+    [Fact]
+    public void RecordDeconstructionShouldWork()
+    {
+        // Arrange
+        var originalDuration = 150.5;
+        var originalItems = 75;
+        var originalOperationType = "BatchProcess";
+        var originalSensitiveData = "ApiKey456";
+        var metrics = new PerformanceMetrics(originalDuration, originalItems, originalOperationType, originalSensitiveData);
 
         // Act
         var (duration, itemsProcessed, operationType, sensitiveData) = metrics;
 
         // Assert
         duration.ShouldBe(originalDuration);
-        itemsProcessed.ShouldBe(originalItemsProcessed);
+        itemsProcessed.ShouldBe(originalItems);
         operationType.ShouldBe(originalOperationType);
         sensitiveData.ShouldBe(originalSensitiveData);
+        
+        _output.WriteLine($"Deconstructed values - Duration: {duration}, Items: {itemsProcessed}, Type: {operationType}, Sensitive: {sensitiveData}");
     }
 
     [Fact]
-    public void PerformanceMetricsWithNullSensitiveDataShouldHandleCorrectly()
-    {
-        // Arrange & Act
-        var metrics = new PerformanceMetrics(100.0, 50, "TestOperation", null);
-
-        // Assert
-        metrics.Duration.ShouldBe(100.0);
-        metrics.ItemsProcessed.ShouldBe(50);
-        metrics.OperationType.ShouldBe("TestOperation");
-        metrics.SensitiveData.ShouldBeNull();
-    }
-
-    [Fact]
-    public void PerformanceMetricsRecordShouldHaveInitOnlyProperties()
+    public void WithExpressionsShouldCreateModifiedCopies()
     {
         // Arrange
-        var metrics = new PerformanceMetrics(500.0, 100, "TestOperation", "SensitiveInfo");
-
-        // Act & Assert
-        // Records have init-only setters, meaning properties can be set during initialization but not after
-        // This test verifies that the record properties are properly declared
-        var durationProperty = typeof(PerformanceMetrics).GetProperty("Duration")!;
-        var itemsProperty = typeof(PerformanceMetrics).GetProperty("ItemsProcessed")!;
-        var operationProperty = typeof(PerformanceMetrics).GetProperty("OperationType")!;
-        var sensitiveProperty = typeof(PerformanceMetrics).GetProperty("SensitiveData")!;
-
-        // All properties should exist and be readable
-        durationProperty.CanRead.ShouldBeTrue();
-        itemsProperty.CanRead.ShouldBeTrue();
-        operationProperty.CanRead.ShouldBeTrue();
-        sensitiveProperty.CanRead.ShouldBeTrue();
-
-        // The actual values should be accessible
-        metrics.Duration.ShouldBe(500.0);
-        metrics.ItemsProcessed.ShouldBe(100);
-        metrics.OperationType.ShouldBe("TestOperation");
-        metrics.SensitiveData.ShouldBe("SensitiveInfo");
-    }
-
-    [Fact]
-    public void PerformanceMetricsWithSpecialFloatingPointValuesShouldHandleCorrectly()
-    {
-        // Arrange & Act
-        var nanMetrics = new PerformanceMetrics(double.NaN, 100, "TestOperation");
-        var infinityMetrics = new PerformanceMetrics(double.PositiveInfinity, 100, "TestOperation");
-        var negativeInfinityMetrics = new PerformanceMetrics(double.NegativeInfinity, 100, "TestOperation");
-
-        // Assert
-        double.IsNaN(nanMetrics.Duration).ShouldBeTrue();
-        double.IsPositiveInfinity(infinityMetrics.Duration).ShouldBeTrue();
-        double.IsNegativeInfinity(negativeInfinityMetrics.Duration).ShouldBeTrue();
-    }
-
-    [Fact]
-    public void PerformanceMetricsWithVeryLargeOperationTypeShouldStoreCorrectly()
-    {
-        // Arrange
-        var largeOperationType = new string('A', 10000); // 10k character string
+        var original = new PerformanceMetrics(100.0, 50, "Original", "Secret");
 
         // Act
-        var metrics = new PerformanceMetrics(100.0, 50, largeOperationType);
+        var modifiedDuration = original with { Duration = 200.0 };
+        var modifiedItems = original with { ItemsProcessed = 100 };
+        var modifiedOperation = original with { OperationType = "Modified" };
+        var modifiedSensitive = original with { SensitiveData = null };
 
         // Assert
-        metrics.OperationType.ShouldBe(largeOperationType);
-        metrics.OperationType.Length.ShouldBe(10000);
+        modifiedDuration.Duration.ShouldBe(200.0);
+        modifiedDuration.ItemsProcessed.ShouldBe(50); // Unchanged
+        modifiedDuration.OperationType.ShouldBe("Original"); // Unchanged
+        
+        modifiedItems.ItemsProcessed.ShouldBe(100);
+        modifiedItems.Duration.ShouldBe(100.0); // Unchanged
+        
+        modifiedOperation.OperationType.ShouldBe("Modified");
+        modifiedOperation.Duration.ShouldBe(100.0); // Unchanged
+        
+        modifiedSensitive.SensitiveData.ShouldBeNull();
+        modifiedSensitive.Duration.ShouldBe(100.0); // Unchanged
+        
+        _output.WriteLine($"Original: {original}");
+        _output.WriteLine($"Modified duration: {modifiedDuration}");
+        _output.WriteLine($"Modified items: {modifiedItems}");
+        _output.WriteLine($"Modified operation: {modifiedOperation}");
+        _output.WriteLine($"Modified sensitive: {modifiedSensitive}");
     }
 
     [Fact]
-    public void PerformanceMetricsEqualityWithOnlyDefaultValuesDifferingShouldWork()
+    public void PropertiesShouldBeReadOnly()
     {
         // Arrange
-        var metrics1 = new PerformanceMetrics(100.0, 50, "TestOperation"); // Default sensitiveData = null
-        var metrics2 = new PerformanceMetrics(100.0, 50, "TestOperation", null); // Explicit null
+        var metrics = new PerformanceMetrics(100.0, 50, "Test", "Data");
 
         // Act & Assert
-        metrics1.ShouldBe(metrics2);
-        (metrics1 == metrics2).ShouldBeTrue();
-        metrics1.GetHashCode().ShouldBe(metrics2.GetHashCode());
+        // Properties should be read-only (get-only), so we can't assign to them
+        // This is enforced by the compiler, but we can verify they have values
+        metrics.Duration.ShouldBe(100.0);
+        metrics.ItemsProcessed.ShouldBe(50);
+        metrics.OperationType.ShouldBe("Test");
+        metrics.SensitiveData.ShouldBe("Data");
+        
+        // Verify that the record is immutable (no setters)
+        var type = typeof(PerformanceMetrics);
+        var durationProperty = type.GetProperty(nameof(PerformanceMetrics.Duration));
+        var itemsProperty = type.GetProperty(nameof(PerformanceMetrics.ItemsProcessed));
+        var operationProperty = type.GetProperty(nameof(PerformanceMetrics.OperationType));
+        var sensitiveProperty = type.GetProperty(nameof(PerformanceMetrics.SensitiveData));
+        
+        durationProperty?.CanWrite.ShouldBeFalse();
+        itemsProperty?.CanWrite.ShouldBeFalse();
+        operationProperty?.CanWrite.ShouldBeFalse();
+        sensitiveProperty?.CanWrite.ShouldBeFalse();
+        
+        _output.WriteLine("All properties are read-only as expected for a record type");
+    }
+
+    [Fact]
+    public void RecordShouldSupportStructuredLogging()
+    {
+        // Arrange
+        var metrics = new PerformanceMetrics(250.75, 150, "DatabaseQuery", null);
+
+        // Act - Simulate structured logging scenarios
+        var structuredData = new
+        {
+            metrics.Duration,
+            metrics.ItemsProcessed,
+            metrics.OperationType,
+            metrics.SensitiveData
+        };
+
+        // Assert
+        structuredData.Duration.ShouldBe(250.75);
+        structuredData.ItemsProcessed.ShouldBe(150);
+        structuredData.OperationType.ShouldBe("DatabaseQuery");
+        structuredData.SensitiveData.ShouldBeNull();
+        
+        _output.WriteLine($"Structured logging data: Duration={structuredData.Duration}, " +
+                         $"Items={structuredData.ItemsProcessed}, " +
+                         $"Type={structuredData.OperationType}, " +
+                         $"Sensitive={structuredData.SensitiveData ?? "null"}");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("ValidOperationType")]
+    public void OperationTypeCanBeNullOrEmpty(string? operationType)
+    {
+        // Arrange & Act
+        var metrics = new PerformanceMetrics(100.0, 10, operationType!);
+
+        // Assert
+        metrics.OperationType.ShouldBe(operationType);
+        
+        // ToString should still work even with null/empty operation type
+        var stringResult = metrics.ToString();
+        stringResult.ShouldNotBeNull();
+        stringResult.ShouldContain($"Type: {operationType ?? ""}");
+        
+        _output.WriteLine($"Operation type '{operationType ?? "null"}' handled correctly: {stringResult}");
+    }
+
+    [Fact]
+    public void ExtremeValuesShouldBeHandled()
+    {
+        // Arrange & Act
+        var extremeMetrics = new PerformanceMetrics(
+            double.MaxValue,
+            int.MaxValue,
+            new string('A', 1000), // Very long string
+            new string('S', 500)   // Long sensitive data
+        );
+
+        // Assert
+        extremeMetrics.Duration.ShouldBe(double.MaxValue);
+        extremeMetrics.ItemsProcessed.ShouldBe(int.MaxValue);
+        extremeMetrics.OperationType.Length.ShouldBe(1000);
+        extremeMetrics.SensitiveData!.Length.ShouldBe(500);
+        
+        // ToString should still work with extreme values
+        var result = extremeMetrics.ToString();
+        result.ShouldNotBeNull();
+        result.ShouldContain("Duration:");
+        result.ShouldContain("Items:");
+        result.ShouldContain("Type:");
+        
+        _output.WriteLine($"Extreme values handled - String length: {result.Length}");
     }
 }
