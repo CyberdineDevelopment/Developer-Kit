@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -96,12 +97,12 @@ public sealed class ITaskExecutionContextTests
     public void TaskExecutionContextShouldHaveProperties()
     {
         // Arrange
-        var properties = new Dictionary<string, object>
+        var properties = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
         {
             ["scheduler"] = "TestScheduler",
             ["environment"] = "Development",
             ["retry_count"] = 0
-        };
+        });
         
         var mockContext = new Mock<ITaskExecutionContext>();
         mockContext.Setup(x => x.Properties).Returns(properties);
@@ -236,15 +237,15 @@ public sealed class ITaskExecutionContextTests
         var mockContext = new Mock<ITaskExecutionContext>();
         var mockServiceProvider = new Mock<IServiceProvider>();
         var mockMetrics = new Mock<ITaskExecutionMetrics>();
-        var properties = new Dictionary<string, object>
+        var properties = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
         {
             ["scheduler"] = "TestScheduler"
-        } as IReadOnlyDictionary<string, object>;
+        });
 
         mockContext.Setup(x => x.ExecutionId).Returns("exec-123");
         mockContext.Setup(x => x.ScheduledTime).Returns(new DateTimeOffset(2025, 1, 20, 10, 0, 0, TimeSpan.Zero));
         mockContext.Setup(x => x.StartTime).Returns(new DateTimeOffset(2025, 1, 20, 10, 0, 1, TimeSpan.Zero));
-        mockContext.Setup(x => x.CancellationToken).Returns(CancellationToken.None);
+        mockContext.Setup(x => x.CancellationToken).Returns(new CancellationTokenSource().Token);
         mockContext.Setup(x => x.ServiceProvider).Returns(mockServiceProvider.Object);
         mockContext.Setup(x => x.Metrics).Returns(mockMetrics.Object);
         mockContext.Setup(x => x.Properties).Returns(properties);
