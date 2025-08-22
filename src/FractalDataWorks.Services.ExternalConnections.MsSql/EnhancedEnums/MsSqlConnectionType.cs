@@ -11,6 +11,9 @@ using FractalDataWorks.Services;
 using Microsoft.Extensions.Logging;
 
 namespace FractalDataWorks.Services.ExternalConnections.MsSql.EnhancedEnums;
+/// <summary>
+/// Represents a Microsoft SQL Server external connection type.
+/// </summary>
 
 /// <summary>
 /// Enhanced enum type for Microsoft SQL Server external connection service.
