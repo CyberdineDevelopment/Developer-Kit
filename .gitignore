@@ -330,3 +330,5 @@ Help/
 # GitVersion
 GitVersion.yml.bak
 /.claude/tasks
+# Claude Code workspace files
+.claude/
