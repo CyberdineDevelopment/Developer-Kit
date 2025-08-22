@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using FractalDataWorks.EnhancedEnums;
 using FractalDataWorks.EnhancedEnums.Attributes;
 
@@ -107,7 +108,7 @@ public abstract class MessageBase : EnumOptionBase<MessageBase>, IFdwMessage
     {
         if (args?.Length > 0)
         {
-            return string.Format(Message, args);
+            return string.Format(CultureInfo.InvariantCulture, Message, args);
         }
         return Message;
     }
